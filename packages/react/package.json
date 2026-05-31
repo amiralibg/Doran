@@ -1,0 +1,71 @@
+{
+  "name": "@doran/react",
+  "version": "0.1.0",
+  "description": "RTL-first, accessible React calendar and date-picker components for the Persian calendar.",
+  "license": "MIT",
+  "author": "Doran Contributors",
+  "homepage": "https://github.com/amiralibg/Doran/tree/main/packages/react#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amiralibg/Doran.git",
+    "directory": "packages/react"
+  },
+  "bugs": {
+    "url": "https://github.com/amiralibg/Doran/issues"
+  },
+  "keywords": [
+    "persian",
+    "jalali",
+    "react",
+    "calendar",
+    "datepicker",
+    "rtl",
+    "accessible"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo coverage"
+  },
+  "dependencies": {
+    "@doran/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@doran/ui": "workspace:*",
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@doran/ui": "workspace:*",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

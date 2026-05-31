@@ -1,0 +1,262 @@
+/**
+ * Doran React component styles. Requires the design tokens from `@doran/ui/styles.css`.
+ * Import both once at your app root.
+ */
+
+.doran-calendar {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--doran-space-sm);
+  padding: var(--doran-space-md);
+  background: var(--doran-surface);
+  border: 1px solid var(--doran-border);
+  border-radius: var(--doran-radius-lg);
+  box-shadow: var(--doran-shadow-sm);
+  font-family: var(--doran-font-sans);
+  color: var(--doran-text);
+  width: 300px;
+}
+
+.doran-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.doran-calendar__heading {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.doran-calendar__footer {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--doran-space-xs);
+}
+
+.doran-month {
+  display: flex;
+  flex-direction: column;
+}
+
+.doran-month__weekdays,
+.doran-month__week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.doran-month__weekday {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--doran-text-muted);
+  padding: var(--doran-space-xs) 0;
+}
+
+.doran-month__cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+}
+
+.doran-month__spacer {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.doran-day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  border-radius: var(--doran-radius-full);
+  color: var(--doran-text);
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.doran-day:not(:disabled):hover {
+  background: var(--doran-surface-muted);
+}
+
+.doran-day:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--doran-focus-ring);
+}
+
+.doran-day:disabled {
+  color: var(--doran-text-muted);
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.doran-day--outside {
+  color: var(--doran-text-muted);
+  opacity: 0.55;
+}
+
+.doran-day--today {
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px var(--doran-border);
+}
+
+.doran-day--selected,
+.doran-day--range-start,
+.doran-day--range-end {
+  background: var(--doran-primary);
+  color: var(--doran-primary-contrast);
+}
+
+.doran-day--selected:hover,
+.doran-day--range-start:hover,
+.doran-day--range-end:hover {
+  background: var(--doran-primary-hover);
+}
+
+.doran-day--in-range {
+  background: var(--doran-surface-muted);
+  border-radius: 0;
+}
+
+/* Date picker */
+.doran-datepicker {
+  position: relative;
+  display: inline-block;
+  font-family: var(--doran-font-sans);
+}
+
+.doran-datepicker__input {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--doran-space-sm);
+  min-width: 180px;
+  height: 38px;
+  padding: 0 var(--doran-space-md);
+  background: var(--doran-surface);
+  color: var(--doran-text);
+  border: 1px solid var(--doran-border);
+  border-radius: var(--doran-radius-md);
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.doran-datepicker__input:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--doran-focus-ring);
+}
+
+.doran-datepicker__placeholder {
+  color: var(--doran-text-muted);
+}
+
+.doran-datepicker__popover {
+  position: absolute;
+  z-index: 50;
+  margin-top: var(--doran-space-xs);
+  inset-inline-start: 0;
+}
+
+/* Range picker */
+.doran-rangepicker {
+  width: 320px;
+}
+
+.doran-rangepicker__footer {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.doran-rangepicker__summary {
+  font-size: 0.82rem;
+  color: var(--doran-text-muted);
+}
+
+/* Agenda */
+.doran-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: var(--doran-space-sm);
+  font-family: var(--doran-font-sans);
+  color: var(--doran-text);
+}
+
+.doran-agenda__day {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: var(--doran-space-md);
+  padding: var(--doran-space-sm);
+  border: 1px solid var(--doran-border);
+  border-radius: var(--doran-radius-md);
+  background: var(--doran-surface);
+}
+
+.doran-agenda__day--weekend {
+  background: var(--doran-surface-muted);
+}
+
+.doran-agenda__date {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: start;
+  font-family: inherit;
+  color: inherit;
+}
+
+.doran-agenda__weekday {
+  font-weight: 600;
+}
+
+.doran-agenda__daynum {
+  font-size: 0.8rem;
+  color: var(--doran-text-muted);
+}
+
+.doran-agenda__events {
+  display: flex;
+  flex-direction: column;
+  gap: var(--doran-space-xs);
+}
+
+.doran-agenda__empty {
+  font-size: 0.82rem;
+  color: var(--doran-text-muted);
+}
+
+.doran-agenda__event {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--doran-space-sm);
+}
+
+.doran-agenda__marker {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--doran-radius-full);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.doran-agenda__event-title {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.doran-agenda__event-desc {
+  font-size: 0.8rem;
+  color: var(--doran-text-muted);
+}
