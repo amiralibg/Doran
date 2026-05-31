@@ -59,6 +59,12 @@ importers:
 
   packages/core: {}
 
+  packages/nlp:
+    dependencies:
+      '@doran/core':
+        specifier: workspace:*
+        version: link:../core
+
 packages:
 
   '@ampproject/remapping@2.3.0':
