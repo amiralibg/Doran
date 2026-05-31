@@ -1,0 +1,27 @@
+{
+  "name": "doran-example-react",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@doran/core": "workspace:*",
+    "@doran/holidays": "workspace:*",
+    "@doran/nlp": "workspace:*",
+    "@doran/react": "workspace:*",
+    "@doran/ui": "workspace:*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.7"
+  }
+}
