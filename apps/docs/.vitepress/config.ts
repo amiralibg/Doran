@@ -4,6 +4,8 @@ export default defineConfig({
   title: 'Doran',
   description: 'The Open Source Persian Calendar Ecosystem',
   lang: 'en-US',
+  // Served from https://amiralibg.github.io/Doran/ — assets need this base path.
+  base: '/Doran/',
   lastUpdated: true,
   cleanUrls: true,
 
