@@ -59,6 +59,12 @@ importers:
 
   packages/core: {}
 
+  packages/holidays:
+    dependencies:
+      '@doran/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/nlp:
     dependencies:
       '@doran/core':
