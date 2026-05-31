@@ -1,5 +1,5 @@
 ---
-'@doranjs/holidays': minor
+'@doranjs/holidays': patch
 ---
 
 Initial release of `@doranjs/holidays`: exact solar (Jalali) national/cultural holidays,

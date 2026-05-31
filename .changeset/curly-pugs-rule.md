@@ -1,5 +1,5 @@
 ---
-'@doranjs/core': minor
+'@doranjs/core': patch
 ---
 
 Initial release of `@doranjs/core`: the immutable `DoranDate` engine with accurate

@@ -32,9 +32,6 @@ jobs:
       - name: Build docs
         run: pnpm --filter @doranjs/docs build
       - uses: actions/configure-pages@v5
-        with:
-          # Auto-create the Pages site on first run so the workflow is self-enabling.
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: apps/docs/.vitepress/dist

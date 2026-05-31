@@ -1,6 +1,6 @@
 ---
-'@doranjs/ui': minor
-'@doranjs/react': minor
+'@doranjs/ui': patch
+'@doranjs/react': patch
 ---
 
 Initial release of the UI layer:

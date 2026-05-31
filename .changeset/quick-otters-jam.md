@@ -1,5 +1,5 @@
 ---
-'@doranjs/nlp': minor
+'@doranjs/nlp': patch
 ---
 
 Initial release of `@doranjs/nlp`: a modular, extensible Persian natural-language date
