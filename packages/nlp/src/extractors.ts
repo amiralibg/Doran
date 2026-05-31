@@ -1,4 +1,4 @@
-import { DoranDate } from '@doran/core';
+import { DoranDate } from '@doranjs/core';
 import {
   FUTURE_WORDS,
   MONTH_ANCHORS,

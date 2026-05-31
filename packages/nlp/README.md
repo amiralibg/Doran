@@ -1,4 +1,4 @@
-# @doran/nlp
+# @doranjs/nlp
 
 > Persian natural-language date parsing for the Solar Hijri calendar.
 
@@ -8,13 +8,13 @@ into precise [`DoranDate`](../core) values, with a confidence score.
 ## Install
 
 ```bash
-pnpm add @doran/nlp @doran/core
+pnpm add @doranjs/nlp @doranjs/core
 ```
 
 ## Usage
 
 ```ts
-import { parse } from '@doran/nlp';
+import { parse } from '@doranjs/nlp';
 
 parse('جمعه ساعت ۷ شب');
 // → { date: DoranDate, confidence: 0.98, matched: 'جمعه ساعت 7 شب' }
@@ -27,7 +27,7 @@ parse('نوروز سال آینده');
 Pass a `reference` date to resolve relative expressions deterministically:
 
 ```ts
-import { DoranDate } from '@doran/core';
+import { DoranDate } from '@doranjs/core';
 
 parse('فردا', { reference: DoranDate.fromJalali(1405, 1, 1) });
 ```
@@ -55,7 +55,7 @@ The parser is a small, modular pipeline:
 It is fully extensible — register your own rules without forking the defaults:
 
 ```ts
-import { Parser } from '@doran/nlp';
+import { Parser } from '@doranjs/nlp';
 
 const parser = new Parser();
 parser.useDay((ctx) => (/تعطیلات/.test(ctx.text) ? resolveHoliday(ctx) : null));

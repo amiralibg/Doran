@@ -1,14 +1,14 @@
-import { DoranDate } from '@doran/core';
-import { getHolidays } from '@doran/holidays';
-import { parse } from '@doran/nlp';
+import { DoranDate } from '@doranjs/core';
+import { getHolidays } from '@doranjs/holidays';
+import { parse } from '@doranjs/nlp';
 import {
   DoranAgenda,
   DoranCalendar,
   DoranDatePicker,
   DoranRangePicker,
   type AgendaEvent,
-} from '@doran/react';
-import { Button, ThemeProvider, useTheme } from '@doran/ui';
+} from '@doranjs/react';
+import { Button, ThemeProvider, useTheme } from '@doranjs/ui';
 import { useMemo, useState } from 'react';
 
 export function App() {

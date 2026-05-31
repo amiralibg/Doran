@@ -34,7 +34,7 @@ export interface ThemeProviderProps {
 
 /**
  * Provides theme context and applies the Doran design-token attributes. Wrap your app
- * (or a subtree) with it and import `@doran/ui/styles.css` once at the root.
+ * (or a subtree) with it and import `@doranjs/ui/styles.css` once at the root.
  */
 export function ThemeProvider({
   children,

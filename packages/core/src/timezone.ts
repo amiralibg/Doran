@@ -1,5 +1,5 @@
 /**
- * Time-zone utilities built entirely on the standard `Intl` API, so `@doran/core`
+ * Time-zone utilities built entirely on the standard `Intl` API, so `@doranjs/core`
  * stays dependency-free while still supporting any IANA time zone.
  *
  * The model: a `DoranDate` is an absolute instant (epoch milliseconds) plus an IANA

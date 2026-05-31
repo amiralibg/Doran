@@ -1,4 +1,4 @@
-# @doran/core
+# @doranjs/core
 
 The immutable Solar Hijri date engine. Zero runtime dependencies.
 
@@ -81,7 +81,7 @@ Wrap literal text in `[brackets]`.
 ## Parsing
 
 ```ts
-import { parseJalali } from '@doran/core';
+import { parseJalali } from '@doranjs/core';
 
 parseJalali('1405/03/11');
 parseJalali('۱۴۰۵-۰۳-۱۱ ۰۷:۳۰');
@@ -103,11 +103,11 @@ gregorianWeekday(gy, gm, gd); // 0 = Saturday
 ## Locales
 
 ```ts
-import { faIR, enUS, registerLocale, setDefaultLocale } from '@doran/core';
+import { faIR, enUS, registerLocale, setDefaultLocale } from '@doranjs/core';
 ```
 
 ## Digit utilities
 
 ```ts
-import { toPersianDigits, toLatinDigits, normalizeDigits } from '@doran/core';
+import { toPersianDigits, toLatinDigits, normalizeDigits } from '@doranjs/core';
 ```

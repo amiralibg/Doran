@@ -8,7 +8,7 @@ export default defineConfig({
   clean: true,
   treeshake: true,
   target: 'es2022',
-  external: ['react', 'react-dom', '@doran/ui', '@doran/core'],
+  external: ['react', 'react-dom', '@doranjs/ui', '@doranjs/core'],
   onSuccess: 'cp src/styles.css dist/styles.css',
   outExtension({ format }) {
     return { js: format === 'cjs' ? '.cjs' : '.js' };

@@ -27,7 +27,7 @@ This project and everyone participating in it is governed by the
 ## Monorepo layout
 
 ```
-packages/   publishable libraries (@doran/*)
+packages/   publishable libraries (@doranjs/*)
 apps/       the documentation site
 examples/   reference integrations (react, nextjs, tauri)
 playground/ local experiments
@@ -40,8 +40,8 @@ Each package builds with [tsup](https://tsup.egoist.dev/) and tests with
 
 ```bash
 pnpm dev                       # watch all packages
-pnpm --filter @doran/core test # run one package's tests
-pnpm --filter @doran/core test:watch
+pnpm --filter @doranjs/core test # run one package's tests
+pnpm --filter @doranjs/core test:watch
 pnpm lint && pnpm typecheck    # before pushing
 ```
 

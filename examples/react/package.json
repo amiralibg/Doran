@@ -10,11 +10,11 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
-    "@doran/core": "workspace:*",
-    "@doran/holidays": "workspace:*",
-    "@doran/nlp": "workspace:*",
-    "@doran/react": "workspace:*",
-    "@doran/ui": "workspace:*",
+    "@doranjs/core": "workspace:*",
+    "@doranjs/holidays": "workspace:*",
+    "@doranjs/nlp": "workspace:*",
+    "@doranjs/react": "workspace:*",
+    "@doranjs/ui": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

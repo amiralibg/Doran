@@ -1,9 +1,9 @@
 /**
- * `@doran/ui` — a minimal, accessible, themeable design system.
+ * `@doranjs/ui` — a minimal, accessible, themeable design system.
  *
  * Import the stylesheet once at your app root:
  * ```ts
- * import '@doran/ui/styles.css';
+ * import '@doranjs/ui/styles.css';
  * ```
  *
  * @packageDocumentation

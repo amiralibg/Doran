@@ -1,10 +1,10 @@
-# @doran/react
+# @doranjs/react
 
 RTL-first, accessible React calendar components.
 
 ```ts
-import '@doran/ui/styles.css';
-import '@doran/react/styles.css';
+import '@doranjs/ui/styles.css';
+import '@doranjs/react/styles.css';
 ```
 
 ## Components
@@ -18,7 +18,7 @@ import '@doran/react/styles.css';
 | `DoranAgenda`      | Vertical day-by-day agenda with events              |
 
 ```tsx
-import { DoranCalendar, DoranDatePicker } from '@doran/react';
+import { DoranCalendar, DoranDatePicker } from '@doranjs/react';
 
 <DoranCalendar defaultValue={DoranDate.now()} onChange={(d) => ...} />
 <DoranDatePicker placeholder="انتخاب تاریخ" />
@@ -27,7 +27,7 @@ import { DoranCalendar, DoranDatePicker } from '@doran/react';
 ## Headless primitives
 
 ```tsx
-import { useCalendar, useDateRange, buildMonthGrid } from '@doran/react';
+import { useCalendar, useDateRange, buildMonthGrid } from '@doranjs/react';
 
 const { grid, goToNextMonth, select, isSelected } = useCalendar();
 const grid = buildMonthGrid(1405, 3); // pure, no React

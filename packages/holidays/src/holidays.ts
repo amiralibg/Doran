@@ -1,4 +1,4 @@
-import { type DoranDate, jalaliToJdn, jdnToJalali } from '@doran/core';
+import { type DoranDate, jalaliToJdn, jdnToJalali } from '@doranjs/core';
 import { LUNAR_HOLIDAYS, SOLAR_HOLIDAYS } from './data';
 import { hijriToJdn, jdnToHijri } from './hijri';
 import type { GetHolidaysOptions, Holiday, LunarHolidayDef, SolarHolidayDef } from './types';

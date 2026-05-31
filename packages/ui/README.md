@@ -1,4 +1,4 @@
-# @doran/ui
+# @doranjs/ui
 
 > Minimal, accessible, themeable design system for the Doran ecosystem.
 
@@ -7,14 +7,14 @@ Elegant, RTL-first primitives and design tokens inspired by Linear, Notion, and 
 ## Install
 
 ```bash
-pnpm add @doran/ui react react-dom
+pnpm add @doranjs/ui react react-dom
 ```
 
 ## Usage
 
 ```tsx
-import '@doran/ui/styles.css';
-import { ThemeProvider, Button, useTheme } from '@doran/ui';
+import '@doranjs/ui/styles.css';
+import { ThemeProvider, Button, useTheme } from '@doranjs/ui';
 
 function App() {
   return (

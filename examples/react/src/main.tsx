@@ -1,5 +1,5 @@
-import '@doran/ui/styles.css';
-import '@doran/react/styles.css';
+import '@doranjs/ui/styles.css';
+import '@doranjs/react/styles.css';
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

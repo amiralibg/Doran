@@ -1,9 +1,9 @@
 /**
- * `@doran/react` — RTL-first, accessible React components for the Persian calendar.
+ * `@doranjs/react` — RTL-first, accessible React components for the Persian calendar.
  *
  * Import the stylesheet once at your app root:
  * ```ts
- * import '@doran/react/styles.css';
+ * import '@doranjs/react/styles.css';
  * ```
  *
  * @packageDocumentation

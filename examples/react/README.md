@@ -1,7 +1,7 @@
 # Doran — React Example
 
-A Vite + React playground showcasing `@doran/core`, `@doran/nlp`, `@doran/holidays`,
-`@doran/react`, and `@doran/ui` together.
+A Vite + React playground showcasing `@doranjs/core`, `@doranjs/nlp`, `@doranjs/holidays`,
+`@doranjs/react`, and `@doranjs/ui` together.
 
 ```bash
 pnpm install

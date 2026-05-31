@@ -15,11 +15,11 @@ export default defineConfig({
       {
         text: 'Packages',
         items: [
-          { text: '@doran/core', link: '/api/core' },
-          { text: '@doran/nlp', link: '/api/nlp' },
-          { text: '@doran/holidays', link: '/api/holidays' },
-          { text: '@doran/react', link: '/api/react' },
-          { text: '@doran/ui', link: '/api/ui' },
+          { text: '@doranjs/core', link: '/api/core' },
+          { text: '@doranjs/nlp', link: '/api/nlp' },
+          { text: '@doranjs/holidays', link: '/api/holidays' },
+          { text: '@doranjs/react', link: '/api/react' },
+          { text: '@doranjs/ui', link: '/api/ui' },
         ],
       },
     ],
@@ -39,11 +39,11 @@ export default defineConfig({
         {
           text: 'API Reference',
           items: [
-            { text: '@doran/core', link: '/api/core' },
-            { text: '@doran/nlp', link: '/api/nlp' },
-            { text: '@doran/holidays', link: '/api/holidays' },
-            { text: '@doran/react', link: '/api/react' },
-            { text: '@doran/ui', link: '/api/ui' },
+            { text: '@doranjs/core', link: '/api/core' },
+            { text: '@doranjs/nlp', link: '/api/nlp' },
+            { text: '@doranjs/holidays', link: '/api/holidays' },
+            { text: '@doranjs/react', link: '/api/react' },
+            { text: '@doranjs/ui', link: '/api/ui' },
           ],
         },
       ],

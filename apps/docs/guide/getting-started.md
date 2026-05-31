@@ -8,15 +8,15 @@ Install only what you need — every package is independent and tree-shakeable.
 ::: code-group
 
 ```bash [pnpm]
-pnpm add @doran/core
+pnpm add @doranjs/core
 ```
 
 ```bash [npm]
-npm install @doran/core
+npm install @doranjs/core
 ```
 
 ```bash [yarn]
-yarn add @doran/core
+yarn add @doranjs/core
 ```
 
 :::
@@ -24,14 +24,14 @@ yarn add @doran/core
 The other packages build on the core:
 
 ```bash
-pnpm add @doran/nlp @doran/holidays      # logic
-pnpm add @doran/react @doran/ui react react-dom  # UI
+pnpm add @doranjs/nlp @doranjs/holidays      # logic
+pnpm add @doranjs/react @doranjs/ui react react-dom  # UI
 ```
 
 ## Your first date
 
 ```ts
-import { DoranDate } from '@doran/core';
+import { DoranDate } from '@doranjs/core';
 
 const today = DoranDate.now();
 
@@ -63,7 +63,7 @@ tehran.withLocale('en-US').format('dddd D MMMM YYYY'); // Latin output
 ## Parsing natural language
 
 ```ts
-import { parse } from '@doran/nlp';
+import { parse } from '@doranjs/nlp';
 
 parse('جمعه ساعت ۷ شب'); // { date: DoranDate, confidence: 0.98, matched: '...' }
 ```

@@ -1,11 +1,11 @@
-# @doran/nlp
+# @doranjs/nlp
 
-Persian natural-language date parsing, built on `@doran/core`.
+Persian natural-language date parsing, built on `@doranjs/core`.
 
 ## `parse`
 
 ```ts
-import { parse } from '@doran/nlp';
+import { parse } from '@doranjs/nlp';
 
 parse('فردا');
 parse('جمعه ساعت ۷ شب'); // → { date: DoranDate, confidence: 0.98, matched: '...' }
@@ -29,7 +29,7 @@ in `options` to control resolution.
 ## Extensible parser
 
 ```ts
-import { Parser } from '@doran/nlp';
+import { Parser } from '@doranjs/nlp';
 
 const parser = new Parser();
 parser.useDay((ctx) => (/تعطیلات/.test(ctx.text) ? resolveHoliday(ctx) : null));

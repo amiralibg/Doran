@@ -19,22 +19,22 @@ components, and a design system — all tree-shakeable, strongly typed, and immu
 
 ## Packages
 
-| Package                                  | Description                                            | Status |
-| ---------------------------------------- | ------------------------------------------------------ | ------ |
-| [`@doran/core`](./packages/core)         | Immutable `DoranDate`, conversions, arithmetic, format | ✅     |
-| [`@doran/nlp`](./packages/nlp)           | Persian natural-language date parsing                  | ✅     |
-| [`@doran/holidays`](./packages/holidays) | Iranian official & religious holidays                  | ✅     |
-| [`@doran/react`](./packages/react)       | RTL-first, accessible React calendar components        | 🚧     |
-| [`@doran/ui`](./packages/ui)             | Minimal, themeable design system                       | 🚧     |
+| Package                                    | Description                                            | Status |
+| ------------------------------------------ | ------------------------------------------------------ | ------ |
+| [`@doranjs/core`](./packages/core)         | Immutable `DoranDate`, conversions, arithmetic, format | ✅     |
+| [`@doranjs/nlp`](./packages/nlp)           | Persian natural-language date parsing                  | ✅     |
+| [`@doranjs/holidays`](./packages/holidays) | Iranian official & religious holidays                  | ✅     |
+| [`@doranjs/react`](./packages/react)       | RTL-first, accessible React calendar components        | 🚧     |
+| [`@doranjs/ui`](./packages/ui)             | Minimal, themeable design system                       | 🚧     |
 
 ## Quick start
 
 ```bash
-pnpm add @doran/core
+pnpm add @doranjs/core
 ```
 
 ```ts
-import { DoranDate } from '@doran/core';
+import { DoranDate } from '@doranjs/core';
 
 const today = DoranDate.now();
 
@@ -66,12 +66,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full contributor guide.
 Doran follows domain-driven package boundaries with strict dependency direction:
 
 ```
-@doran/ui      @doran/react ─┐
-                             ├──▶ @doran/core ◀── @doran/nlp
-@doran/holidays ─────────────┘
+@doranjs/ui      @doranjs/react ─┐
+                             ├──▶ @doranjs/core ◀── @doranjs/nlp
+@doranjs/holidays ─────────────┘
 ```
 
-`@doran/core` has zero runtime dependencies and no knowledge of UI, locale data lives at
+`@doranjs/core` has zero runtime dependencies and no knowledge of UI, locale data lives at
 the edges, and every public type is exported. Read the full
 [architecture guide](./apps/docs/guide/architecture.md).
 

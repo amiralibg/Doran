@@ -7,14 +7,14 @@ typed surface.
 ## Dependency graph
 
 ```
-@doran/ui      @doran/react ─┐
-                             ├──▶ @doran/core ◀── @doran/nlp
-@doran/holidays ─────────────┘
+@doranjs/ui      @doranjs/react ─┐
+                             ├──▶ @doranjs/core ◀── @doranjs/nlp
+@doranjs/holidays ─────────────┘
 ```
 
-- **`@doran/core`** has **zero runtime dependencies** and no knowledge of UI.
-- **`@doran/nlp`**, **`@doran/holidays`**, and **`@doran/react`** depend only on the core.
-- **`@doran/react`** uses **`@doran/ui`** for theming and primitives.
+- **`@doranjs/core`** has **zero runtime dependencies** and no knowledge of UI.
+- **`@doranjs/nlp`**, **`@doranjs/holidays`**, and **`@doranjs/react`** depend only on the core.
+- **`@doranjs/react`** uses **`@doranjs/ui`** for theming and primitives.
 
 ## Core design decisions
 

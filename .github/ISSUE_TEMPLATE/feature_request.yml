@@ -8,11 +8,11 @@ body:
     attributes:
       label: Target package
       options:
-        - '@doran/core'
-        - '@doran/nlp'
-        - '@doran/holidays'
-        - '@doran/react'
-        - '@doran/ui'
+        - '@doranjs/core'
+        - '@doranjs/nlp'
+        - '@doranjs/holidays'
+        - '@doranjs/react'
+        - '@doranjs/ui'
         - 'New package / cross-cutting'
     validations:
       required: true

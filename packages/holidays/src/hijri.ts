@@ -8,7 +8,7 @@
  * approximate. For day-precise official dates, register them explicitly.
  */
 
-import { gregorianToJdn } from '@doran/core';
+import { gregorianToJdn } from '@doranjs/core';
 
 /** Day-offset of a tabular Hijri date from the calendar's (uncalibrated) origin. */
 function hijriOffset(year: number, month: number, day: number): number {

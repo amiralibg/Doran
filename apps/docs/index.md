@@ -37,11 +37,11 @@ features:
 ## Quick start
 
 ```bash
-pnpm add @doran/core
+pnpm add @doranjs/core
 ```
 
 ```ts
-import { DoranDate } from '@doran/core';
+import { DoranDate } from '@doranjs/core';
 
 const today = DoranDate.now();
 

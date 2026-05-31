@@ -1,5 +1,5 @@
 /**
- * `@doran/core` — the immutable Solar Hijri (Persian / Jalali) date engine.
+ * `@doranjs/core` — the immutable Solar Hijri (Persian / Jalali) date engine.
  *
  * @packageDocumentation
  */

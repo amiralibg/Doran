@@ -1,4 +1,4 @@
-import { normalizeDigits } from '@doran/core';
+import { normalizeDigits } from '@doranjs/core';
 
 /** Persian cardinal number words for 0–19. */
 const ONES: Record<string, number> = {

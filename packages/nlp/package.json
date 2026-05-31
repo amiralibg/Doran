@@ -1,5 +1,5 @@
 {
-  "name": "@doran/nlp",
+  "name": "@doranjs/nlp",
   "version": "0.1.0",
   "description": "Persian natural-language date parsing for the Solar Hijri calendar.",
   "license": "MIT",
@@ -53,6 +53,6 @@
     "clean": "rm -rf dist .turbo coverage"
   },
   "dependencies": {
-    "@doran/core": "workspace:*"
+    "@doranjs/core": "workspace:*"
   }
 }

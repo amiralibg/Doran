@@ -1,4 +1,4 @@
-import type { DoranDate, DoranDateOptions } from '@doran/core';
+import type { DoranDate, DoranDateOptions } from '@doranjs/core';
 
 /** The result of a successful natural-language parse. */
 export interface ParseResult {

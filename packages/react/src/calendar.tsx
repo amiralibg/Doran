@@ -1,7 +1,7 @@
 'use client';
 
-import { type DoranDate, faIR, type Locale } from '@doran/core';
-import { Button, cn } from '@doran/ui';
+import { type DoranDate, faIR, type Locale } from '@doranjs/core';
+import { Button, cn } from '@doranjs/ui';
 import { useCalendar, type UseCalendarOptions } from './hooks';
 import { DoranMonthView } from './month-view';
 

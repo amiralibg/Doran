@@ -1,5 +1,5 @@
 /**
- * `@doran/holidays` — Iranian official, religious, and cultural holidays.
+ * `@doranjs/holidays` — Iranian official, religious, and cultural holidays.
  *
  * @packageDocumentation
  */

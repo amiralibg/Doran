@@ -1,5 +1,5 @@
 {
-  "name": "@doran/react",
+  "name": "@doranjs/react",
   "version": "0.1.0",
   "description": "RTL-first, accessible React calendar and date-picker components for the Persian calendar.",
   "license": "MIT",
@@ -54,15 +54,15 @@
     "clean": "rm -rf dist .turbo coverage"
   },
   "dependencies": {
-    "@doran/core": "workspace:*"
+    "@doranjs/core": "workspace:*"
   },
   "peerDependencies": {
-    "@doran/ui": "workspace:*",
+    "@doranjs/ui": "workspace:*",
     "react": ">=18",
     "react-dom": ">=18"
   },
   "devDependencies": {
-    "@doran/ui": "workspace:*",
+    "@doranjs/ui": "workspace:*",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "react": "^18.3.1",

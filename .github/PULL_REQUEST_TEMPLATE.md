@@ -18,11 +18,11 @@
 
 ## Affected packages
 
-- [ ] `@doran/core`
-- [ ] `@doran/nlp`
-- [ ] `@doran/holidays`
-- [ ] `@doran/react`
-- [ ] `@doran/ui`
+- [ ] `@doranjs/core`
+- [ ] `@doranjs/nlp`
+- [ ] `@doranjs/holidays`
+- [ ] `@doranjs/react`
+- [ ] `@doranjs/ui`
 - [ ] docs / repo tooling
 
 ## Checklist

@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Security fixes are released for the latest minor version of each `@doran/*` package. We
+Security fixes are released for the latest minor version of each `@doranjs/*` package. We
 recommend always running the most recent release.
 
 ## Reporting a Vulnerability

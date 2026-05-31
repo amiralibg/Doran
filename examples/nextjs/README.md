@@ -6,9 +6,9 @@ client boundary.
 
 ```tsx
 'use client';
-import '@doran/ui/styles.css';
-import '@doran/react/styles.css';
-import { DoranCalendar } from '@doran/react';
+import '@doranjs/ui/styles.css';
+import '@doranjs/react/styles.css';
+import { DoranCalendar } from '@doranjs/react';
 
 export default function Page() {
   return <DoranCalendar />;

@@ -1,4 +1,4 @@
-import { DoranDate } from '@doran/core';
+import { DoranDate } from '@doranjs/core';
 import { defaultDayExtractors, defaultTimeExtractors } from './extractors';
 import { normalize } from './normalize';
 import type { DayExtractor, NlpContext, ParseOptions, ParseResult, TimeExtractor } from './types';

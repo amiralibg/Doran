@@ -1,4 +1,4 @@
-import { DoranDate, type DoranDateOptions } from '@doran/core';
+import { DoranDate, type DoranDateOptions } from '@doranjs/core';
 
 /** A single cell in a calendar month grid. */
 export interface CalendarDay {

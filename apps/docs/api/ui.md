@@ -1,10 +1,10 @@
-# @doran/ui
+# @doranjs/ui
 
 A minimal, accessible, themeable design system.
 
 ```ts
-import '@doran/ui/styles.css';
-import { ThemeProvider, useTheme, Button, cn, tokens } from '@doran/ui';
+import '@doranjs/ui/styles.css';
+import { ThemeProvider, useTheme, Button, cn, tokens } from '@doranjs/ui';
 ```
 
 ## Theming

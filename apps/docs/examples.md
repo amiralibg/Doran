@@ -10,7 +10,7 @@ Runnable reference integrations live in the
 ## Date math
 
 ```ts
-import { DoranDate } from '@doran/core';
+import { DoranDate } from '@doranjs/core';
 
 const start = DoranDate.fromJalali(1405, 1, 1);
 const end = start.addMonths(3).endOf('month');
@@ -22,8 +22,8 @@ start.isLeapYear(); // false
 ## Build a custom calendar (headless)
 
 ```tsx
-import { buildMonthGrid } from '@doran/react';
-import { faIR } from '@doran/core';
+import { buildMonthGrid } from '@doranjs/react';
+import { faIR } from '@doranjs/core';
 
 function MiniMonth({ year, month }: { year: number; month: number }) {
   const grid = buildMonthGrid(year, month);
@@ -55,7 +55,7 @@ function MiniMonth({ year, month }: { year: number; month: number }) {
 ## Natural language → calendar
 
 ```ts
-import { parse } from '@doran/nlp';
+import { parse } from '@doranjs/nlp';
 
 const result = parse('جمعه ساعت ۷ شب');
 if (result && result.confidence > 0.8) {
@@ -66,7 +66,7 @@ if (result && result.confidence > 0.8) {
 ## Highlight holidays
 
 ```ts
-import { getHolidays } from '@doran/holidays';
+import { getHolidays } from '@doranjs/holidays';
 
 const official = getHolidays(1405).filter((h) => h.official);
 ```

@@ -1,5 +1,5 @@
 {
-  "name": "@doran/core",
+  "name": "@doranjs/core",
   "version": "0.1.0",
   "description": "Immutable, accurate Solar Hijri (Persian/Jalali) date engine with conversion, arithmetic, parsing and formatting.",
   "license": "MIT",

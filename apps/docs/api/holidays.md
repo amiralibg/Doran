@@ -1,12 +1,12 @@
-# @doran/holidays
+# @doranjs/holidays
 
 Iranian official, religious, and cultural holidays.
 
 ## `getHolidays`
 
 ```ts
-import { getHolidays, isHoliday, getHolidaysOn } from '@doran/holidays';
-import { DoranDate } from '@doran/core';
+import { getHolidays, isHoliday, getHolidaysOn } from '@doranjs/holidays';
+import { DoranDate } from '@doranjs/core';
 
 getHolidays(1405);
 getHolidays(1405, { includeReligious: false, includeUnofficial: false });
@@ -20,7 +20,7 @@ A `Holiday` has `{ year, month, day, title, titleEn, type, calendar, official, a
 ## Custom holidays
 
 ```ts
-import { registerSolarHoliday, registerLunarHoliday, clearCustomHolidays } from '@doran/holidays';
+import { registerSolarHoliday, registerLunarHoliday, clearCustomHolidays } from '@doranjs/holidays';
 
 registerSolarHoliday({
   month: 2,

@@ -1,4 +1,4 @@
-import { DoranDate } from '@doran/core';
+import { DoranDate } from '@doranjs/core';
 import { describe, expect, it } from 'vitest';
 import { Parser, parse } from './engine';
 import { normalize } from './normalize';

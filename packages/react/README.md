@@ -1,20 +1,20 @@
-# @doran/react
+# @doranjs/react
 
 > RTL-first, accessible React components for the Persian (Jalali) calendar.
 
 ## Install
 
 ```bash
-pnpm add @doran/react @doran/core @doran/ui react react-dom
+pnpm add @doranjs/react @doranjs/core @doranjs/ui react react-dom
 ```
 
 ## Usage
 
 ```tsx
-import '@doran/ui/styles.css';
-import '@doran/react/styles.css';
-import { DoranCalendar, DoranDatePicker } from '@doran/react';
-import { DoranDate } from '@doran/core';
+import '@doranjs/ui/styles.css';
+import '@doranjs/react/styles.css';
+import { DoranCalendar, DoranDatePicker } from '@doranjs/react';
+import { DoranDate } from '@doranjs/core';
 
 function Example() {
   return (
@@ -45,7 +45,7 @@ Every component is built on pure, headless primitives you can use directly to bu
 your own UI:
 
 ```tsx
-import { useCalendar, buildMonthGrid } from '@doran/react';
+import { useCalendar, buildMonthGrid } from '@doranjs/react';
 
 const { grid, goToNextMonth, select, isSelected } = useCalendar();
 // or, fully pure:
@@ -57,7 +57,7 @@ const grid = buildMonthGrid(1405, 3);
 - **RTL-first** — weeks start on Saturday, layout flows right-to-left.
 - **Accessible** — `role="grid"` semantics, `aria-*` labels, and full keyboard
   navigation (arrows, Home/End, Enter/Space).
-- **Dark mode & theming** — inherits the `@doran/ui` token system.
+- **Dark mode & theming** — inherits the `@doranjs/ui` token system.
 - **Mobile responsive** and dependency-light.
 
 ## License

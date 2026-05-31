@@ -1,4 +1,4 @@
-import { normalizeDigits } from '@doran/core';
+import { normalizeDigits } from '@doranjs/core';
 
 /**
  * Normalizes Persian free text so that downstream matchers can rely on a single

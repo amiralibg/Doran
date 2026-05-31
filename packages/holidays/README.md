@@ -1,18 +1,18 @@
-# @doran/holidays
+# @doranjs/holidays
 
 > Iranian official, religious, and cultural holidays for the Solar Hijri calendar.
 
 ## Install
 
 ```bash
-pnpm add @doran/holidays @doran/core
+pnpm add @doranjs/holidays @doranjs/core
 ```
 
 ## Usage
 
 ```ts
-import { getHolidays, isHoliday } from '@doran/holidays';
-import { DoranDate } from '@doran/core';
+import { getHolidays, isHoliday } from '@doranjs/holidays';
+import { DoranDate } from '@doranjs/core';
 
 getHolidays(1405);
 // → [{ year: 1405, month: 1, day: 1, titleEn: 'Nowruz', official: true, calendar: 'solar' }, …]
@@ -25,7 +25,7 @@ isHoliday(DoranDate.fromJalali(1405, 1, 1)); // true
 ## Custom holidays
 
 ```ts
-import { registerSolarHoliday, registerLunarHoliday } from '@doran/holidays';
+import { registerSolarHoliday, registerLunarHoliday } from '@doranjs/holidays';
 
 registerSolarHoliday({
   month: 2,

@@ -4,7 +4,7 @@ Moving to Doran from another Persian-date library is usually a small, mechanical
 
 ## From `moment-jalaali`
 
-| `moment-jalaali`                     | Doran (`@doran/core`)           |
+| `moment-jalaali`                     | Doran (`@doranjs/core`)         |
 | ------------------------------------ | ------------------------------- |
 | `moment()`                           | `DoranDate.now()`               |
 | `moment(date)`                       | `DoranDate.fromGregorian(date)` |
@@ -38,4 +38,4 @@ The numeric results are identical — Doran uses the same underlying algorithm.
 
 `DoranDate.format` uses a familiar `dayjs`-style token vocabulary (`YYYY`, `MM`, `dddd`,
 `HH`, `A`, …), so most format strings carry over directly. See the
-[`@doran/core` API](/api/core) for the full token table.
+[`@doranjs/core` API](/api/core) for the full token table.

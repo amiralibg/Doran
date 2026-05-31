@@ -1,5 +1,5 @@
 {
-  "name": "@doran/playground",
+  "name": "@doranjs/playground",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,8 +8,8 @@
     "start": "node --experimental-strip-types index.ts"
   },
   "dependencies": {
-    "@doran/core": "workspace:*",
-    "@doran/nlp": "workspace:*",
-    "@doran/holidays": "workspace:*"
+    "@doranjs/core": "workspace:*",
+    "@doranjs/nlp": "workspace:*",
+    "@doranjs/holidays": "workspace:*"
   }
 }

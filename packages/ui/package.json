@@ -1,5 +1,5 @@
 {
-  "name": "@doran/ui",
+  "name": "@doranjs/ui",
   "version": "0.1.0",
   "description": "Minimal, accessible, themeable design system for the Doran ecosystem.",
   "license": "MIT",

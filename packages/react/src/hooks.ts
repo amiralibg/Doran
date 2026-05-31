@@ -1,6 +1,6 @@
 'use client';
 
-import { DoranDate, type DoranDateOptions } from '@doran/core';
+import { DoranDate, type DoranDateOptions } from '@doranjs/core';
 import { useCallback, useMemo, useState } from 'react';
 import { buildMonthGrid, type CalendarDay, type MonthGrid } from './grid';
 

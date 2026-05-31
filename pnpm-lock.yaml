@@ -65,19 +65,19 @@ importers:
 
   examples/react:
     dependencies:
-      '@doran/core':
+      '@doranjs/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@doran/holidays':
+      '@doranjs/holidays':
         specifier: workspace:*
         version: link:../../packages/holidays
-      '@doran/nlp':
+      '@doranjs/nlp':
         specifier: workspace:*
         version: link:../../packages/nlp
-      '@doran/react':
+      '@doranjs/react':
         specifier: workspace:*
         version: link:../../packages/react
-      '@doran/ui':
+      '@doranjs/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       react:
@@ -104,23 +104,23 @@ importers:
 
   packages/holidays:
     dependencies:
-      '@doran/core':
+      '@doranjs/core':
         specifier: workspace:*
         version: link:../core
 
   packages/nlp:
     dependencies:
-      '@doran/core':
+      '@doranjs/core':
         specifier: workspace:*
         version: link:../core
 
   packages/react:
     dependencies:
-      '@doran/core':
+      '@doranjs/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
-      '@doran/ui':
+      '@doranjs/ui':
         specifier: workspace:*
         version: link:../ui
       '@types/react':
@@ -153,13 +153,13 @@ importers:
 
   playground:
     dependencies:
-      '@doran/core':
+      '@doranjs/core':
         specifier: workspace:*
         version: link:../packages/core
-      '@doran/holidays':
+      '@doranjs/holidays':
         specifier: workspace:*
         version: link:../packages/holidays
-      '@doran/nlp':
+      '@doranjs/nlp':
         specifier: workspace:*
         version: link:../packages/nlp
 

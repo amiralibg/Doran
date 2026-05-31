@@ -1,5 +1,5 @@
 /**
- * `@doran/nlp` — Persian natural-language date parsing for the Solar Hijri calendar.
+ * `@doranjs/nlp` — Persian natural-language date parsing for the Solar Hijri calendar.
  *
  * @packageDocumentation
  */

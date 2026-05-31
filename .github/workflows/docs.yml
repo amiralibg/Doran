@@ -30,7 +30,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Build docs
-        run: pnpm --filter @doran/docs build
+        run: pnpm --filter @doranjs/docs build
       - uses: actions/configure-pages@v5
         with:
           # Auto-create the Pages site on first run so the workflow is self-enabling.

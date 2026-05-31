@@ -1,7 +1,7 @@
 'use client';
 
-import { type DoranDate, faIR, type Locale } from '@doran/core';
-import { cn } from '@doran/ui';
+import { type DoranDate, faIR, type Locale } from '@doranjs/core';
+import { cn } from '@doranjs/ui';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import type { MonthGrid } from './grid';
 

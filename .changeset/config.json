@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@doran/docs", "@doran/playground", "doran-example-*"]
+  "ignore": ["@doranjs/docs", "@doranjs/playground", "doran-example-*"]
 }
