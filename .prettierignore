@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+coverage
+.turbo
+pnpm-lock.yaml
+*.tsbuildinfo
+apps/docs/.vitepress/cache
+apps/docs/.vitepress/dist

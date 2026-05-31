@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/nlp" },
+    { "path": "./packages/holidays" },
+    { "path": "./packages/react" },
+    { "path": "./packages/ui" }
+  ]
+}

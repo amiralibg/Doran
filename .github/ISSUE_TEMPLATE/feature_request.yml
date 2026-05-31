@@ -1,0 +1,38 @@
+name: ✨ Feature Request
+description: Suggest an idea or enhancement for Doran
+title: '[Feature]: '
+labels: ['enhancement', 'triage']
+body:
+  - type: dropdown
+    id: package
+    attributes:
+      label: Target package
+      options:
+        - '@doran/core'
+        - '@doran/nlp'
+        - '@doran/holidays'
+        - '@doran/react'
+        - '@doran/ui'
+        - 'New package / cross-cutting'
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem does this feature solve? What are you trying to do?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the API or behaviour you would like. Code examples welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false

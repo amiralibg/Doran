@@ -1,0 +1,52 @@
+name: 🐛 Bug Report
+description: Report a problem with a Doran package
+title: '[Bug]: '
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug! For incorrect date conversions, a concrete example
+        (input → expected → actual) is the most helpful thing you can give us.
+  - type: dropdown
+    id: package
+    attributes:
+      label: Affected package
+      options:
+        - '@doran/core'
+        - '@doran/nlp'
+        - '@doran/holidays'
+        - '@doran/react'
+        - '@doran/ui'
+        - 'Not sure'
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: e.g. 0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, including expected vs. actual behaviour.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Minimal code snippet or link (StackBlitz/CodeSandbox) that reproduces it.
+      render: ts
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Node/browser version, OS, framework versions.
+    validations:
+      required: false
