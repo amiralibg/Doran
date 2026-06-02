@@ -9,9 +9,10 @@
  * import '@doranjs/wc/styles.css';
  * ```
  *
- * Then use `<doran-calendar>`, `<doran-datepicker>`, `<doran-rangepicker>`, and
- * `<doran-nlp-input>` anywhere in your HTML. Call {@link defineDoranElements} yourself
- * if you import the element classes without the side-effect.
+ * Then use `<doran-calendar>`, `<doran-datepicker>`, `<doran-rangepicker>`,
+ * `<doran-nlp-input>`, and `<doran-agenda>` anywhere in your HTML. Call
+ * {@link defineDoranElements} yourself if you import the element classes without the
+ * side-effect.
  *
  * @packageDocumentation
  */
@@ -20,8 +21,9 @@ export { DoranCalendarElement } from './calendar-element';
 export { DoranDatePickerElement } from './datepicker-element';
 export { DoranRangePickerElement } from './rangepicker-element';
 export { DoranNlpInputElement } from './nlp-input-element';
+export { DoranAgendaElement, type AgendaEvent } from './agenda-element';
 export { defineDoranElements, TAG_NAMES } from './register';
-export { buildMonthGrid, type GridDay, type MonthGrid } from './grid';
+export { buildMonthGrid, navigateFocus, type GridDay, type GridNav, type MonthGrid } from './grid';
 
 import { defineDoranElements } from './register';
 

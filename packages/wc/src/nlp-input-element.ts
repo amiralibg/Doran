@@ -91,12 +91,13 @@ export class DoranNlpInputElement extends HTMLElement {
   #build(): void {
     this.classList.add('doran-nlp');
     this.setAttribute('dir', 'rtl');
+    const listId = `doran-nlp-list-${(uid += 1)}`;
     this.innerHTML =
       `<div class="doran-nlp__field">` +
-      `<input type="text" class="doran-nlp__input" dir="rtl" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" />` +
+      `<input type="text" class="doran-nlp__input" dir="rtl" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-controls="${listId}" />` +
       `<span class="doran-nlp__hint" aria-hidden></span>` +
       `</div>` +
-      `<ul class="doran-nlp__suggestions" role="listbox" hidden></ul>`;
+      `<ul class="doran-nlp__suggestions" id="${listId}" role="listbox" hidden></ul>`;
 
     this.#input = this.querySelector('.doran-nlp__input');
     this.#hint = this.querySelector('.doran-nlp__hint');
@@ -226,6 +227,9 @@ export class DoranNlpInputElement extends HTMLElement {
       .join('');
   }
 }
+
+/** Per-instance counter for unique listbox ids (combobox `aria-controls` linkage). */
+let uid = 0;
 
 /** An opt-out flag: `true` unless the attribute is explicitly `false`/`0`. */
 function boolAttr2(el: Element, name: string): boolean {

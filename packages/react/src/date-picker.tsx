@@ -2,7 +2,13 @@
 
 import { type DoranDate, faIR, type Locale } from '@doranjs/core';
 import { CalendarIcon, cn } from '@doranjs/ui';
-import { useEffect, useId, useRef, useState } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 import { DoranCalendar, type DoranCalendarProps } from './calendar';
 
 export interface DoranDatePickerProps extends Pick<
@@ -62,7 +68,15 @@ export function DoranDatePicker({
 
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const popoverId = useId();
+
+  /** Close the popover, optionally returning focus to the trigger button. */
+  function close(restoreFocus: boolean) {
+    setOpen(false);
+    if (restoreFocus) triggerRef.current?.focus();
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -70,7 +84,7 @@ export function DoranDatePicker({
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     }
     function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key === 'Escape') close(true);
     }
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('keydown', onKey);
@@ -80,16 +94,44 @@ export function DoranDatePicker({
     };
   }, [open]);
 
+  // On open, move focus into the calendar (the focusable day), so keyboard users land
+  // directly on the grid rather than being stranded on the trigger.
+  useEffect(() => {
+    if (!open) return;
+    const day = popoverRef.current?.querySelector<HTMLElement>('.doran-month [tabindex="0"]');
+    day?.focus();
+  }, [open]);
+
+  // Keep Tab focus cycling within the dialog while it is open.
+  function trapTab(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'Tab') return;
+    const focusable = popoverRef.current?.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    if (!focusable || focusable.length === 0) return;
+    const first = focusable[0]!;
+    const last = focusable[focusable.length - 1]!;
+    const active = document.activeElement;
+    if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
   function handleChange(date: DoranDate) {
     if (!isControlled) setInternal(date);
     onChange?.(date);
     // Keep the popover open while adjusting time; close on a plain date pick.
-    if (!withTime) setOpen(false);
+    if (!withTime) close(true);
   }
 
   return (
     <div ref={rootRef} className={cn('doran-datepicker', className)} dir="rtl">
       <button
+        ref={triggerRef}
         type="button"
         className="doran-datepicker__input"
         disabled={disabled}
@@ -107,7 +149,15 @@ export function DoranDatePicker({
       </button>
 
       {open && (
-        <div id={popoverId} role="dialog" aria-label="تقویم" className="doran-datepicker__popover">
+        <div
+          ref={popoverRef}
+          id={popoverId}
+          role="dialog"
+          aria-modal="false"
+          aria-label="تقویم"
+          className="doran-datepicker__popover"
+          onKeyDown={trapTab}
+        >
           <DoranCalendar
             locale={locale}
             value={selected}

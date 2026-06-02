@@ -16,6 +16,10 @@ export class DoranDatePickerElement extends HTMLElement {
   #selected: DoranDate | null = null;
   #open = false;
   #initialized = false;
+  /** Move focus into the calendar after the next render (popover just opened). */
+  #focusCalendarOnRender = false;
+  /** Return focus to the trigger after the next render (popover closed via keyboard). */
+  #focusTriggerOnRender = false;
 
   connectedCallback(): void {
     if (!this.#initialized) {
@@ -66,6 +70,7 @@ export class DoranDatePickerElement extends HTMLElement {
   #onKey = (event: KeyboardEvent): void => {
     if (event.key === 'Escape' && this.#open) {
       this.#open = false;
+      this.#focusTriggerOnRender = true;
       this.#render();
     }
   };
@@ -74,7 +79,29 @@ export class DoranDatePickerElement extends HTMLElement {
     const trigger = (event.target as HTMLElement).closest('[data-action="toggle"]');
     if (trigger && this.contains(trigger)) {
       this.#open = !this.#open;
+      if (this.#open) this.#focusCalendarOnRender = true;
       this.#render();
+    }
+  };
+
+  /** Keeps Tab focus cycling within the open dialog. */
+  #trapTab = (event: KeyboardEvent): void => {
+    if (event.key !== 'Tab') return;
+    const popover = this.querySelector('.doran-datepicker__popover');
+    if (!popover) return;
+    const focusable = popover.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0]!;
+    const last = focusable[focusable.length - 1]!;
+    const active = document.activeElement;
+    if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
     }
   };
 
@@ -97,6 +124,9 @@ export class DoranDatePickerElement extends HTMLElement {
       const popover = document.createElement('div');
       popover.className = 'doran-datepicker__popover';
       popover.setAttribute('role', 'dialog');
+      popover.setAttribute('aria-modal', 'false');
+      popover.setAttribute('aria-label', 'تقویم');
+      popover.addEventListener('keydown', this.#trapTab);
 
       const calendar = document.createElement('doran-calendar') as DoranCalendarElement;
       for (const attr of [
@@ -119,6 +149,7 @@ export class DoranDatePickerElement extends HTMLElement {
         this.#selected = detail.date;
         if (!boolAttr(this, 'with-time')) {
           this.#open = false;
+          this.#focusTriggerOnRender = true;
         }
         this.#render();
         this.dispatchEvent(new CustomEvent('change', { bubbles: true, detail }));
@@ -126,6 +157,17 @@ export class DoranDatePickerElement extends HTMLElement {
       });
       popover.appendChild(calendar);
       this.appendChild(popover);
+
+      // Appending upgrades <doran-calendar> synchronously, so its focusable day exists.
+      if (this.#focusCalendarOnRender) {
+        this.#focusCalendarOnRender = false;
+        popover.querySelector<HTMLElement>('.doran-month [tabindex="0"]')?.focus();
+      }
+    }
+
+    if (this.#focusTriggerOnRender) {
+      this.#focusTriggerOnRender = false;
+      this.querySelector<HTMLElement>('[data-action="toggle"]')?.focus();
     }
   }
 }

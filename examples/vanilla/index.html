@@ -108,6 +108,15 @@
         <doran-nlp-input value="جمعه ساعت ۷ شب" style="--doran-nlp-width: 26rem"></doran-nlp-input>
         <p class="out" id="nlp-out">—</p>
       </section>
+
+      <section class="card">
+        <h2>برنامه‌ی هفته (با تعطیلات رسمی)</h2>
+        <p class="hint">
+          رویدادها از طریق ویژگی <code>events</code> تنظیم می‌شوند؛ روی هر روز کلیک کنید.
+        </p>
+        <doran-agenda id="agenda" days="7"></doran-agenda>
+        <p class="out" id="agenda-out">—</p>
+      </section>
     </div>
 
     <script type="module" src="/src/main.ts"></script>

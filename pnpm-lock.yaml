@@ -102,6 +102,12 @@ importers:
 
   examples/vanilla:
     dependencies:
+      '@doranjs/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@doranjs/holidays':
+        specifier: workspace:*
+        version: link:../../packages/holidays
       '@doranjs/wc':
         specifier: workspace:*
         version: link:../../packages/wc

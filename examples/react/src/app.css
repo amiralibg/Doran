@@ -60,6 +60,18 @@ body {
   color: var(--doran-text-muted);
 }
 
+.card__hint kbd {
+  font-family: var(--doran-font-mono, ui-monospace, monospace);
+  font-size: 0.78em;
+  padding: 0.1em 0.4em;
+  border: 1px solid var(--doran-border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--doran-surface-muted);
+  color: var(--doran-text);
+  white-space: nowrap;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

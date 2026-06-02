@@ -10,6 +10,8 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
+    "@doranjs/core": "workspace:*",
+    "@doranjs/holidays": "workspace:*",
     "@doranjs/wc": "workspace:*"
   },
   "devDependencies": {

@@ -49,3 +49,45 @@ export function buildMonthGrid(
   }
   return { year, month, weeks };
 }
+
+/** A logical grid-navigation move, decoupled from physical (LTR/RTL) keys. */
+export type GridNav =
+  | 'prev-day'
+  | 'next-day'
+  | 'prev-week'
+  | 'next-week'
+  | 'week-start'
+  | 'week-end'
+  | 'prev-month'
+  | 'next-month'
+  | 'prev-year'
+  | 'next-year';
+
+/**
+ * Computes the date the focus should move to for a given navigation move. Pure and
+ * calendar-aware: month/year jumps clamp the day to the target month's length.
+ */
+export function navigateFocus(focus: DoranDate, move: GridNav): DoranDate {
+  switch (move) {
+    case 'prev-day':
+      return focus.subtract(1, 'day');
+    case 'next-day':
+      return focus.addDays(1);
+    case 'prev-week':
+      return focus.subtract(1, 'week');
+    case 'next-week':
+      return focus.addDays(7);
+    case 'week-start':
+      return focus.subtract(focus.dayOfWeek, 'day');
+    case 'week-end':
+      return focus.addDays(6 - focus.dayOfWeek);
+    case 'prev-month':
+      return focus.subtract(1, 'month');
+    case 'next-month':
+      return focus.add(1, 'month');
+    case 'prev-year':
+      return focus.subtract(1, 'year');
+    case 'next-year':
+      return focus.add(1, 'year');
+  }
+}

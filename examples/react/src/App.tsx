@@ -60,6 +60,12 @@ function Shell() {
         <p className="card__hint">
           انتخاب ماه و سال به‌صورت کشویی، نمایش تعطیلات رسمی و آخر هفته‌ها.
         </p>
+        <p className="card__hint">
+          ناوبری کامل با صفحه‌کلید: کلیدهای جهت‌نما (روز/هفته)، <kbd>Home</kbd>/<kbd>End</kbd> برای
+          ابتدا و انتهای هفته، <kbd>PageUp</kbd>/<kbd>PageDown</kbd> برای ماه (به‌همراه{' '}
+          <kbd>Shift</kbd> برای سال) و <kbd>Enter</kbd> برای انتخاب. عبور از لبه‌ی ماه، ماه را عوض
+          می‌کند.
+        </p>
         <div className="grid">
           <div>
             <span className="field-label">حالت کشویی (پیش‌فرض)</span>

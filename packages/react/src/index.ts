@@ -12,8 +12,10 @@
 // Headless core.
 export {
   buildMonthGrid,
+  navigateFocus,
   type BuildMonthGridOptions,
   type CalendarDay,
+  type GridNav,
   type MonthGrid,
 } from './grid';
 export {
