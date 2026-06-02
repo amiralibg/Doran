@@ -22,6 +22,7 @@ export { DoranDatePickerElement } from './datepicker-element';
 export { DoranRangePickerElement } from './rangepicker-element';
 export { DoranNlpInputElement } from './nlp-input-element';
 export { DoranAgendaElement, type AgendaEvent } from './agenda-element';
+export { defaultRangePresets, type RangePreset } from './presets';
 export { defineDoranElements, TAG_NAMES } from './register';
 export { buildMonthGrid, navigateFocus, type GridDay, type GridNav, type MonthGrid } from './grid';
 

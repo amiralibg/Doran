@@ -5,6 +5,9 @@
  */
 
 export { Parser, parse } from './engine';
+export { parseRange } from './range';
+export { parseDuration } from './duration';
+export { parseRecurrence, occurrences } from './recurrence';
 export { normalize } from './normalize';
 export { remapKeyboard } from './keyboard';
 export { registerFinglish, transliterateFinglish } from './finglish';
@@ -29,9 +32,14 @@ export {
 export type {
   DayExtractor,
   DayMatch,
+  DurationResult,
+  DurationUnit,
   NlpContext,
   ParseOptions,
   ParseResult,
+  RangeResult,
+  RecurrenceFreq,
+  RecurrenceResult,
   TimeExtractor,
   TimeMatch,
 } from './types';

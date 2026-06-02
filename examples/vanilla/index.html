@@ -98,7 +98,7 @@
         <div class="row">
           <doran-datepicker show-holidays placeholder="یک تاریخ انتخاب کنید"></doran-datepicker>
           <doran-datepicker with-time placeholder="تاریخ و ساعت"></doran-datepicker>
-          <doran-rangepicker show-holidays></doran-rangepicker>
+          <doran-rangepicker show-holidays presets months="2"></doran-rangepicker>
         </div>
       </section>
 
@@ -107,6 +107,13 @@
         <p class="hint">«جمعه ساعت ۷ شب»، «۱۵ خرداد»، «هفته بعد» را امتحان کنید.</p>
         <doran-nlp-input value="جمعه ساعت ۷ شب" style="--doran-nlp-width: 26rem"></doran-nlp-input>
         <p class="out" id="nlp-out">—</p>
+      </section>
+
+      <section class="card">
+        <h2>روزهای کاری و زبان طبیعی پیشرفته</h2>
+        <p class="hint">محاسبه‌ی روزهای کاری و تشخیص بازه/مدت/تکرار از متن فارسی.</p>
+        <p class="out" id="workday-out">—</p>
+        <p class="out" id="advnlp-out">—</p>
       </section>
 
       <section class="card">

@@ -8,6 +8,17 @@ export { DoranDate, type JalaliInput, type SettableUnit } from './doran-date';
 export { parseJalali } from './parse';
 export { humanizeRelative } from './relative';
 
+// Working-day (business-day) helpers — weekend-aware, optionally holiday-aware.
+export {
+  addWorkingDays,
+  isWeekend,
+  isWorkingDay,
+  nextWorkingDay,
+  previousWorkingDay,
+  workingDaysBetween,
+  type WorkingDayOptions,
+} from './business';
+
 // Conversion primitives (useful for advanced/low-level work).
 export {
   gregorianToJalali,

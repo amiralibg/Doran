@@ -1,21 +1,24 @@
 import { DoranDate, type Locale } from '@doranjs/core';
 import { getHolidaysOn } from '@doranjs/holidays';
-import { buildMonthGrid, navigateFocus, type GridNav, type MonthGrid } from './grid';
+import { buildMonthGrid, navigateFocus, type GridNav } from './grid';
 import { chevronDown, chevronLeft, chevronRight } from './icons';
+import { defaultRangePresets, type RangePreset } from './presets';
 import { boolAttr, esc, resolveLocaleAttr } from './util';
 
 type Panel = 'days' | 'months' | 'years';
 
 /**
  * `<doran-rangepicker>` — a two-click Jalali date-range picker with start/end and
- * in-range highlighting, sharing the same chrome as `<doran-calendar>`.
+ * in-range highlighting, sharing the same chrome as `<doran-calendar>`. Supports
+ * quick-pick presets (`presets` attribute, or a `presets` property for custom ones)
+ * and a side-by-side multi-month view (`months` attribute).
  *
  * Emits a `change` CustomEvent with `{ start, end }` (DoranDate|null) once both
  * endpoints are chosen, and on every endpoint update.
  */
 export class DoranRangePickerElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ['locale', 'header-mode', 'show-holidays', 'weekends', 'year-span'];
+    return ['locale', 'header-mode', 'show-holidays', 'weekends', 'year-span', 'presets', 'months'];
   }
 
   #start: DoranDate | null = null;
@@ -28,6 +31,8 @@ export class DoranRangePickerElement extends HTMLElement {
   #focusDate: DoranDate | null = null;
   /** When true, the next render moves DOM focus onto the focusable day. */
   #focusDayAfterRender = false;
+  /** Custom presets set via JS property; falls back to the defaults when the attribute is present. */
+  #customPresets: RangePreset[] | null = null;
 
   connectedCallback(): void {
     if (!this.#initialized) {
@@ -56,8 +61,26 @@ export class DoranRangePickerElement extends HTMLElement {
     return { start: this.#start, end: this.#end };
   }
 
+  /** Custom quick-pick presets. Setting this also implies presets are shown. */
+  set presets(presets: RangePreset[] | null) {
+    this.#customPresets = presets;
+    this.#render();
+  }
+
   get #locale(): Locale {
     return resolveLocaleAttr(this.getAttribute('locale'));
+  }
+
+  /** The presets to show: custom ones if set, the defaults if the attribute is present, else none. */
+  get #presetList(): RangePreset[] {
+    if (this.#customPresets) return this.#customPresets;
+    return boolAttr(this, 'presets') ? defaultRangePresets() : [];
+  }
+
+  /** How many month grids to show side by side. */
+  get #months(): number {
+    const n = Number(this.getAttribute('months'));
+    return Number.isInteger(n) && n > 1 ? n : 1;
   }
 
   get #weekends(): number[] {
@@ -96,6 +119,52 @@ export class DoranRangePickerElement extends HTMLElement {
     this.#viewYear = Math.floor(total / 12);
     this.#viewMonth = (((total % 12) + 12) % 12) + 1;
     this.#render();
+  }
+
+  /** Absolute month index for ordering/visibility math. */
+  #monthIndex(year: number, month: number): number {
+    return year * 12 + (month - 1);
+  }
+
+  /** Whether a date's month is within the visible window of `#months` months. */
+  #isMonthVisible(date: DoranDate): boolean {
+    const start = this.#monthIndex(this.#viewYear, this.#viewMonth);
+    const idx = this.#monthIndex(date.year, date.month);
+    return idx >= start && idx <= start + this.#months - 1;
+  }
+
+  /** Scrolls the window the minimum amount needed to make a date's month visible. */
+  #scrollToMonth(date: DoranDate): void {
+    const start = this.#monthIndex(this.#viewYear, this.#viewMonth);
+    const idx = this.#monthIndex(date.year, date.month);
+    let newStart: number | null = null;
+    if (idx < start) newStart = idx;
+    else if (idx > start + this.#months - 1) newStart = idx - (this.#months - 1);
+    if (newStart !== null) {
+      this.#viewYear = Math.floor(newStart / 12);
+      this.#viewMonth = (newStart % 12) + 1;
+    }
+  }
+
+  /** The single day that is keyboard-focusable across the whole (possibly multi-month) widget. */
+  #globalActiveDate(): DoranDate {
+    if (this.#focusDate && this.#isMonthVisible(this.#focusDate)) return this.#focusDate;
+    const anchor = this.#start ?? this.#end;
+    if (anchor && this.#isMonthVisible(anchor)) return anchor;
+    const today = DoranDate.now().startOf('day');
+    if (this.#isMonthVisible(today)) return today;
+    return DoranDate.fromJalali({ year: this.#viewYear, month: this.#viewMonth, day: 1 });
+  }
+
+  #setRange(start: DoranDate, end: DoranDate): void {
+    const [s, e] = start.isAfter(end) ? [end, start] : [start, end];
+    this.#start = s.startOf('day');
+    this.#end = e.startOf('day');
+    this.#scrollToMonth(this.#start);
+    this.#render();
+    this.dispatchEvent(
+      new CustomEvent('change', { bubbles: true, detail: { start: this.#start, end: this.#end } }),
+    );
   }
 
   #reset(): void {
@@ -152,6 +221,14 @@ export class DoranRangePickerElement extends HTMLElement {
           }),
         );
         break;
+      case 'preset': {
+        const preset = this.#presetList[Number(btn.dataset.index)];
+        if (preset) {
+          const { start, end } = preset.range(DoranDate.now());
+          this.#setRange(start, end);
+        }
+        break;
+      }
       case 'reset':
         this.#reset();
         break;
@@ -160,27 +237,16 @@ export class DoranRangePickerElement extends HTMLElement {
     }
   };
 
-  /** The day that should be focusable, given the current view and range endpoints. */
-  #activeFocusDate(grid: MonthGrid): DoranDate {
-    const cells = grid.weeks.flat();
-    if (this.#focusDate && cells.some((c) => c.date.isSame(this.#focusDate!, 'day'))) {
-      return this.#focusDate;
-    }
-    const inMonth = cells.filter((c) => c.inCurrentMonth);
-    const anchor = this.#start ?? this.#end;
-    const endpoint = anchor && inMonth.find((c) => c.date.isSame(anchor, 'day'));
-    if (endpoint) return endpoint.date;
-    const today = inMonth.find((c) => c.isToday);
-    if (today) return today.date;
-    return (inMonth[0] ?? cells[0]!).date;
-  }
-
   #onKeyDown = (event: KeyboardEvent): void => {
     if (this.#panel !== 'days') return;
-    if (!(event.target as HTMLElement).closest('.doran-month')) return;
-
-    const grid = buildMonthGrid(this.#viewYear, this.#viewMonth, { today: DoranDate.now() });
-    const active = this.#activeFocusDate(grid);
+    // Read the focused day directly so navigation works across multiple month grids.
+    const dayBtn = (event.target as HTMLElement).closest<HTMLElement>('[data-action="select-day"]');
+    if (!dayBtn) return;
+    const active = DoranDate.fromJalali({
+      year: Number(dayBtn.dataset.y),
+      month: Number(dayBtn.dataset.m),
+      day: Number(dayBtn.dataset.d),
+    });
 
     const moves: Record<string, GridNav> = {
       // RTL: ArrowLeft advances, ArrowRight goes back.
@@ -209,11 +275,7 @@ export class DoranRangePickerElement extends HTMLElement {
     const target = navigateFocus(active, move);
     this.#focusDate = target;
     this.#focusDayAfterRender = true;
-    const inGrid = grid.weeks.flat().some((c) => c.date.isSame(target, 'day'));
-    if (!inGrid) {
-      this.#viewYear = target.year;
-      this.#viewMonth = target.month;
-    }
+    if (!this.#isMonthVisible(target)) this.#scrollToMonth(target);
     this.#render();
   };
 
@@ -226,18 +288,61 @@ export class DoranRangePickerElement extends HTMLElement {
     const locale = this.#locale;
     const num = (n: number | string) => locale.formatNumber(String(n));
     const mode = this.getAttribute('header-mode') === 'separate' ? 'separate' : 'dropdown';
+    const months = this.#months;
+    const multi = months > 1;
+    const active = this.#globalActiveDate();
 
     this.classList.add('doran-calendar', 'doran-rangepicker');
+    this.classList.toggle('doran-rangepicker--multi', multi);
     this.setAttribute('dir', 'rtl');
 
-    const body =
-      this.#panel === 'days' ? this.#renderMonth(locale, num) : this.#renderPanel(locale, num);
+    const header = multi
+      ? this.#renderMultiHeader(locale, num, months)
+      : this.#renderHeader(locale, mode, num);
+
+    let body: string;
+    if (!multi && this.#panel !== 'days') {
+      body = this.#renderPanel(locale, num);
+    } else if (multi) {
+      const startIdx = this.#monthIndex(this.#viewYear, this.#viewMonth);
+      let monthsHtml = '';
+      for (let i = 0; i < months; i += 1) {
+        const idx = startIdx + i;
+        const y = Math.floor(idx / 12);
+        const m = (idx % 12) + 1;
+        const caption = esc(
+          DoranDate.fromJalali({ year: y, month: m, day: 1 })
+            .withLocale(locale)
+            .format('MMMM YYYY'),
+        );
+        monthsHtml +=
+          `<div class="doran-rangepicker__month">` +
+          `<div class="doran-rangepicker__month-caption">${caption}</div>` +
+          this.#renderMonth(locale, num, y, m, active) +
+          `</div>`;
+      }
+      body = `<div class="doran-rangepicker__months">${monthsHtml}</div>`;
+    } else {
+      body = this.#renderMonth(locale, num, this.#viewYear, this.#viewMonth, active);
+    }
+
+    const presets = this.#presetList;
+    const presetsHtml = presets.length
+      ? `<div class="doran-rangepicker__presets" role="group" aria-label="بازه‌های آماده">` +
+        presets
+          .map(
+            (p, i) =>
+              `<button type="button" class="doran-rangepicker__preset" data-action="preset" data-index="${i}">${esc(p.label)}</button>`,
+          )
+          .join('') +
+        `</div>`
+      : '';
+
     const fmt = (d: DoranDate | null) => (d ? d.withLocale(locale).format('YYYY/MM/DD') : '—');
     const summary = `${fmt(this.#start)} تا ${fmt(this.#end)}`;
 
     this.innerHTML =
-      this.#renderHeader(locale, mode, num) +
-      body +
+      `<div class="doran-rangepicker__body">${presetsHtml}<div class="doran-rangepicker__calendar">${header}${body}</div></div>` +
       `<div class="doran-calendar__footer doran-rangepicker__footer">` +
       `<span class="doran-rangepicker__summary">${esc(summary)}</span>` +
       `<button type="button" class="doran-btn doran-btn--outline" data-action="reset">پاک کردن</button>` +
@@ -247,6 +352,24 @@ export class DoranRangePickerElement extends HTMLElement {
       this.#focusDayAfterRender = false;
       this.querySelector<HTMLElement>('.doran-month [tabindex="0"]')?.focus();
     }
+  }
+
+  /** A simplified arrows-only header for the multi-month layout. */
+  #renderMultiHeader(locale: Locale, num: (n: number | string) => string, months: number): string {
+    const label = (idx: number) => {
+      const y = Math.floor(idx / 12);
+      const m = (idx % 12) + 1;
+      return `${locale.months[m - 1]} ${num(y)}`;
+    };
+    const startIdx = this.#monthIndex(this.#viewYear, this.#viewMonth);
+    const caption = esc(`${label(startIdx)} – ${label(startIdx + months - 1)}`);
+    return (
+      `<div class="doran-calendar__header">` +
+      `<button type="button" class="doran-calendar__nav" data-action="prev" aria-label="ماه قبل">${chevronRight}</button>` +
+      `<div class="doran-calendar__heading" aria-live="polite">${caption}</div>` +
+      `<button type="button" class="doran-calendar__nav" data-action="next" aria-label="ماه بعد">${chevronLeft}</button>` +
+      `</div>`
+    );
   }
 
   #renderHeader(
@@ -282,15 +405,18 @@ export class DoranRangePickerElement extends HTMLElement {
     );
   }
 
-  #renderMonth(locale: Locale, num: (n: number | string) => string): string {
+  #renderMonth(
+    locale: Locale,
+    num: (n: number | string) => string,
+    year: number,
+    month: number,
+    active: DoranDate,
+  ): string {
     const weekends = this.#weekends;
     const showHolidays = boolAttr(this, 'show-holidays');
-    const grid = buildMonthGrid(this.#viewYear, this.#viewMonth, { today: DoranDate.now() });
-    const active = this.#activeFocusDate(grid);
+    const grid = buildMonthGrid(year, month, { today: DoranDate.now() });
     const gridLabel = esc(
-      DoranDate.fromJalali({ year: this.#viewYear, month: this.#viewMonth, day: 1 })
-        .withLocale(locale)
-        .format('MMMM YYYY'),
+      DoranDate.fromJalali({ year, month, day: 1 }).withLocale(locale).format('MMMM YYYY'),
     );
     const start = this.#start;
     const end = this.#end;

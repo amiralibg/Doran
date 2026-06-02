@@ -3,7 +3,8 @@
 import '@doranjs/wc';
 import '@doranjs/wc/styles.css';
 import { DoranDate } from '@doranjs/core';
-import { getHolidays } from '@doranjs/holidays';
+import { addWorkingDays, getHolidays, workingDaysBetween } from '@doranjs/holidays';
+import { occurrences, parseDuration, parseRange, parseRecurrence } from '@doranjs/nlp';
 import type { DoranAgendaElement } from '@doranjs/wc';
 
 // Calendar change → show the selected date.
@@ -45,6 +46,33 @@ if (agenda) {
     const { date } = (e as CustomEvent).detail as { date: DoranDate };
     if (agendaOut) agendaOut.textContent = `روز انتخاب‌شده: ${date.format('dddd D MMMM YYYY')}`;
   });
+}
+
+// Working days + advanced NLP (ranges, durations, recurrence).
+const today = DoranDate.now().startOf('day');
+const workdayOut = document.getElementById('workday-out');
+if (workdayOut) {
+  const fifth = addWorkingDays(today, 5);
+  const monthStart = today.startOf('month');
+  const count = workingDaysBetween(monthStart, monthStart.addMonths(1));
+  workdayOut.textContent =
+    `۵ روز کاری بعد: ${fifth.format('dddd D MMMM YYYY')} — ` +
+    `روزهای کاری ${today.format('MMMM')}: ${count.toLocaleString('fa-IR')} روز`;
+}
+
+const advOut = document.getElementById('advnlp-out');
+if (advOut) {
+  const range = parseRange('از ۵ تا ۱۰ فروردین');
+  const duration = parseDuration('یک ساعت و نیم');
+  const recurrence = parseRecurrence('هر دوشنبه');
+  const mondays = recurrence ? occurrences(recurrence, today, 3) : [];
+  const rangeText = range
+    ? `${range.start.format('D MMMM')} تا ${range.end.format('D MMMM')}`
+    : '—';
+  advOut.textContent =
+    `«از ۵ تا ۱۰ فروردین» → ${rangeText} | ` +
+    `«یک ساعت و نیم» → ${duration ? `${duration.amount} ${duration.unit}` : '—'} | ` +
+    `«هر دوشنبه» → ${mondays.map((d) => d.format('D MMMM')).join('، ')}`;
 }
 
 // Theme toggle on the documentElement (Doran tokens read [data-doran-theme]).
