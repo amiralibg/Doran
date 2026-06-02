@@ -153,6 +153,8 @@ export interface UseDateRangeReturn {
   range: DateRange;
   /** Feed the next clicked day; the hook manages the start/end handshake. */
   selectDay: (day: DoranDate) => void;
+  /** Set both endpoints at once (e.g. from a preset). Normalizes their order. */
+  setRange: (range: DateRange) => void;
   reset: () => void;
   isInRange: (day: DoranDate) => boolean;
   isStart: (day: DoranDate) => boolean;
@@ -188,6 +190,22 @@ export function useDateRange(options: UseDateRangeOptions = {}): UseDateRangeRet
     [range, update],
   );
 
+  const setRange = useCallback(
+    (next: DateRange) => {
+      const { start, end } = next;
+      // Normalize: ensure start <= end when both are present.
+      if (start && end && end.isBefore(start)) {
+        update({ start: end.startOf('day'), end: start.startOf('day') });
+      } else {
+        update({
+          start: start ? start.startOf('day') : null,
+          end: end ? end.startOf('day') : null,
+        });
+      }
+    },
+    [update],
+  );
+
   const isInRange = useCallback(
     (day: DoranDate) =>
       range.start && range.end ? day.isBetween(range.start, range.end.endOf('day')) : false,
@@ -197,6 +215,7 @@ export function useDateRange(options: UseDateRangeOptions = {}): UseDateRangeRet
   return {
     range,
     selectDay,
+    setRange,
     reset: () => update({ start: null, end: null }),
     isInRange,
     isStart: (day) => (range.start ? day.isSame(range.start, 'day') : false),

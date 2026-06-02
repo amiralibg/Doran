@@ -13,6 +13,15 @@ export {
   registerSolarHoliday,
 } from './holidays';
 
+// Holiday-aware working-day helpers (default the `holidays` predicate to `isHoliday`).
+export {
+  addWorkingDays,
+  isWorkingDay,
+  nextWorkingDay,
+  previousWorkingDay,
+  workingDaysBetween,
+} from './working-days';
+
 export { hijriMonthLength, hijriToJdn, jdnToHijri } from './hijri';
 export { LUNAR_HOLIDAYS, SOLAR_HOLIDAYS } from './data';
 export {

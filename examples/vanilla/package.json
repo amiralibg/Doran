@@ -12,6 +12,7 @@
   "dependencies": {
     "@doranjs/core": "workspace:*",
     "@doranjs/holidays": "workspace:*",
+    "@doranjs/nlp": "workspace:*",
     "@doranjs/wc": "workspace:*"
   },
   "devDependencies": {

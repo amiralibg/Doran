@@ -108,6 +108,9 @@ importers:
       '@doranjs/holidays':
         specifier: workspace:*
         version: link:../../packages/holidays
+      '@doranjs/nlp':
+        specifier: workspace:*
+        version: link:../../packages/nlp
       '@doranjs/wc':
         specifier: workspace:*
         version: link:../../packages/wc

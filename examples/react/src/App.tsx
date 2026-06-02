@@ -1,5 +1,6 @@
 import { DoranDate } from '@doranjs/core';
-import { getHolidays, getHolidaysOn } from '@doranjs/holidays';
+import { addWorkingDays, getHolidays, getHolidaysOn, workingDaysBetween } from '@doranjs/holidays';
+import { occurrences, parseDuration, parseRange, parseRecurrence } from '@doranjs/nlp';
 import {
   DoranAgenda,
   DoranCalendar,
@@ -105,10 +106,20 @@ function Shell() {
             <DoranDatePicker withTime value={withTime} onChange={setWithTime} />
           </div>
           <div>
-            <span className="field-label">بازه‌ی تاریخ</span>
-            <DoranRangePicker isHoliday={isHoliday} />
+            <span className="field-label">بازه‌ی تاریخ (دو ماهه + میان‌برها)</span>
+            <DoranRangePicker isHoliday={isHoliday} presets numberOfMonths={2} />
           </div>
         </div>
+      </section>
+
+      {/* Working days + advanced NLP ------------------------------------- */}
+      <section className="card">
+        <h2 className="card__title">روزهای کاری و زبان طبیعی پیشرفته</h2>
+        <p className="card__hint">
+          محاسبه‌ی روزهای کاری (با احتساب تعطیلات رسمی و جمعه‌ها) و تشخیص بازه، مدت و تکرار از متن
+          فارسی.
+        </p>
+        <WorkdayAndNlpDemo />
       </section>
 
       {/* Customization --------------------------------------------------- */}
@@ -185,4 +196,55 @@ function NlpDemo() {
       </p>
     </div>
   );
+}
+
+function WorkdayAndNlpDemo() {
+  const today = DoranDate.now().startOf('day');
+  const monthStart = today.startOf('month');
+  const nextMonthStart = monthStart.addMonths(1);
+
+  const fifthWorkingDay = addWorkingDays(today, 5);
+  const workdaysThisMonth = workingDaysBetween(monthStart, nextMonthStart);
+
+  const range = parseRange('از ۵ تا ۱۰ فروردین');
+  const duration = parseDuration('یک ساعت و نیم');
+  const recurrence = parseRecurrence('هر دوشنبه');
+  const nextMondays = recurrence ? occurrences(recurrence, today, 3) : [];
+
+  return (
+    <div className="grid">
+      <div className="stack">
+        <span className="field-label">روزهای کاری</span>
+        <p className="result">۵ روز کاری بعد: {fifthWorkingDay.format('dddd D MMMM YYYY')}</p>
+        <p className="result">
+          روزهای کاری {today.format('MMMM')}: {workdaysThisMonth.toLocaleString('fa-IR')} روز
+        </p>
+      </div>
+      <div className="stack">
+        <span className="field-label">تشخیص از متن</span>
+        <p className="result">
+          «از ۵ تا ۱۰ فروردین» →{' '}
+          {range ? `${range.start.format('D MMMM')} تا ${range.end.format('D MMMM')}` : '—'}
+        </p>
+        <p className="result">
+          «یک ساعت و نیم» → {duration ? `${duration.amount} ${unitLabel(duration.unit)}` : '—'}
+        </p>
+        <p className="result">
+          «هر دوشنبه» → {nextMondays.map((d) => d.format('D MMMM')).join('، ') || '—'}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function unitLabel(unit: string): string {
+  const labels: Record<string, string> = {
+    minute: 'دقیقه',
+    hour: 'ساعت',
+    day: 'روز',
+    week: 'هفته',
+    month: 'ماه',
+    year: 'سال',
+  };
+  return labels[unit] ?? unit;
 }
