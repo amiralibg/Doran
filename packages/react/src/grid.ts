@@ -82,3 +82,57 @@ export function buildMonthGrid(
 
   return { year, month, weeks, days };
 }
+
+/**
+ * A logical grid-navigation move, decoupled from physical keys (which differ between
+ * LTR and RTL). The {@link DoranMonthView} maps key presses to these.
+ */
+export type GridNav =
+  | 'prev-day'
+  | 'next-day'
+  | 'prev-week'
+  | 'next-week'
+  | 'week-start'
+  | 'week-end'
+  | 'prev-month'
+  | 'next-month'
+  | 'prev-year'
+  | 'next-year';
+
+/**
+ * Computes the date the focus should move to for a given navigation move. Pure and
+ * calendar-aware: month/year jumps clamp the day to the target month's length (e.g.
+ * Esfand 30 → 29 in a non-leap year), so focus never lands on an invalid date.
+ *
+ * @example
+ * ```ts
+ * navigateFocus(DoranDate.fromJalali({ year: 1405, month: 1, day: 1 }), 'prev-day');
+ * // → 1404/12/29 (crosses the year boundary)
+ * ```
+ */
+export function navigateFocus(focus: DoranDate, move: GridNav): DoranDate {
+  switch (move) {
+    case 'prev-day':
+      return focus.subtract(1, 'day');
+    case 'next-day':
+      return focus.addDays(1);
+    case 'prev-week':
+      return focus.subtract(1, 'week');
+    case 'next-week':
+      return focus.addDays(7);
+    case 'week-start':
+      // Saturday of the current week (weekday 0 in the Persian week).
+      return focus.subtract(focus.dayOfWeek, 'day');
+    case 'week-end':
+      // Friday of the current week (weekday 6).
+      return focus.addDays(6 - focus.dayOfWeek);
+    case 'prev-month':
+      return focus.subtract(1, 'month');
+    case 'next-month':
+      return focus.add(1, 'month');
+    case 'prev-year':
+      return focus.subtract(1, 'year');
+    case 'next-year':
+      return focus.add(1, 'year');
+  }
+}

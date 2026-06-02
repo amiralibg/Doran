@@ -2,8 +2,8 @@
 
 import { type DoranDate, faIR, type Locale } from '@doranjs/core';
 import { cn } from '@doranjs/ui';
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import type { MonthGrid } from './grid';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { navigateFocus, type GridNav, type MonthGrid } from './grid';
 
 export interface DoranMonthViewProps {
   /** The month grid to render (from `buildMonthGrid` or `useCalendar`). */
@@ -12,6 +12,12 @@ export interface DoranMonthViewProps {
   locale?: Locale;
   /** Called when a day is activated. */
   onSelect?: (day: DoranDate) => void;
+  /**
+   * Called when keyboard navigation moves focus to a day outside the displayed month.
+   * Parents should switch the view to `{ year, month }` so the target becomes visible;
+   * focus follows automatically.
+   */
+  onMonthChange?: (target: { year: number; month: number }) => void;
   isSelected?: (day: DoranDate) => boolean;
   isDisabled?: (day: DoranDate) => boolean;
   isInRange?: (day: DoranDate) => boolean;
@@ -26,18 +32,39 @@ export interface DoranMonthViewProps {
   weekends?: number[];
   /** Render days that fall outside the current month (default `true`). */
   showOutsideDays?: boolean;
+  /** Whether the grid allows selecting multiple days (e.g. a range). */
+  multiselectable?: boolean;
   className?: string;
+}
+
+/** Stable key identifying a day cell by its Jalali parts. */
+function dayKey(year: number, month: number, day: number): string {
+  return `${year}-${month}-${day}`;
+}
+
+/** The day that should be focusable when the grid is first tabbed into. */
+function defaultFocusDate(grid: MonthGrid, isSelected?: (day: DoranDate) => boolean): DoranDate {
+  const inMonth = grid.days.filter((d) => d.inCurrentMonth);
+  const selected = isSelected && inMonth.find((d) => isSelected(d.date));
+  if (selected) return selected.date;
+  const today = inMonth.find((d) => d.isToday);
+  if (today) return today.date;
+  return (inMonth[0] ?? grid.days[0]!).date;
 }
 
 /**
  * A single month grid: an accessible `role="grid"` of day buttons, ordered
- * Saturday-first for RTL. Supports full keyboard navigation (arrow keys, Home/End,
- * Enter/Space). Pair it with `useCalendar` for navigation, or use it standalone.
+ * Saturday-first for RTL. Supports full keyboard navigation — arrow keys (with RTL
+ * direction), Home/End for the week edges, PageUp/PageDown for months (hold Shift for
+ * years), and Enter/Space to select. Arrowing or paging past the month edge calls
+ * `onMonthChange` so focus can cross month boundaries seamlessly. Pair it with
+ * `useCalendar` for navigation, or use it standalone.
  */
 export function DoranMonthView({
   grid,
   locale = faIR,
   onSelect,
+  onMonthChange,
   isSelected,
   isDisabled,
   isInRange,
@@ -46,77 +73,93 @@ export function DoranMonthView({
   isHoliday,
   weekends = [6],
   showOutsideDays = true,
+  multiselectable,
   className,
 }: DoranMonthViewProps) {
-  const days = grid.days;
   const gridRef = useRef<HTMLDivElement>(null);
-
-  const initialFocus = Math.max(
-    0,
-    days.findIndex((d) => d.inCurrentMonth && (isSelected?.(d.date) || d.isToday)),
-  );
-  const [focusIndex, setFocusIndex] = useState(
-    initialFocus >= 0 ? initialFocus : days.findIndex((d) => d.inCurrentMonth),
-  );
+  const [focusDate, setFocusDate] = useState<DoranDate | null>(null);
   const [isFocusWithin, setIsFocusWithin] = useState(false);
+
+  const inGrid = (date: DoranDate) => grid.days.some((d) => d.date.isSame(date, 'day'));
+
+  // The currently focusable day. Falls back to a sensible default whenever the stored
+  // focus is absent or no longer on screen (e.g. after the parent changes month).
+  const activeDate = useMemo(() => {
+    if (focusDate && inGrid(focusDate)) return focusDate;
+    return defaultFocusDate(grid, isSelected);
+  }, [focusDate, grid, isSelected]);
+
+  const activeKey = dayKey(activeDate.year, activeDate.month, activeDate.day);
 
   useEffect(() => {
     if (!isFocusWithin) return;
     const node = gridRef.current?.querySelector<HTMLButtonElement>(
-      `[data-cell-index="${focusIndex}"]`,
+      `[data-cell-date="${activeKey}"]`,
     );
     node?.focus();
-  }, [focusIndex, isFocusWithin]);
+  }, [activeKey, isFocusWithin]);
 
-  function move(delta: number) {
-    setFocusIndex((current) => {
-      let next = current + delta;
-      while (next >= 0 && next < days.length && isDisabled?.(days[next]!.date)) {
-        next += delta > 0 ? 1 : -1;
+  function navigate(move: GridNav, skipDisabled = false) {
+    let target = navigateFocus(activeDate, move);
+    if (skipDisabled && isDisabled) {
+      const dir = move === 'prev-day' || move === 'prev-week' ? -1 : 1;
+      let guard = 0;
+      while (isDisabled(target) && guard < 366) {
+        target = target.addDays(dir);
+        guard += 1;
       }
-      if (next < 0 || next >= days.length) return current;
-      return next;
-    });
+    }
+    setFocusDate(target);
+    if (!inGrid(target)) onMonthChange?.({ year: target.year, month: target.month });
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     switch (event.key) {
       // RTL: ArrowLeft advances, ArrowRight goes back.
       case 'ArrowLeft':
-        move(1);
+        navigate('next-day', true);
         break;
       case 'ArrowRight':
-        move(-1);
+        navigate('prev-day', true);
         break;
       case 'ArrowDown':
-        move(7);
+        navigate('next-week', true);
         break;
       case 'ArrowUp':
-        move(-7);
+        navigate('prev-week', true);
         break;
       case 'Home':
-        move(-(focusIndex % 7));
+        navigate('week-start');
         break;
       case 'End':
-        move(6 - (focusIndex % 7));
+        navigate('week-end');
+        break;
+      case 'PageUp':
+        navigate(event.shiftKey ? 'prev-year' : 'prev-month');
+        break;
+      case 'PageDown':
+        navigate(event.shiftKey ? 'next-year' : 'next-month');
         break;
       case 'Enter':
-      case ' ': {
-        const day = days[focusIndex];
-        if (day && !isDisabled?.(day.date)) onSelect?.(day.date);
+      case ' ':
+        if (!isDisabled?.(activeDate)) onSelect?.(activeDate);
         break;
-      }
       default:
         return;
     }
     event.preventDefault();
   }
 
+  const heading = grid.days.find((d) => d.inCurrentMonth)?.date ?? grid.days[0]!.date;
+  const gridLabel = heading.withLocale(locale).format('MMMM YYYY');
+
   return (
     <div
       ref={gridRef}
       className={cn('doran-month', className)}
       role="grid"
+      aria-label={gridLabel}
+      {...(multiselectable ? { 'aria-multiselectable': true } : {})}
       dir="rtl"
       onKeyDown={onKeyDown}
       onFocus={() => setIsFocusWithin(true)}
@@ -140,8 +183,7 @@ export function DoranMonthView({
 
       {grid.weeks.map((week, wi) => (
         <div key={wi} className="doran-month__week" role="row">
-          {week.map((cell) => {
-            const flatIndex = wi * 7 + week.indexOf(cell);
+          {week.map((cell, ci) => {
             const disabled = isDisabled?.(cell.date) ?? false;
             const selected = isSelected?.(cell.date) ?? false;
             const rangeStart = isRangeStart?.(cell.date) ?? false;
@@ -151,10 +193,11 @@ export function DoranMonthView({
             const holiday = isHoliday?.(cell.date) ?? false;
             const weekend = weekends.includes(cell.weekday);
             const hidden = !cell.inCurrentMonth && !showOutsideDays;
+            const isActive = cell.date.isSame(activeDate, 'day');
 
             return (
               <div
-                key={flatIndex}
+                key={`${wi}-${ci}`}
                 className="doran-month__cell"
                 role="gridcell"
                 aria-selected={selected}
@@ -164,7 +207,7 @@ export function DoranMonthView({
                 ) : (
                   <button
                     type="button"
-                    data-cell-index={flatIndex}
+                    data-cell-date={dayKey(cell.year, cell.month, cell.day)}
                     className={cn(
                       'doran-day',
                       !cell.inCurrentMonth && 'doran-day--outside',
@@ -176,11 +219,14 @@ export function DoranMonthView({
                       rangeStart && 'doran-day--range-start',
                       rangeEnd && 'doran-day--range-end',
                     )}
-                    tabIndex={flatIndex === focusIndex ? 0 : -1}
+                    tabIndex={isActive ? 0 : -1}
                     disabled={disabled}
                     aria-current={cell.isToday ? 'date' : undefined}
                     aria-label={cell.date.withLocale(locale).format('dddd D MMMM YYYY')}
-                    onClick={() => onSelect?.(cell.date)}
+                    onClick={() => {
+                      setFocusDate(cell.date);
+                      onSelect?.(cell.date);
+                    }}
                   >
                     {cell.date.withLocale(locale).format('D')}
                   </button>

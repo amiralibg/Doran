@@ -88,6 +88,8 @@ export function DoranRangePicker({
           grid={calendar.grid}
           locale={locale}
           onSelect={range.selectDay}
+          onMonthChange={calendar.setMonth}
+          multiselectable
           isInRange={range.isInRange}
           isRangeStart={range.isStart}
           isRangeEnd={range.isEnd}

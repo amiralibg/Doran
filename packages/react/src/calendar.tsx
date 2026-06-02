@@ -135,6 +135,7 @@ export function DoranCalendar({
           grid={calendar.grid}
           locale={locale}
           onSelect={calendar.select}
+          onMonthChange={calendar.setMonth}
           isSelected={calendar.isSelected}
           isDisabled={calendar.isDisabled}
           {...(isHoliday ? { isHoliday } : {})}

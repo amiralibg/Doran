@@ -1,6 +1,6 @@
 import { DoranDate, type Locale } from '@doranjs/core';
 import { getHolidaysOn } from '@doranjs/holidays';
-import { buildMonthGrid } from './grid';
+import { buildMonthGrid, navigateFocus, type GridNav, type MonthGrid } from './grid';
 import { chevronDown, chevronLeft, chevronRight, chevronUp } from './icons';
 import { boolAttr, esc, parseJalaliAttr, resolveLocaleAttr, withTime } from './util';
 
@@ -37,6 +37,10 @@ export class DoranCalendarElement extends HTMLElement {
   #time = { hour: 0, minute: 0 };
   #panel: Panel = 'days';
   #initialized = false;
+  /** The day reachable via keyboard (roving tabindex). */
+  #focusDate: DoranDate | null = null;
+  /** When true, the next render moves DOM focus onto the focusable day. */
+  #focusDayAfterRender = false;
 
   connectedCallback(): void {
     if (!this.#initialized) {
@@ -49,12 +53,14 @@ export class DoranCalendarElement extends HTMLElement {
     }
     this.addEventListener('click', this.#onClick);
     this.addEventListener('change', this.#onNativeChange, true);
+    this.addEventListener('keydown', this.#onKeyDown);
     this.#render();
   }
 
   disconnectedCallback(): void {
     this.removeEventListener('click', this.#onClick);
     this.removeEventListener('change', this.#onNativeChange, true);
+    this.removeEventListener('keydown', this.#onKeyDown);
   }
 
   attributeChangedCallback(name: string, _old: string | null, value: string | null): void {
@@ -218,6 +224,79 @@ export class DoranCalendarElement extends HTMLElement {
     }
   };
 
+  /** The day that should be focusable, given the current view and selection. */
+  #activeFocusDate(grid: MonthGrid): DoranDate {
+    const cells = grid.weeks.flat();
+    if (this.#focusDate && cells.some((c) => c.date.isSame(this.#focusDate!, 'day'))) {
+      return this.#focusDate;
+    }
+    const inMonth = cells.filter((c) => c.inCurrentMonth);
+    const selected = this.#selected && inMonth.find((c) => c.date.isSame(this.#selected!, 'day'));
+    if (selected) return selected.date;
+    const today = inMonth.find((c) => c.isToday);
+    if (today) return today.date;
+    return (inMonth[0] ?? cells[0]!).date;
+  }
+
+  #onKeyDown = (event: KeyboardEvent): void => {
+    if (this.#panel !== 'days') return;
+    if (!(event.target as HTMLElement).closest('.doran-month')) return;
+
+    const grid = buildMonthGrid(this.#viewYear, this.#viewMonth, { today: DoranDate.now() });
+    const active = this.#activeFocusDate(grid);
+
+    const moves: Record<string, GridNav> = {
+      // RTL: ArrowLeft advances, ArrowRight goes back.
+      ArrowLeft: 'next-day',
+      ArrowRight: 'prev-day',
+      ArrowDown: 'next-week',
+      ArrowUp: 'prev-week',
+      Home: 'week-start',
+      End: 'week-end',
+    };
+
+    let move: GridNav | undefined = moves[event.key];
+    if (event.key === 'PageUp') move = event.shiftKey ? 'prev-year' : 'prev-month';
+    if (event.key === 'PageDown') move = event.shiftKey ? 'next-year' : 'next-month';
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      if (!this.#isDisabled(active)) {
+        this.#focusDayAfterRender = true;
+        this.#selectDay(active);
+      }
+      return;
+    }
+
+    if (!move) return;
+    event.preventDefault();
+
+    let target = navigateFocus(active, move);
+    // Skip over disabled days when arrowing (not when jumping months/years).
+    if (
+      move === 'prev-day' ||
+      move === 'next-day' ||
+      move === 'prev-week' ||
+      move === 'next-week'
+    ) {
+      const dir = move === 'prev-day' || move === 'prev-week' ? -1 : 1;
+      let guard = 0;
+      while (this.#isDisabled(target) && guard < 366) {
+        target = target.addDays(dir);
+        guard += 1;
+      }
+    }
+
+    this.#focusDate = target;
+    this.#focusDayAfterRender = true;
+    const inGrid = grid.weeks.flat().some((c) => c.date.isSame(target, 'day'));
+    if (!inGrid) {
+      this.#viewYear = target.year;
+      this.#viewMonth = target.month;
+    }
+    this.#render();
+  };
+
   #render(): void {
     const locale = this.#locale;
     const num = (n: number | string) => locale.formatNumber(String(n));
@@ -235,6 +314,11 @@ export class DoranCalendarElement extends HTMLElement {
       : `<div class="doran-calendar__footer"><button type="button" class="doran-btn doran-btn--outline" data-action="today">امروز</button></div>`;
 
     this.innerHTML = header + body + time + footer;
+
+    if (this.#focusDayAfterRender) {
+      this.#focusDayAfterRender = false;
+      this.querySelector<HTMLElement>('.doran-month [tabindex="0"]')?.focus();
+    }
   }
 
   #renderHeader(
@@ -280,6 +364,12 @@ export class DoranCalendarElement extends HTMLElement {
     const weekends = this.#weekends;
     const showHolidays = boolAttr(this, 'show-holidays');
     const grid = buildMonthGrid(this.#viewYear, this.#viewMonth, { today: DoranDate.now() });
+    const active = this.#activeFocusDate(grid);
+    const gridLabel = esc(
+      DoranDate.fromJalali({ year: this.#viewYear, month: this.#viewMonth, day: 1 })
+        .withLocale(locale)
+        .format('MMMM YYYY'),
+    );
 
     const weekdays = locale.weekdaysMin
       .map(
@@ -307,9 +397,10 @@ export class DoranCalendarElement extends HTMLElement {
             ]
               .filter(Boolean)
               .join(' ');
+            const isActive = cell.date.isSame(active, 'day');
             return (
               `<div class="doran-month__cell" role="gridcell" aria-selected="${selected}">` +
-              `<button type="button" class="${cls}" ${disabled ? 'disabled' : ''} data-action="select-day" data-y="${cell.date.year}" data-m="${cell.date.month}" data-d="${cell.date.day}" aria-label="${esc(cell.date.withLocale(locale).format('dddd D MMMM YYYY'))}">${esc(num(cell.day))}</button>` +
+              `<button type="button" class="${cls}" ${disabled ? 'disabled' : ''} tabindex="${isActive ? 0 : -1}" data-action="select-day" data-y="${cell.date.year}" data-m="${cell.date.month}" data-d="${cell.date.day}" aria-label="${esc(cell.date.withLocale(locale).format('dddd D MMMM YYYY'))}">${esc(num(cell.day))}</button>` +
               `</div>`
             );
           })
@@ -318,7 +409,7 @@ export class DoranCalendarElement extends HTMLElement {
       })
       .join('');
 
-    return `<div class="doran-month" role="grid"><div class="doran-month__weekdays" role="row">${weekdays}</div>${weeks}</div>`;
+    return `<div class="doran-month" role="grid" aria-label="${gridLabel}"><div class="doran-month__weekdays" role="row">${weekdays}</div>${weeks}</div>`;
   }
 
   #renderPanel(locale: Locale, num: (n: number | string) => string): string {
