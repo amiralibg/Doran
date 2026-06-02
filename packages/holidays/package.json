@@ -1,6 +1,6 @@
 {
   "name": "@doranjs/holidays",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Iranian official, religious, and cultural holidays for the Solar Hijri calendar.",
   "license": "MIT",
   "author": "Doran Contributors",
