@@ -1,0 +1,67 @@
+{
+  "name": "@doranjs/wc",
+  "version": "0.0.1",
+  "description": "Framework-agnostic Web Components (custom elements) for the Persian calendar — use Doran in plain HTML or any framework.",
+  "license": "MIT",
+  "author": "Doran Contributors",
+  "homepage": "https://github.com/amiralibg/Doran/tree/main/packages/wc#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amiralibg/Doran.git",
+    "directory": "packages/wc"
+  },
+  "bugs": {
+    "url": "https://github.com/amiralibg/Doran/issues"
+  },
+  "keywords": [
+    "persian",
+    "jalali",
+    "shamsi",
+    "calendar",
+    "datepicker",
+    "web-components",
+    "custom-elements",
+    "rtl",
+    "vanilla"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./doran.js": "./dist/doran.global.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "./dist/index.js",
+    "./dist/index.cjs",
+    "./dist/doran.global.js",
+    "**/*.css"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo coverage"
+  },
+  "dependencies": {
+    "@doranjs/core": "workspace:*",
+    "@doranjs/holidays": "workspace:*",
+    "@doranjs/nlp": "workspace:*"
+  }
+}

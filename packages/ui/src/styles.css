@@ -8,14 +8,23 @@
   --doran-bg: #ffffff;
   --doran-surface: #ffffff;
   --doran-surface-muted: #f6f7f9;
+  --doran-surface-raised: #ffffff;
   --doran-border: #e6e8eb;
+  --doran-border-strong: #d3d7dc;
   --doran-text: #1a1d21;
   --doran-text-muted: #6b7280;
+  --doran-text-subtle: #9aa1ac;
   --doran-primary: #4f46e5;
   --doran-primary-hover: #4338ca;
+  --doran-primary-soft: rgba(79, 70, 229, 0.12);
   --doran-primary-contrast: #ffffff;
   --doran-accent: #0ea5e9;
+  --doran-accent-soft: rgba(14, 165, 233, 0.14);
   --doran-danger: #dc2626;
+  --doran-success: #16a34a;
+  --doran-warning: #d97706;
+  --doran-holiday: #dc2626;
+  --doran-holiday-soft: rgba(220, 38, 38, 0.1);
   --doran-focus-ring: rgba(79, 70, 229, 0.4);
 
   --doran-radius-sm: 6px;
@@ -23,33 +32,52 @@
   --doran-radius-lg: 16px;
   --doran-radius-full: 9999px;
 
+  --doran-border-width: 1px;
+
   --doran-space-xs: 4px;
   --doran-space-sm: 8px;
   --doran-space-md: 12px;
   --doran-space-lg: 20px;
 
   --doran-font-sans: 'Vazirmatn', 'IRANSans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --doran-font-weight-normal: 400;
+  --doran-font-weight-medium: 500;
+  --doran-font-weight-semibold: 600;
+  --doran-font-weight-bold: 700;
 
   --doran-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
   --doran-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --doran-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.16);
+
+  --doran-transition: 0.15s ease;
 }
 
 [data-doran-theme='dark'] {
   --doran-bg: #0c0d10;
   --doran-surface: #16181d;
   --doran-surface-muted: #1f232a;
+  --doran-surface-raised: #1c1f26;
   --doran-border: #2a2f37;
+  --doran-border-strong: #3a414b;
   --doran-text: #f2f4f7;
   --doran-text-muted: #9aa3af;
+  --doran-text-subtle: #6b7280;
   --doran-primary: #6366f1;
   --doran-primary-hover: #818cf8;
+  --doran-primary-soft: rgba(129, 140, 248, 0.18);
   --doran-primary-contrast: #0c0d10;
   --doran-accent: #38bdf8;
+  --doran-accent-soft: rgba(56, 189, 248, 0.18);
   --doran-danger: #f87171;
+  --doran-success: #4ade80;
+  --doran-warning: #fbbf24;
+  --doran-holiday: #f87171;
+  --doran-holiday-soft: rgba(248, 113, 113, 0.16);
   --doran-focus-ring: rgba(129, 140, 248, 0.45);
 
   --doran-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --doran-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --doran-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
 }
 
 .doran-root {

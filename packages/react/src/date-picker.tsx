@@ -1,16 +1,26 @@
 'use client';
 
 import { type DoranDate, faIR, type Locale } from '@doranjs/core';
-import { cn } from '@doranjs/ui';
+import { CalendarIcon, cn } from '@doranjs/ui';
 import { useEffect, useId, useRef, useState } from 'react';
-import { DoranCalendar } from './calendar';
+import { DoranCalendar, type DoranCalendarProps } from './calendar';
 
-export interface DoranDatePickerProps {
+export interface DoranDatePickerProps extends Pick<
+  DoranCalendarProps,
+  | 'headerMode'
+  | 'withTime'
+  | 'minuteStep'
+  | 'defaultTime'
+  | 'isHoliday'
+  | 'weekends'
+  | 'arrows'
+  | 'showOutsideDays'
+> {
   value?: DoranDate | null;
   defaultValue?: DoranDate | null;
   onChange?: (date: DoranDate) => void;
   locale?: Locale;
-  /** Format pattern for the input display. Defaults to `YYYY/MM/DD`. */
+  /** Format pattern for the input display. Defaults to `YYYY/MM/DD` (`+ HH:mm` with time). */
   format?: string;
   placeholder?: string;
   min?: DoranDate;
@@ -21,23 +31,34 @@ export interface DoranDatePickerProps {
 
 /**
  * A date input with a pop-over {@link DoranCalendar}. Controlled or uncontrolled,
- * accessible, and closes on outside-click or `Escape`.
+ * accessible, and closes on outside-click or `Escape`. Supports an optional time
+ * picker via `withTime`.
  */
 export function DoranDatePicker({
   value,
   defaultValue,
   onChange,
   locale = faIR,
-  format = 'YYYY/MM/DD',
+  format,
   placeholder = 'انتخاب تاریخ',
   min,
   max,
   disabled,
   className,
+  withTime,
+  headerMode,
+  minuteStep,
+  defaultTime,
+  isHoliday,
+  weekends,
+  arrows,
+  showOutsideDays,
 }: DoranDatePickerProps) {
   const isControlled = value !== undefined;
   const [internal, setInternal] = useState<DoranDate | null>(defaultValue ?? null);
   const selected = isControlled ? (value ?? null) : internal;
+
+  const resolvedFormat = format ?? (withTime ? 'YYYY/MM/DD HH:mm' : 'YYYY/MM/DD');
 
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -62,7 +83,8 @@ export function DoranDatePicker({
   function handleChange(date: DoranDate) {
     if (!isControlled) setInternal(date);
     onChange?.(date);
-    setOpen(false);
+    // Keep the popover open while adjusting time; close on a plain date pick.
+    if (!withTime) setOpen(false);
   }
 
   return (
@@ -77,10 +99,10 @@ export function DoranDatePicker({
         onClick={() => setOpen((o) => !o)}
       >
         <span className={cn(!selected && 'doran-datepicker__placeholder')}>
-          {selected ? selected.withLocale(locale).format(format) : placeholder}
+          {selected ? selected.withLocale(locale).format(resolvedFormat) : placeholder}
         </span>
         <span aria-hidden className="doran-datepicker__icon">
-          📅
+          <CalendarIcon />
         </span>
       </button>
 
@@ -92,6 +114,14 @@ export function DoranDatePicker({
             onChange={handleChange}
             {...(min ? { min } : {})}
             {...(max ? { max } : {})}
+            {...(withTime ? { withTime } : {})}
+            {...(headerMode ? { headerMode } : {})}
+            {...(minuteStep !== undefined ? { minuteStep } : {})}
+            {...(defaultTime ? { defaultTime } : {})}
+            {...(isHoliday ? { isHoliday } : {})}
+            {...(weekends ? { weekends } : {})}
+            {...(arrows ? { arrows } : {})}
+            {...(showOutsideDays !== undefined ? { showOutsideDays } : {})}
             {...(selected ? { defaultMonth: { year: selected.year, month: selected.month } } : {})}
           />
         </div>

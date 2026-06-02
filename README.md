@@ -25,6 +25,7 @@ components, and a design system — all tree-shakeable, strongly typed, and immu
 | [`@doranjs/nlp`](./packages/nlp)           | Persian natural-language date parsing                  | ✅     |
 | [`@doranjs/holidays`](./packages/holidays) | Iranian official & religious holidays                  | ✅     |
 | [`@doranjs/react`](./packages/react)       | RTL-first, accessible React calendar components        | 🚧     |
+| [`@doranjs/wc`](./packages/wc)             | Framework-agnostic Web Components for plain HTML       | 🚧     |
 | [`@doranjs/ui`](./packages/ui)             | Minimal, themeable design system                       | 🚧     |
 
 ## Quick start
@@ -66,9 +67,9 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full contributor guide.
 Doran follows domain-driven package boundaries with strict dependency direction:
 
 ```
-@doranjs/ui      @doranjs/react ─┐
-                             ├──▶ @doranjs/core ◀── @doranjs/nlp
-@doranjs/holidays ─────────────┘
+@doranjs/ui   @doranjs/react   @doranjs/wc ─┐
+                                        ├──▶ @doranjs/core ◀── @doranjs/nlp
+@doranjs/holidays ─────────────────────────┘
 ```
 
 `@doranjs/core` has zero runtime dependencies and no knowledge of UI, locale data lives at

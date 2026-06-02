@@ -1,9 +1,19 @@
 # Examples
 
+## Live demos
+
+Try the components right in your browser — these deploy alongside these docs:
+
+- **[React demo →](https://amiralibg.github.io/Doran/examples/react/)** — every component, theming, pickers, and NLP input.
+- **[Vanilla / Web Components demo →](https://amiralibg.github.io/Doran/examples/vanilla/)** — the same UI in plain HTML, no framework.
+
+## Source
+
 Runnable reference integrations live in the
 [`examples/`](https://github.com/amiralibg/Doran/tree/main/examples) directory of the repo:
 
 - [`examples/react`](https://github.com/amiralibg/Doran/tree/main/examples/react) — a Vite + React playground using every component.
+- [`examples/vanilla`](https://github.com/amiralibg/Doran/tree/main/examples/vanilla) — `@doranjs/wc` custom elements in plain HTML.
 - [`examples/nextjs`](https://github.com/amiralibg/Doran/tree/main/examples/nextjs) — Next.js App Router usage (with `'use client'` boundaries).
 - [`examples/tauri`](https://github.com/amiralibg/Doran/tree/main/examples/tauri) — a desktop app shell.
 

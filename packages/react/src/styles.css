@@ -1,42 +1,276 @@
 /**
  * Doran React component styles. Requires the design tokens from `@doranjs/ui/styles.css`.
- * Import both once at your app root.
+ * Import both once at your app root:
+ *
+ *   import '@doranjs/ui/styles.css';
+ *   import '@doranjs/react/styles.css';
+ *
+ * Every component reads its own set of CSS custom properties that fall back to the
+ * global design tokens. Override them globally, per-theme, or on a single instance
+ * (via `style={{ '--doran-day-selected-bg': '#e11d48' }}`) to restyle any part —
+ * colors, fonts, shadows, borders, and radii — without forking the components.
  */
 
+/* ===========================================================================
+ * Calendar
+ * ======================================================================== */
+
 .doran-calendar {
+  /* Customizable surface */
+  --_cal-bg: var(--doran-calendar-bg, var(--doran-surface));
+  --_cal-border-color: var(--doran-calendar-border-color, var(--doran-border));
+  --_cal-border-width: var(--doran-calendar-border-width, var(--doran-border-width, 1px));
+  --_cal-radius: var(--doran-calendar-radius, var(--doran-radius-lg));
+  --_cal-shadow: var(--doran-calendar-shadow, var(--doran-shadow-md));
+  --_cal-padding: var(--doran-calendar-padding, var(--doran-space-md));
+  --_cal-font: var(--doran-calendar-font, var(--doran-font-sans));
+  --_cal-width: var(--doran-calendar-width, 17.5rem);
+
   display: inline-flex;
   flex-direction: column;
   gap: var(--doran-space-sm);
-  padding: var(--doran-space-md);
-  background: var(--doran-surface);
-  border: 1px solid var(--doran-border);
-  border-radius: var(--doran-radius-lg);
-  box-shadow: var(--doran-shadow-sm);
-  font-family: var(--doran-font-sans);
+  padding: var(--_cal-padding);
+  background: var(--_cal-bg);
+  border: var(--_cal-border-width) solid var(--_cal-border-color);
+  border-radius: var(--_cal-radius);
+  box-shadow: var(--_cal-shadow);
+  font-family: var(--_cal-font);
   color: var(--doran-text);
-  width: 300px;
+  width: var(--_cal-width);
+  box-sizing: border-box;
+}
+
+.doran-calendar *,
+.doran-calendar *::before,
+.doran-calendar *::after {
+  box-sizing: border-box;
 }
 
 .doran-calendar__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--doran-space-xs);
+  min-height: 2.25rem;
 }
 
 .doran-calendar__heading {
-  font-weight: 600;
-  font-size: 0.95rem;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: var(--doran-space-xs);
+  font-weight: var(--doran-calendar-heading-weight, var(--doran-font-weight-semibold, 600));
+  font-size: var(--doran-calendar-heading-size, 0.95rem);
+  color: var(--doran-calendar-heading-color, var(--doran-text));
+}
+
+/* Navigation arrows */
+.doran-calendar__nav {
+  --_nav-color: var(--doran-calendar-arrow-color, var(--doran-text-muted));
+  --_nav-hover-bg: var(--doran-calendar-arrow-hover-bg, var(--doran-surface-muted));
+  --_nav-hover-color: var(--doran-calendar-arrow-hover-color, var(--doran-text));
+  --_nav-size: var(--doran-calendar-arrow-size, 2rem);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--_nav-size);
+  height: var(--_nav-size);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--_nav-color);
+  border-radius: var(--doran-radius-md);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background var(--doran-transition, 0.15s ease),
+    color var(--doran-transition, 0.15s ease);
+}
+
+.doran-calendar__nav:not(:disabled):hover {
+  background: var(--_nav-hover-bg);
+  color: var(--_nav-hover-color);
+}
+
+.doran-calendar__nav:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--doran-focus-ring);
+}
+
+.doran-calendar__nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.doran-calendar__nav svg {
+  width: 1.1em;
+  height: 1.1em;
+  display: block;
 }
 
 .doran-calendar__footer {
   display: flex;
   justify-content: center;
+  gap: var(--doran-space-sm);
   padding-top: var(--doran-space-xs);
 }
+
+/* --- Header pickers (month / year / time) ------------------------------- */
+
+.doran-calendar__heading-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  border-radius: var(--doran-radius-md);
+  cursor: pointer;
+  transition: background var(--doran-transition, 0.15s ease);
+}
+
+.doran-calendar__heading-btn:not(:disabled):hover {
+  background: var(--doran-surface-muted);
+}
+
+.doran-calendar__heading-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--doran-focus-ring);
+}
+
+.doran-calendar__heading-btn svg {
+  width: 0.85em;
+  height: 0.85em;
+  opacity: 0.6;
+}
+
+.doran-picker-panel {
+  border-top: 1px solid var(--doran-border);
+  margin-top: var(--doran-space-xs);
+  padding-top: var(--doran-space-sm);
+}
+
+.doran-picker-panel__grid {
+  display: grid;
+  gap: var(--doran-space-xs);
+}
+
+.doran-picker-panel__grid--months {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.doran-picker-panel__grid--years {
+  grid-template-columns: repeat(4, 1fr);
+  max-height: 12.5rem;
+  overflow-y: auto;
+}
+
+.doran-picker-option {
+  padding: 0.4rem 0.25rem;
+  border: none;
+  background: transparent;
+  color: var(--doran-text);
+  font: inherit;
+  font-size: 0.82rem;
+  border-radius: var(--doran-radius-md);
+  cursor: pointer;
+  transition:
+    background var(--doran-transition, 0.15s ease),
+    color var(--doran-transition, 0.15s ease);
+}
+
+.doran-picker-option:not(:disabled):hover {
+  background: var(--doran-surface-muted);
+}
+
+.doran-picker-option:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--doran-focus-ring);
+}
+
+.doran-picker-option--active {
+  background: var(--doran-primary);
+  color: var(--doran-primary-contrast);
+}
+
+.doran-picker-option--active:not(:disabled):hover {
+  background: var(--doran-primary-hover);
+}
+
+.doran-picker-option:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* --- Time picker -------------------------------------------------------- */
+
+.doran-time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--doran-space-xs);
+  padding-top: var(--doran-space-sm);
+  border-top: 1px solid var(--doran-border);
+  margin-top: var(--doran-space-xs);
+}
+
+.doran-time__field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.doran-time__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.25rem;
+  border: none;
+  background: transparent;
+  color: var(--doran-text-muted);
+  border-radius: var(--doran-radius-sm);
+  cursor: pointer;
+}
+
+.doran-time__btn:hover {
+  background: var(--doran-surface-muted);
+  color: var(--doran-text);
+}
+
+.doran-time__btn svg {
+  width: 0.8em;
+  height: 0.8em;
+}
+
+.doran-time__value {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.1rem;
+  font-weight: var(--doran-font-weight-semibold, 600);
+  min-width: 2ch;
+  text-align: center;
+  padding: 0.1rem 0;
+}
+
+.doran-time__sep {
+  font-size: 1.1rem;
+  font-weight: var(--doran-font-weight-semibold, 600);
+  padding: 0 0.1rem;
+}
+
+/* ===========================================================================
+ * Month grid
+ * ======================================================================== */
 
 .doran-month {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .doran-month__weekdays,
@@ -48,9 +282,13 @@
 .doran-month__weekday {
   text-align: center;
   font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--doran-text-muted);
+  font-weight: var(--doran-font-weight-semibold, 600);
+  color: var(--doran-calendar-weekday-color, var(--doran-text-muted));
   padding: var(--doran-space-xs) 0;
+}
+
+.doran-month__weekday--weekend {
+  color: var(--doran-calendar-weekend-color, var(--doran-holiday));
 }
 
 .doran-month__cell {
@@ -58,6 +296,7 @@
   align-items: center;
   justify-content: center;
   aspect-ratio: 1;
+  position: relative;
 }
 
 .doran-month__spacer {
@@ -67,25 +306,31 @@
 }
 
 .doran-day {
+  --_day-size: var(--doran-day-size, 2.125rem);
+  --_day-radius: var(--doran-day-radius, var(--doran-radius-full));
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: var(--_day-size);
+  height: var(--_day-size);
   border: none;
   background: transparent;
-  border-radius: var(--doran-radius-full);
-  color: var(--doran-text);
+  border-radius: var(--_day-radius);
+  color: var(--doran-day-color, var(--doran-text));
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: var(--doran-day-font-size, 0.85rem);
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
+  position: relative;
   transition:
-    background 0.12s ease,
-    color 0.12s ease;
+    background var(--doran-transition, 0.12s ease),
+    color var(--doran-transition, 0.12s ease),
+    box-shadow var(--doran-transition, 0.12s ease);
 }
 
 .doran-day:not(:disabled):hover {
-  background: var(--doran-surface-muted);
+  background: var(--doran-day-hover-bg, var(--doran-surface-muted));
 }
 
 .doran-day:focus-visible {
@@ -95,39 +340,111 @@
 
 .doran-day:disabled {
   color: var(--doran-text-muted);
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .doran-day--outside {
-  color: var(--doran-text-muted);
-  opacity: 0.55;
+  color: var(--doran-day-outside-color, var(--doran-text-subtle));
+}
+
+.doran-day--weekend {
+  color: var(--doran-day-weekend-color, var(--doran-holiday));
+}
+
+.doran-day--holiday {
+  color: var(--doran-day-holiday-color, var(--doran-holiday));
+}
+
+.doran-day--holiday::after {
+  content: '';
+  position: absolute;
+  bottom: 0.28rem;
+  inset-inline-start: 50%;
+  transform: translateX(50%);
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: var(--doran-radius-full);
+  background: var(--doran-day-holiday-dot, var(--doran-holiday));
 }
 
 .doran-day--today {
-  font-weight: 700;
-  box-shadow: inset 0 0 0 1px var(--doran-border);
+  font-weight: var(--doran-font-weight-bold, 700);
+  color: var(--doran-day-today-color, var(--doran-primary));
+  box-shadow: inset 0 0 0 1px var(--doran-day-today-ring, var(--doran-primary));
 }
 
 .doran-day--selected,
 .doran-day--range-start,
 .doran-day--range-end {
-  background: var(--doran-primary);
-  color: var(--doran-primary-contrast);
+  background: var(--doran-day-selected-bg, var(--doran-primary));
+  color: var(--doran-day-selected-color, var(--doran-primary-contrast));
+  font-weight: var(--doran-font-weight-medium, 500);
+  box-shadow: none;
 }
 
-.doran-day--selected:hover,
-.doran-day--range-start:hover,
-.doran-day--range-end:hover {
-  background: var(--doran-primary-hover);
+.doran-day--selected:not(:disabled):hover,
+.doran-day--range-start:not(:disabled):hover,
+.doran-day--range-end:not(:disabled):hover {
+  background: var(--doran-day-selected-hover-bg, var(--doran-primary-hover));
+  color: var(--doran-day-selected-color, var(--doran-primary-contrast));
+}
+
+/* A selected day's holiday dot must show against the filled background. */
+.doran-day--selected.doran-day--holiday::after,
+.doran-day--range-start.doran-day--holiday::after,
+.doran-day--range-end.doran-day--holiday::after {
+  background: var(--doran-day-selected-color, var(--doran-primary-contrast));
+}
+
+/* In-range band: a pseudo-element only as tall as a day cell, so consecutive days
+   read as one connected pill instead of tall, blocky full-cell rectangles. Every
+   piece is themeable: `--doran-day-range-bg` (fill), `--doran-day-range-height`
+   (band thickness), and `--doran-day-range-radius` (the rounded caps). */
+.doran-month__cell:has(.doran-day--in-range)::before,
+.doran-month__cell:has(.doran-day--range-start)::before,
+.doran-month__cell:has(.doran-day--range-end)::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  inset-inline: 0;
+  transform: translateY(-50%);
+  height: var(--doran-day-range-height, var(--doran-day-size, 2.125rem));
+  background: var(--doran-day-range-bg, var(--doran-primary-soft));
+  z-index: 0;
+}
+
+/* Rounded caps on the endpoints. RTL: the start is the right-hand endpoint, so its
+   cap rounds the inline-start (right) corners; the end rounds inline-end (left). */
+.doran-month__cell:has(.doran-day--range-start)::before {
+  border-start-start-radius: var(--doran-day-range-radius, var(--doran-radius-full));
+  border-end-start-radius: var(--doran-day-range-radius, var(--doran-radius-full));
+}
+
+.doran-month__cell:has(.doran-day--range-end)::before {
+  border-start-end-radius: var(--doran-day-range-radius, var(--doran-radius-full));
+  border-end-end-radius: var(--doran-day-range-radius, var(--doran-radius-full));
+}
+
+/* Single-day range (start === end): no band, just the filled day. */
+.doran-month__cell:has(.doran-day--range-start.doran-day--range-end)::before {
+  display: none;
+}
+
+/* Keep the day button (and its filled endpoints) above the band. */
+.doran-month__cell .doran-day {
+  z-index: 1;
 }
 
 .doran-day--in-range {
-  background: var(--doran-surface-muted);
-  border-radius: 0;
+  background: transparent;
+  color: var(--doran-day-in-range-color, var(--doran-text));
 }
 
-/* Date picker */
+/* ===========================================================================
+ * Date picker
+ * ======================================================================== */
+
 .doran-datepicker {
   position: relative;
   display: inline-block;
@@ -139,20 +456,29 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--doran-space-sm);
-  min-width: 180px;
-  height: 38px;
+  min-width: var(--doran-input-width, 12rem);
+  height: var(--doran-input-height, 2.5rem);
   padding: 0 var(--doran-space-md);
-  background: var(--doran-surface);
+  background: var(--doran-input-bg, var(--doran-surface));
   color: var(--doran-text);
-  border: 1px solid var(--doran-border);
-  border-radius: var(--doran-radius-md);
+  border: 1px solid var(--doran-input-border-color, var(--doran-border));
+  border-radius: var(--doran-input-radius, var(--doran-radius-md));
   font-family: inherit;
   font-size: 0.9rem;
   cursor: pointer;
+  transition:
+    border-color var(--doran-transition, 0.15s ease),
+    box-shadow var(--doran-transition, 0.15s ease);
 }
 
-.doran-datepicker__input:focus-visible {
+.doran-datepicker__input:hover {
+  border-color: var(--doran-border-strong);
+}
+
+.doran-datepicker__input:focus-visible,
+.doran-datepicker__input[aria-expanded='true'] {
   outline: none;
+  border-color: var(--doran-primary);
   box-shadow: 0 0 0 3px var(--doran-focus-ring);
 }
 
@@ -160,16 +486,47 @@
   color: var(--doran-text-muted);
 }
 
+.doran-datepicker__icon {
+  display: inline-flex;
+  color: var(--doran-text-muted);
+}
+
+.doran-datepicker__icon svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
 .doran-datepicker__popover {
   position: absolute;
   z-index: 50;
   margin-top: var(--doran-space-xs);
   inset-inline-start: 0;
+  animation: doran-pop-in 0.12s ease;
 }
 
-/* Range picker */
+@keyframes doran-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .doran-datepicker__popover {
+    animation: none;
+  }
+}
+
+/* ===========================================================================
+ * Range picker
+ * ======================================================================== */
+
 .doran-rangepicker {
-  width: 320px;
+  width: var(--doran-calendar-width, 20rem);
 }
 
 .doran-rangepicker__footer {
@@ -180,9 +537,142 @@
 .doran-rangepicker__summary {
   font-size: 0.82rem;
   color: var(--doran-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Agenda */
+/* ===========================================================================
+ * NLP input
+ * ======================================================================== */
+
+.doran-nlp {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  width: var(--doran-nlp-width, 22rem);
+  max-width: 100%;
+  font-family: var(--doran-font-sans);
+}
+
+.doran-nlp__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.doran-nlp__input,
+.doran-nlp__ghost {
+  width: 100%;
+  height: var(--doran-input-height, 2.5rem);
+  padding: 0 var(--doran-space-md);
+  font-family: inherit;
+  font-size: 0.95rem;
+  border-radius: var(--doran-input-radius, var(--doran-radius-md));
+  box-sizing: border-box;
+}
+
+.doran-nlp__input {
+  position: relative;
+  z-index: 1;
+  background: var(--doran-input-bg, var(--doran-surface));
+  color: var(--doran-text);
+  border: 1px solid var(--doran-input-border-color, var(--doran-border));
+  transition:
+    border-color var(--doran-transition, 0.15s ease),
+    box-shadow var(--doran-transition, 0.15s ease);
+}
+
+.doran-nlp__input:focus {
+  outline: none;
+  border-color: var(--doran-primary);
+  box-shadow: 0 0 0 3px var(--doran-focus-ring);
+}
+
+.doran-nlp__input::placeholder {
+  color: var(--doran-text-muted);
+}
+
+/* The resolved-date hint, pinned to the opposite (LTR) end of the input. */
+.doran-nlp__hint {
+  position: absolute;
+  z-index: 2;
+  inset-inline-end: var(--doran-space-md);
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.78rem;
+  color: var(--doran-primary);
+  background: var(--doran-primary-soft);
+  border-radius: var(--doran-radius-sm);
+  pointer-events: none;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doran-nlp__hint--unknown {
+  color: var(--doran-text-muted);
+  background: var(--doran-surface-muted);
+}
+
+.doran-nlp__suggestions {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + var(--doran-space-xs));
+  inset-inline: 0;
+  margin: 0;
+  padding: var(--doran-space-xs);
+  list-style: none;
+  background: var(--doran-surface-raised, var(--doran-surface));
+  border: 1px solid var(--doran-border);
+  border-radius: var(--doran-radius-md);
+  box-shadow: var(--doran-shadow-md);
+  max-height: 15rem;
+  overflow-y: auto;
+}
+
+.doran-nlp__suggestion {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--doran-space-sm);
+  padding: 0.45rem var(--doran-space-sm);
+  border: none;
+  width: 100%;
+  background: transparent;
+  color: var(--doran-text);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: start;
+  border-radius: var(--doran-radius-sm);
+  cursor: pointer;
+}
+
+.doran-nlp__suggestion:hover,
+.doran-nlp__suggestion--active {
+  background: var(--doran-surface-muted);
+}
+
+.doran-nlp__suggestion-preview {
+  font-size: 0.75rem;
+  color: var(--doran-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* The numeric time piece sits just after the date, with a small gap. */
+.doran-nlp__time {
+  margin-inline-start: 0.35em;
+}
+
+/* ===========================================================================
+ * Agenda
+ * ======================================================================== */
+
 .doran-agenda {
   display: flex;
   flex-direction: column;
@@ -193,7 +683,7 @@
 
 .doran-agenda__day {
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: 7.5rem 1fr;
   gap: var(--doran-space-md);
   padding: var(--doran-space-sm);
   border: 1px solid var(--doran-border);
@@ -218,7 +708,7 @@
 }
 
 .doran-agenda__weekday {
-  font-weight: 600;
+  font-weight: var(--doran-font-weight-semibold, 600);
 }
 
 .doran-agenda__daynum {
@@ -253,7 +743,7 @@
 
 .doran-agenda__event-title {
   font-size: 0.88rem;
-  font-weight: 500;
+  font-weight: var(--doran-font-weight-medium, 500);
 }
 
 .doran-agenda__event-desc {

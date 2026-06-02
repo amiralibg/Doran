@@ -13,8 +13,14 @@ export {
   registerSolarHoliday,
 } from './holidays';
 
-export { hijriToJdn, jdnToHijri } from './hijri';
+export { hijriMonthLength, hijriToJdn, jdnToHijri } from './hijri';
 export { LUNAR_HOLIDAYS, SOLAR_HOLIDAYS } from './data';
+export {
+  getOfficialLunarDates,
+  registerOfficialLunarYear,
+  resetOfficialLunarYears,
+  type OfficialLunarDate,
+} from './official';
 
 export type {
   GetHolidaysOptions,

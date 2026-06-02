@@ -17,6 +17,13 @@ export interface DoranMonthViewProps {
   isInRange?: (day: DoranDate) => boolean;
   isRangeStart?: (day: DoranDate) => boolean;
   isRangeEnd?: (day: DoranDate) => boolean;
+  /** Marks a day as a holiday (adds a dot + holiday color). */
+  isHoliday?: (day: DoranDate) => boolean;
+  /**
+   * Persian weekday indices treated as the weekend (0 = Saturday … 6 = Friday).
+   * Defaults to `[6]` (Friday), the Iranian weekend.
+   */
+  weekends?: number[];
   /** Render days that fall outside the current month (default `true`). */
   showOutsideDays?: boolean;
   className?: string;
@@ -36,6 +43,8 @@ export function DoranMonthView({
   isInRange,
   isRangeStart,
   isRangeEnd,
+  isHoliday,
+  weekends = [6],
   showOutsideDays = true,
   className,
 }: DoranMonthViewProps) {
@@ -117,7 +126,10 @@ export function DoranMonthView({
         {locale.weekdaysMin.map((name, i) => (
           <div
             key={i}
-            className="doran-month__weekday"
+            className={cn(
+              'doran-month__weekday',
+              weekends.includes(i) && 'doran-month__weekday--weekend',
+            )}
             role="columnheader"
             aria-label={locale.weekdays[i]}
           >
@@ -132,9 +144,12 @@ export function DoranMonthView({
             const flatIndex = wi * 7 + week.indexOf(cell);
             const disabled = isDisabled?.(cell.date) ?? false;
             const selected = isSelected?.(cell.date) ?? false;
-            const inRange = isInRange?.(cell.date) ?? false;
             const rangeStart = isRangeStart?.(cell.date) ?? false;
             const rangeEnd = isRangeEnd?.(cell.date) ?? false;
+            // Endpoints are styled as filled days, not as part of the in-range band.
+            const inRange = (isInRange?.(cell.date) ?? false) && !rangeStart && !rangeEnd;
+            const holiday = isHoliday?.(cell.date) ?? false;
+            const weekend = weekends.includes(cell.weekday);
             const hidden = !cell.inCurrentMonth && !showOutsideDays;
 
             return (
@@ -153,6 +168,8 @@ export function DoranMonthView({
                     className={cn(
                       'doran-day',
                       !cell.inCurrentMonth && 'doran-day--outside',
+                      weekend && 'doran-day--weekend',
+                      holiday && 'doran-day--holiday',
                       cell.isToday && 'doran-day--today',
                       selected && 'doran-day--selected',
                       inRange && 'doran-day--in-range',

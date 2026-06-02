@@ -7,14 +7,22 @@ typed surface.
 ## Dependency graph
 
 ```
-@doranjs/ui      @doranjs/react ─┐
-                             ├──▶ @doranjs/core ◀── @doranjs/nlp
-@doranjs/holidays ─────────────┘
+@doranjs/holidays ─┐        ┌── @doranjs/nlp
+                   ▼        ▼
+                 @doranjs/core
+                   ▲        ▲
+@doranjs/react ────┘        └──── @doranjs/wc
+   │  (also → @doranjs/nlp)         (also → @doranjs/nlp + @doranjs/holidays)
+   └──▶ @doranjs/ui  (peer, theming)
 ```
 
 - **`@doranjs/core`** has **zero runtime dependencies** and no knowledge of UI.
-- **`@doranjs/nlp`**, **`@doranjs/holidays`**, and **`@doranjs/react`** depend only on the core.
-- **`@doranjs/react`** uses **`@doranjs/ui`** for theming and primitives.
+- **`@doranjs/nlp`** and **`@doranjs/holidays`** depend only on the core.
+- **`@doranjs/react`** depends on the core and **`@doranjs/nlp`** (for the natural-language
+  input), and uses **`@doranjs/ui`** as a peer for theming and primitives.
+- **`@doranjs/wc`** ships framework-agnostic Web Components built on the core,
+  **`@doranjs/nlp`**, and **`@doranjs/holidays`** — usable in plain HTML or any framework.
+- **`@doranjs/ui`** is a standalone design system (the React peer of `@doranjs/react`).
 
 ## Core design decisions
 
@@ -49,10 +57,12 @@ This mirrors how humans reason about "next month" vs. "in 24 hours".
 
 - **Locales** — register additional locales with `registerLocale`.
 - **NLP** — the parser is a pipeline of day/time extractors; register your own with
-  `Parser.useDay` / `Parser.useTime`.
+  `Parser.useDay` / `Parser.useTime`, and add Finglish aliases with `registerFinglish`.
 - **Holidays** — register custom solar or lunar holidays.
 - **React** — every component is built on headless primitives (`buildMonthGrid`,
-  `useCalendar`, `useDateRange`) you can use to build a bespoke UI.
+  `useCalendar`, `useDateRange`, `useNlpSuggest`) you can use to build a bespoke UI.
+- **Web Components** — the same UI as custom elements (`<doran-calendar>`, …) for any
+  framework or plain HTML; see [`@doranjs/wc`](/api/wc).
 
 ## Quality bar
 

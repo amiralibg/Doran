@@ -194,3 +194,118 @@ describe('reconfiguration', () => {
     expect(d.withLocale(enUS).format('MMMM')).toBe('Farvardin');
   });
 });
+
+describe('setters', () => {
+  const base = DoranDate.fromJalali({ year: 1405, month: 3, day: 11, hour: 9, minute: 30 }, UTC);
+
+  it('sets a single field with set()', () => {
+    expect(base.set('year', 1406).year).toBe(1406);
+    expect(base.set('hour', 23).hour).toBe(23);
+  });
+
+  it('sets multiple fields with with()', () => {
+    const d = base.with({ year: 1406, month: 1, day: 1 });
+    expect(d.toObject()).toMatchObject({ year: 1406, month: 1, day: 1, hour: 9, minute: 30 });
+  });
+
+  it('clamps the day when moving to a shorter month', () => {
+    const endOfTir = DoranDate.fromJalali(1404, 4, 31, UTC); // Tir has 31 days
+    expect(endOfTir.withMonth(12).day).toBe(jalaliEsfandLength(1404)); // Esfand has 29/30
+  });
+
+  it('withX helpers return new instances', () => {
+    expect(base.withMinute(0).minute).toBe(0);
+    expect(base.minute).toBe(30); // original unchanged
+  });
+});
+
+function jalaliEsfandLength(year: number): number {
+  return DoranDate.fromJalali(year, 12, 1, UTC).daysInMonth;
+}
+
+describe('week starts on Saturday', () => {
+  it('startOf("week") is the preceding Saturday', () => {
+    // 1405/03/11 — verify the week start is a Saturday (dayOfWeek 0).
+    const d = DoranDate.fromJalali(1405, 3, 11, UTC);
+    const weekStart = d.startOf('week');
+    expect(weekStart.dayOfWeek).toBe(0);
+    expect(weekStart.isSameOrBefore(d)).toBe(true);
+    expect(d.diff(weekStart, 'day')).toBeLessThan(7);
+  });
+
+  it('a Saturday is its own week start', () => {
+    const sat = DoranDate.fromJalali(1405, 3, 11, UTC).startOf('week');
+    expect(sat.startOf('week').isSame(sat)).toBe(true);
+  });
+});
+
+describe('quarter', () => {
+  it('reports the quarter and its boundaries', () => {
+    const d = DoranDate.fromJalali(1405, 8, 15, UTC); // Aban → Q3
+    expect(d.quarter).toBe(3);
+    expect(d.startOf('quarter').month).toBe(7);
+    expect(d.endOf('quarter').month).toBe(9);
+  });
+
+  it('adds and diffs by quarter', () => {
+    const d = DoranDate.fromJalali(1405, 1, 1, UTC);
+    expect(d.add(2, 'quarter').month).toBe(7);
+    expect(d.add(2, 'quarter').diff(d, 'quarter')).toBe(2);
+  });
+});
+
+describe('helpers', () => {
+  it('daysInYear reflects leap years', () => {
+    expect(DoranDate.fromJalali(1403, 1, 1, UTC).daysInYear).toBe(366); // 1403 is leap
+    expect(DoranDate.fromJalali(1404, 1, 1, UTC).daysInYear).toBe(365);
+  });
+
+  it('min and max pick the extremes', () => {
+    const a = DoranDate.fromJalali(1400, 1, 1, UTC);
+    const b = DoranDate.fromJalali(1405, 1, 1, UTC);
+    const c = DoranDate.fromJalali(1402, 1, 1, UTC);
+    expect(DoranDate.min(a, b, c).isSame(a)).toBe(true);
+    expect(DoranDate.max(a, b, c).isSame(b)).toBe(true);
+  });
+
+  it('isValid validates Jalali dates', () => {
+    expect(DoranDate.isValid(1403, 12, 30)).toBe(true); // leap year
+    expect(DoranDate.isValid(1404, 12, 30)).toBe(false); // non-leap
+    expect(DoranDate.isValid(1405, 13, 1)).toBe(false);
+  });
+
+  it('isBetween respects inclusivity', () => {
+    const start = DoranDate.fromJalali(1405, 1, 1, UTC);
+    const end = DoranDate.fromJalali(1405, 1, 10, UTC);
+    expect(start.isBetween(start, end)).toBe(true); // '[]'
+    expect(start.isBetween(start, end, '(]')).toBe(false);
+    expect(end.isBetween(start, end, '[)')).toBe(false);
+  });
+
+  it('isToday / isTomorrow / isYesterday', () => {
+    const now = DoranDate.now(UTC);
+    expect(now.isToday()).toBe(true);
+    expect(now.addDays(1).isTomorrow()).toBe(true);
+    expect(now.addDays(-1).isYesterday()).toBe(true);
+  });
+});
+
+describe('relative time', () => {
+  const ref = DoranDate.fromJalali({ year: 1405, month: 3, day: 11, hour: 12 }, UTC);
+
+  it('humanizes past and future in Persian', () => {
+    expect(ref.addDays(-3).from(ref)).toBe('۳ روز پیش');
+    expect(ref.addHours(2).from(ref)).toBe('در ۲ ساعت');
+  });
+
+  it('supports withoutSuffix and English locale', () => {
+    expect(ref.addDays(-3).from(ref, true)).toBe('۳ روز');
+    expect(ref.withLocale(enUS).addDays(-3).from(ref.withLocale(enUS))).toBe('3 days ago');
+  });
+});
+
+describe('quarter token', () => {
+  it('formats Q', () => {
+    expect(DoranDate.fromJalali(1405, 8, 1, UTC_EN).format('Q')).toBe('3');
+  });
+});

@@ -5,7 +5,8 @@ on:
     branches: [main]
     paths:
       - 'apps/docs/**'
-      - 'packages/**/README.md'
+      - 'examples/**'
+      - 'packages/**'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
@@ -29,12 +30,20 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Build docs
-        run: pnpm --filter @doranjs/docs build
+      # Builds packages, the docs site, and the example demos (turbo orders deps).
+      - name: Build everything
+        run: pnpm build
+      - name: Assemble Pages site (docs + demos)
+        run: |
+          rm -rf site
+          mkdir -p site/examples/react site/examples/vanilla
+          cp -r apps/docs/.vitepress/dist/. site/
+          cp -r examples/react/dist/. site/examples/react/
+          cp -r examples/vanilla/dist/. site/examples/vanilla/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/docs/.vitepress/dist
+          path: site
 
   deploy:
     needs: build

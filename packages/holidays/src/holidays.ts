@@ -1,6 +1,7 @@
 import { type DoranDate, jalaliToJdn, jdnToJalali } from '@doranjs/core';
 import { LUNAR_HOLIDAYS, SOLAR_HOLIDAYS } from './data';
-import { hijriToJdn, jdnToHijri } from './hijri';
+import { hijriMonthLength, hijriToJdn, jdnToHijri } from './hijri';
+import { getOfficialLunarDates } from './official';
 import type { GetHolidaysOptions, Holiday, LunarHolidayDef, SolarHolidayDef } from './types';
 
 const customSolar: SolarHolidayDef[] = [];
@@ -49,7 +50,10 @@ function resolveLunar(def: LunarHolidayDef, year: number): Holiday[] {
 
   const result: Holiday[] = [];
   for (let hy = firstHijriYear; hy <= lastHijriYear; hy += 1) {
-    const jdn = hijriToJdn(hy, def.hijriMonth, def.hijriDay);
+    // Clamp to the month length so "last day of the month" occasions (e.g. آخر صفر)
+    // never overflow into the next tabular month.
+    const day = Math.min(def.hijriDay, hijriMonthLength(hy, def.hijriMonth));
+    const jdn = hijriToJdn(hy, def.hijriMonth, day);
     if (jdn < startJdn || jdn > endJdn) continue;
     const jalali = jdnToHijriJalali(jdn);
     result.push({
@@ -74,6 +78,43 @@ function jdnToHijriJalali(jdn: number): { year: number; month: number; day: numb
 
 function sortHolidays(holidays: Holiday[]): Holiday[] {
   return holidays.sort((a, b) => a.month - b.month || a.day - b.day);
+}
+
+/**
+ * Replaces the (approximate) tabular lunar holidays with the authoritative official
+ * dates for years that have them, so popular-calendar accuracy beats arithmetic.
+ */
+function applyOfficialOverrides(
+  holidays: Holiday[],
+  year: number,
+  includeUnofficial: boolean,
+): Holiday[] {
+  const official = getOfficialLunarDates(year);
+  if (!official) return holidays;
+
+  const defByTitle = new Map(LUNAR_HOLIDAYS.map((d) => [d.titleEn, d]));
+  const overridden = new Set(official.map((o) => o.titleEn));
+
+  // Drop the tabular lunar entries we have an official date for.
+  const result = holidays.filter((h) => !(h.calendar === 'lunar' && overridden.has(h.titleEn)));
+
+  for (const { titleEn, month, day } of official) {
+    const def = defByTitle.get(titleEn);
+    if (!def) continue;
+    if (!includeUnofficial && !def.official) continue;
+    result.push({
+      year,
+      month,
+      day,
+      title: def.title,
+      titleEn: def.titleEn,
+      type: def.type,
+      calendar: 'lunar',
+      official: def.official,
+      ...(def.description ? { description: def.description } : {}),
+    });
+  }
+  return result;
 }
 
 /**
@@ -116,7 +157,11 @@ export function getHolidays(year: number, options: GetHolidaysOptions = {}): Hol
     }
   }
 
-  return sortHolidays(holidays);
+  const resolved = includeReligious
+    ? applyOfficialOverrides(holidays, year, includeUnofficial)
+    : holidays;
+
+  return sortHolidays(resolved);
 }
 
 /** Returns the holidays that fall on the given date (may be more than one). */

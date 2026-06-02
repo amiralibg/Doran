@@ -24,8 +24,9 @@ yarn add @doranjs/core
 The other packages build on the core:
 
 ```bash
-pnpm add @doranjs/nlp @doranjs/holidays      # logic
-pnpm add @doranjs/react @doranjs/ui react react-dom  # UI
+pnpm add @doranjs/nlp @doranjs/holidays              # logic
+pnpm add @doranjs/react @doranjs/ui react react-dom  # React UI
+pnpm add @doranjs/wc                                 # Web Components (any framework / plain HTML)
 ```
 
 ## Your first date
@@ -66,7 +67,25 @@ tehran.withLocale('en-US').format('dddd D MMMM YYYY'); // Latin output
 import { parse } from '@doranjs/nlp';
 
 parse('جمعه ساعت ۷ شب'); // { date: DoranDate, confidence: 0.98, matched: '...' }
+parse('farda'); // Finglish also works → فردا
+parse('tvnh'); // even text typed with the keyboard left in English → فردا
 ```
+
+## Use in plain HTML (Web Components)
+
+No bundler or framework required — import the package (which registers the elements)
+and the stylesheet:
+
+```html
+<link rel="stylesheet" href="https://unpkg.com/@doranjs/wc/dist/styles.css" />
+<script src="https://unpkg.com/@doranjs/wc/dist/doran.global.js"></script>
+
+<doran-calendar show-holidays></doran-calendar>
+<doran-datepicker with-time></doran-datepicker>
+<doran-nlp-input></doran-nlp-input>
+```
+
+See [`@doranjs/wc`](/api/wc) for all elements, attributes, and events.
 
 ## Next steps
 
