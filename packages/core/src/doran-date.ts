@@ -2,6 +2,7 @@ import {
   gregorianToJalali,
   gregorianWeekday,
   isLeapJalaliYear,
+  isValidJalaliDate,
   jalaliMonthLength,
   jalaliToGregorian,
   jalaliToJdn,
@@ -9,6 +10,7 @@ import {
 } from './conversion';
 import { formatParts, type FormatContext } from './format';
 import { resolveLocale } from './locale';
+import { humanizeRelative } from './relative';
 import {
   getSystemTimeZone,
   getTimeZoneOffsetMs,
@@ -20,10 +22,14 @@ import type {
   DiffUnit,
   DoranDateOptions,
   DoranDateParts,
+  Inclusivity,
   Locale,
   LocaleLike,
   Weekday,
 } from './types';
+
+/** A single settable Jalali/clock field. */
+export type SettableUnit = 'year' | 'month' | 'day' | 'hour' | 'minute' | 'second' | 'millisecond';
 
 /** Object form accepted by {@link DoranDate.fromJalali}. */
 export interface JalaliInput {
@@ -141,6 +147,23 @@ export class DoranDate {
     return new DoranDate(epochMs, timeZone, locale);
   }
 
+  /** The earliest of the given dates. Throws if none are provided. */
+  static min(...dates: DoranDate[]): DoranDate {
+    if (dates.length === 0) throw new RangeError('DoranDate.min requires at least one date.');
+    return dates.reduce((a, b) => (b.#epochMs < a.#epochMs ? b : a));
+  }
+
+  /** The latest of the given dates. Throws if none are provided. */
+  static max(...dates: DoranDate[]): DoranDate {
+    if (dates.length === 0) throw new RangeError('DoranDate.max requires at least one date.');
+    return dates.reduce((a, b) => (b.#epochMs > a.#epochMs ? b : a));
+  }
+
+  /** `true` if the given Jalali year/month/day is a real calendar date. */
+  static isValid(year: number, month: number, day: number): boolean {
+    return isValidJalaliDate(year, month, day);
+  }
+
   static #jalaliToInstant(input: JalaliInput, timeZone: string): number {
     const greg = jalaliToGregorian(input.year, input.month, input.day);
     return wallClockToInstant(
@@ -243,6 +266,11 @@ export class DoranDate {
     return jalaliMonthLength(this.year, this.month);
   }
 
+  /** Number of days in the current Jalali year (365, or 366 in a leap year). */
+  get daysInYear(): number {
+    return isLeapJalaliYear(this.year) ? 366 : 365;
+  }
+
   /** The IANA time zone this date is expressed in. */
   get timeZone(): string {
     return this.#timeZone;
@@ -328,7 +356,7 @@ export class DoranDate {
     const { year, month, day } = this.#computeParts();
     const total = year * 12 + (month - 1) + amount;
     const nextYear = Math.floor(total / 12);
-    const nextMonth = (total % 12) + 1;
+    const nextMonth = (((total % 12) + 12) % 12) + 1;
     return this.#withJalali(nextYear, nextMonth, day);
   }
 
@@ -355,6 +383,8 @@ export class DoranDate {
         return this.addWeeks(amount);
       case 'month':
         return this.addMonths(amount);
+      case 'quarter':
+        return this.addMonths(amount * 3);
       case 'year':
         return this.addYears(amount);
     }
@@ -363,6 +393,80 @@ export class DoranDate {
   /** Generic subtraction by {@link DateUnit}. */
   subtract(amount: number, unit: DateUnit): DoranDate {
     return this.add(-amount, unit);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Setters (immutable)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Returns a copy with one or more Jalali/clock fields replaced. The day of month is
+   * clamped to the resulting month's length (e.g. setting month to Esfand from the
+   * 31st yields the 29th/30th).
+   *
+   * @example
+   * ```ts
+   * date.with({ year: 1406, month: 1, day: 1 });
+   * ```
+   */
+  with(parts: Partial<DoranDateParts>): DoranDate {
+    const p = this.#computeParts();
+    const year = parts.year ?? p.year;
+    const month = parts.month ?? p.month;
+    const day = Math.min(parts.day ?? p.day, jalaliMonthLength(year, month));
+    const epochMs = DoranDate.#jalaliToInstant(
+      {
+        year,
+        month,
+        day,
+        hour: parts.hour ?? p.hour,
+        minute: parts.minute ?? p.minute,
+        second: parts.second ?? p.second,
+        millisecond: parts.millisecond ?? p.millisecond,
+      },
+      this.#timeZone,
+    );
+    return this.#withInstant(epochMs);
+  }
+
+  /** Returns a copy with a single field set. */
+  set(unit: SettableUnit, value: number): DoranDate {
+    return this.with({ [unit]: value });
+  }
+
+  /** Returns a copy with the Jalali year set. */
+  withYear(year: number): DoranDate {
+    return this.with({ year });
+  }
+
+  /** Returns a copy with the Jalali month (1–12) set. */
+  withMonth(month: number): DoranDate {
+    return this.with({ month });
+  }
+
+  /** Returns a copy with the day of month set. */
+  withDay(day: number): DoranDate {
+    return this.with({ day });
+  }
+
+  /** Returns a copy with the hour (0–23) set. */
+  withHour(hour: number): DoranDate {
+    return this.with({ hour });
+  }
+
+  /** Returns a copy with the minute set. */
+  withMinute(minute: number): DoranDate {
+    return this.with({ minute });
+  }
+
+  /** Returns a copy with the second set. */
+  withSecond(second: number): DoranDate {
+    return this.with({ second });
+  }
+
+  /** Returns a copy with the millisecond set. */
+  withMillisecond(millisecond: number): DoranDate {
+    return this.with({ millisecond });
   }
 
   // ---------------------------------------------------------------------------
@@ -375,6 +479,10 @@ export class DoranDate {
     switch (unit) {
       case 'year':
         return DoranDate.fromJalali({ year: p.year, month: 1, day: 1 }, this.#configOptions());
+      case 'quarter': {
+        const month = (this.quarter - 1) * 3 + 1;
+        return DoranDate.fromJalali({ year: p.year, month, day: 1 }, this.#configOptions());
+      }
       case 'month':
         return DoranDate.fromJalali(
           { year: p.year, month: p.month, day: 1 },
@@ -401,6 +509,7 @@ export class DoranDate {
     if (unit === 'millisecond') return this;
     const nextUnit: Record<Exclude<DateUnit, 'millisecond'>, DateUnit> = {
       year: 'year',
+      quarter: 'quarter',
       month: 'month',
       week: 'week',
       day: 'day',
@@ -457,9 +566,32 @@ export class DoranDate {
     return this.#epochMs >= other.#epochMs;
   }
 
-  /** `true` if this date is within `[start, end]` (inclusive). */
-  isBetween(start: DoranDate, end: DoranDate): boolean {
-    return this.#epochMs >= start.#epochMs && this.#epochMs <= end.#epochMs;
+  /**
+   * `true` if this date falls between `start` and `end`. `inclusivity` controls
+   * whether each endpoint is included: `[` / `]` inclusive (default `'[]'`), `(` / `)`
+   * exclusive.
+   */
+  isBetween(start: DoranDate, end: DoranDate, inclusivity: Inclusivity = '[]'): boolean {
+    const afterStart =
+      inclusivity[0] === '[' ? this.#epochMs >= start.#epochMs : this.#epochMs > start.#epochMs;
+    const beforeEnd =
+      inclusivity[1] === ']' ? this.#epochMs <= end.#epochMs : this.#epochMs < end.#epochMs;
+    return afterStart && beforeEnd;
+  }
+
+  /** `true` if this date is the same calendar day as now (in its own time zone). */
+  isToday(): boolean {
+    return this.isSame(DoranDate.now({ timeZone: this.#timeZone }), 'day');
+  }
+
+  /** `true` if this date is the day after now (in its own time zone). */
+  isTomorrow(): boolean {
+    return this.isSame(DoranDate.now({ timeZone: this.#timeZone }).addDays(1), 'day');
+  }
+
+  /** `true` if this date is the day before now (in its own time zone). */
+  isYesterday(): boolean {
+    return this.isSame(DoranDate.now({ timeZone: this.#timeZone }).addDays(-1), 'day');
   }
 
   /**
@@ -468,7 +600,7 @@ export class DoranDate {
    * pass `float = true` for a fractional result.
    */
   diff(other: DoranDate, unit: DiffUnit = 'millisecond', float = false): number {
-    if (unit === 'year' || unit === 'month') {
+    if (unit === 'year' || unit === 'quarter' || unit === 'month') {
       const a = this.#computeParts();
       const b = other.#computeParts();
       let months = (a.year - b.year) * 12 + (a.month - b.month);
@@ -480,12 +612,12 @@ export class DoranDate {
       const remainder =
         (this.#epochMs - base.#epochMs) / Math.abs(next.#epochMs - base.#epochMs || 1);
       const value = months + (this.isSameOrAfter(other) ? remainder : -remainder);
-      const result = unit === 'year' ? value / 12 : value;
+      const result = unit === 'year' ? value / 12 : unit === 'quarter' ? value / 3 : value;
       return float ? result : Math.trunc(result);
     }
 
     const deltaMs = this.#epochMs - other.#epochMs;
-    const divisor: Record<Exclude<DiffUnit, 'year' | 'month'>, number> = {
+    const divisor: Record<Exclude<DiffUnit, 'year' | 'quarter' | 'month'>, number> = {
       week: MS_PER_DAY * 7,
       day: MS_PER_DAY,
       hour: MS_PER_HOUR,
@@ -514,6 +646,40 @@ export class DoranDate {
   /** Returns an identical copy. */
   clone(): DoranDate {
     return new DoranDate(this.#epochMs, this.#timeZone, this.#locale);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Relative time
+  // ---------------------------------------------------------------------------
+
+  /**
+   * A humanized relative phrase versus `other`, in this date's locale — e.g.
+   * `"۳ روز پیش"` or `"در ۲ ساعت"`. Pass `withoutSuffix = true` for the bare duration
+   * (`"۳ روز"`).
+   */
+  from(other: DoranDate, withoutSuffix = false): string {
+    return humanizeRelative(this.#epochMs - other.#epochMs, this.#locale, withoutSuffix);
+  }
+
+  /** Relative phrase versus now — e.g. `"۳ روز پیش"`. */
+  fromNow(withoutSuffix = false): string {
+    return this.from(
+      DoranDate.now({ timeZone: this.#timeZone, locale: this.#locale }),
+      withoutSuffix,
+    );
+  }
+
+  /** Relative phrase of `other` versus this date (the inverse of {@link from}). */
+  to(other: DoranDate, withoutSuffix = false): string {
+    return humanizeRelative(other.#epochMs - this.#epochMs, this.#locale, withoutSuffix);
+  }
+
+  /** Relative phrase of now versus this date — e.g. `"در ۳ روز"` for a past date. */
+  toNow(withoutSuffix = false): string {
+    return this.to(
+      DoranDate.now({ timeZone: this.#timeZone, locale: this.#locale }),
+      withoutSuffix,
+    );
   }
 
   // ---------------------------------------------------------------------------

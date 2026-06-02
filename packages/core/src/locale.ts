@@ -25,6 +25,22 @@ export const faIR: Locale = {
   meridiem: ['قبل از ظهر', 'بعد از ظهر'],
   formatNumber: toPersianDigits,
   parseNumber: normalizeDigits,
+  relativeTime: {
+    future: 'در %s',
+    past: '%s پیش',
+    s: 'چند ثانیه',
+    ss: '%d ثانیه',
+    m: 'یک دقیقه',
+    mm: '%d دقیقه',
+    h: 'یک ساعت',
+    hh: '%d ساعت',
+    d: 'یک روز',
+    dd: '%d روز',
+    M: 'یک ماه',
+    MM: '%d ماه',
+    y: 'یک سال',
+    yy: '%d سال',
+  },
 };
 
 /** An English locale using transliterated Persian month/weekday names. */
@@ -51,6 +67,22 @@ export const enUS: Locale = {
   meridiem: ['AM', 'PM'],
   formatNumber: toLatinDigits,
   parseNumber: normalizeDigits,
+  relativeTime: {
+    future: 'in %s',
+    past: '%s ago',
+    s: 'a few seconds',
+    ss: '%d seconds',
+    m: 'a minute',
+    mm: '%d minutes',
+    h: 'an hour',
+    hh: '%d hours',
+    d: 'a day',
+    dd: '%d days',
+    M: 'a month',
+    MM: '%d months',
+    y: 'a year',
+    yy: '%d years',
+  },
 };
 
 const registry = new Map<string, Locale>([

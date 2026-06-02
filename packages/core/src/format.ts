@@ -23,7 +23,7 @@ function formatOffset(offsetMs: number, withColon: boolean): string {
  * the familiar `dayjs` / `moment` token vocabulary.
  */
 const TOKEN =
-  /\[([^\]]*)]|YYYY|YY|MMMM|MMM|MM|M|DD|D|dddd|ddd|dd|d|HH|H|hh|h|mm|m|ss|s|SSS|A|a|ZZ|Z/g;
+  /\[([^\]]*)]|YYYY|YY|MMMM|MMM|MM|M|DD|D|dddd|ddd|dd|d|Q|HH|H|hh|h|mm|m|ss|s|SSS|A|a|ZZ|Z/g;
 
 /**
  * Renders Jalali date-time fields into a string using the given pattern.
@@ -44,6 +44,7 @@ const TOKEN =
  * | `ddd`  | Short weekday name           | `یک‌شنبه`     |
  * | `dd`   | Minimal weekday name         | `ی`           |
  * | `d`    | Weekday index (0 = Saturday) | `1`           |
+ * | `Q`    | Quarter of the year          | `1`           |
  * | `HH`   | 2-digit 24h hour             | `07`          |
  * | `H`    | 24h hour                     | `7`           |
  * | `hh`   | 2-digit 12h hour             | `07`          |
@@ -92,6 +93,8 @@ export function formatParts(ctx: FormatContext, pattern: string, locale: Locale)
         return locale.weekdaysMin[ctx.weekday] ?? '';
       case 'd':
         return num(String(ctx.weekday));
+      case 'Q':
+        return num(String(Math.floor((ctx.month - 1) / 3) + 1));
       case 'HH':
         return num(pad(ctx.hour));
       case 'H':

@@ -4,7 +4,7 @@ The immutable Solar Hijri date engine. Zero runtime dependencies.
 
 ## `DoranDate`
 
-### Factories
+### Factories & statics
 
 ```ts
 DoranDate.now(options?);
@@ -12,6 +12,10 @@ DoranDate.fromEpochMs(ms, options?);
 DoranDate.fromGregorian(date: Date, options?);
 DoranDate.fromJalali(year, month, day, options?);
 DoranDate.fromJalali({ year, month, day, hour?, minute?, second?, millisecond? }, options?);
+
+DoranDate.min(...dates); // earliest
+DoranDate.max(...dates); // latest
+DoranDate.isValid(year, month, day); // boolean
 ```
 
 `options` is `{ timeZone?: string; locale?: string | Locale }`.
@@ -19,8 +23,8 @@ DoranDate.fromJalali({ year, month, day, hour?, minute?, second?, millisecond? }
 ### Accessors
 
 `year`, `month`, `day`, `hour`, `minute`, `second`, `millisecond`, `dayOfWeek`
-(0 = Saturday), `quarter`, `dayOfYear`, `weekOfYear`, `daysInMonth`, `timeZone`,
-`locale`, `epochMs`, `utcOffset`, and `isLeapYear()`.
+(0 = Saturday), `quarter`, `dayOfYear`, `weekOfYear`, `daysInMonth`, `daysInYear`,
+`timeZone`, `locale`, `epochMs`, `utcOffset`, and `isLeapYear()`.
 
 ### Arithmetic (immutable)
 
@@ -36,8 +40,26 @@ d.addYears(n);
 d.add(n, unit);
 d.subtract(n, unit);
 d.startOf(unit);
-d.endOf(unit); // unit: 'year' | 'month' | 'week' | 'day' | 'hour' | ...
+d.endOf(unit); // unit: 'year' | 'quarter' | 'month' | 'week' | 'day' | 'hour' | ...
 ```
+
+The week begins on **Saturday** (`startOf('week')`), per the Persian convention.
+
+### Setters (immutable)
+
+```ts
+d.set('year', 1406); // any of year|month|day|hour|minute|second|millisecond
+d.with({ year: 1406, month: 1, day: 1 });
+d.withYear(n);
+d.withMonth(n);
+d.withDay(n);
+d.withHour(n);
+d.withMinute(n);
+d.withSecond(n);
+d.withMillisecond(n);
+```
+
+The day is clamped to the resulting month's length.
 
 ### Comparison
 
@@ -45,9 +67,22 @@ d.endOf(unit); // unit: 'year' | 'month' | 'week' | 'day' | 'hour' | ...
 d.compare(other); // -1 | 0 | 1
 d.isBefore(other); d.isAfter(other);
 d.isSame(other, unit?); d.isSameOrBefore(other); d.isSameOrAfter(other);
-d.isBetween(start, end);
+d.isBetween(start, end, inclusivity?); // '[]' | '()' | '[)' | '(]'
+d.isToday(); d.isTomorrow(); d.isYesterday();
 d.diff(other, unit?, float?);
 ```
+
+### Relative time
+
+```ts
+d.fromNow(); // "۳ روز پیش"
+d.from(other); // relative to another date
+d.toNow();
+d.to(other);
+d.fromNow(true); // bare duration, no suffix: "۳ روز"
+```
+
+Phrases come from the locale's `relativeTime` bundle (provided for `fa-IR` and `en-US`).
 
 ### Conversion & formatting
 
@@ -71,6 +106,7 @@ d.format(pattern);
 | `MMMM` `MMM` `MM` `M`   | Month name / number  |
 | `DD` `D`                | Day of month         |
 | `dddd` `ddd` `dd` `d`   | Weekday name / index |
+| `Q`                     | Quarter (1–4)        |
 | `HH` `H` `hh` `h`       | Hour (24 / 12)       |
 | `mm` `m` `ss` `s` `SSS` | Minute / second / ms |
 | `A` `a`                 | Meridiem             |

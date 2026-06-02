@@ -1,5 +1,7 @@
 import { DoranDate } from '@doranjs/core';
 import { defaultDayExtractors, defaultTimeExtractors } from './extractors';
+import { hasFinglish, transliterateFinglish } from './finglish';
+import { hasLatinLetters, remapKeyboard } from './keyboard';
 import { normalize } from './normalize';
 import type { DayExtractor, NlpContext, ParseOptions, ParseResult, TimeExtractor } from './types';
 
@@ -45,11 +47,37 @@ export class Parser {
 
   /**
    * Parses a Persian date expression. Returns `null` when nothing is understood.
+   *
+   * Input is first tried as-is (normalized). If that yields nothing and the text
+   * contains Latin letters, two rescue passes are attempted so that "near misses"
+   * still resolve, in the spirit of search-expression matching:
+   *
+   * 1. **Keyboard remap** — text typed with the layout left in English
+   *    (e.g. `tvnh` → «فردا»).
+   * 2. **Finglish** — Latin-script Persian (e.g. `jomeh saat 7 shab` → «جمعه ساعت ۷ شب»).
    */
   parse(input: string, options?: ParseOptions): ParseResult | null {
     const reference = options?.reference ?? DoranDate.now(options);
-    const text = normalize(input);
-    const ctx: NlpContext = { reference, text, raw: input };
+
+    const direct = this.#run(normalize(input), reference);
+    if (direct) return direct;
+
+    if (hasLatinLetters(input)) {
+      const finglish = hasFinglish(input)
+        ? this.#run(normalize(transliterateFinglish(input)), reference)
+        : null;
+      if (finglish) return finglish;
+
+      const remapped = this.#run(normalize(remapKeyboard(input)), reference);
+      if (remapped) return remapped;
+    }
+
+    return null;
+  }
+
+  /** Runs the extractors against an already-normalized text. */
+  #run(text: string, reference: DoranDate): ParseResult | null {
+    const ctx: NlpContext = { reference, text, raw: text };
 
     let dayMatch = null;
     for (const extractor of this.#dayExtractors) {

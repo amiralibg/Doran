@@ -13,3 +13,12 @@ export { cn, type ClassValue } from './cn';
 export { tokens, type Direction, type ThemeMode } from './tokens';
 export { ThemeProvider, useTheme, type ThemeProviderProps } from './theme';
 export { Button, type ButtonProps, type ButtonVariant } from './button';
+export {
+  CalendarIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+  ClockIcon,
+  type IconProps,
+} from './icons';

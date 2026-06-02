@@ -42,7 +42,35 @@ registerLunarHoliday({
 
 ## Accuracy
 
-Solar holidays are **exact**. Religious (lunar) holidays are **computed** from a
-calibrated tabular Hijri calendar and flagged `approximate: true` — they can differ from
-Iran's official sighting-based announcement by ±1 day. A lunar holiday may appear zero,
-one, or two times in a single Jalali year.
+Solar holidays are **exact**. Religious (lunar) holidays are resolved in two tiers:
+
+- **Seeded years** (e.g. 1404, 1405) use **authoritative dates** from published Iranian
+  calendars — exact, `approximate: false`.
+- **Other years** fall back to a **tabular Hijri** calendar (calibrated to the current
+  era) and are flagged `approximate: true`. Iran announces religious holidays by
+  moon-sighting, so far-out years can differ by ±1 day — even popular calendars
+  sometimes disagree.
+
+Keep any year exact by registering its official dates (no release needed):
+
+```ts
+import { registerOfficialLunarYear } from '@doranjs/holidays';
+
+registerOfficialLunarYear(1406, [
+  { titleEn: 'Eid al-Ghadir', month: 2, day: 25 },
+  { titleEn: 'Tasua', month: 3, day: 22 },
+  // …
+]);
+```
+
+A lunar holiday may appear zero, one, or two times in a single Jalali year.
+
+## Hijri conversion
+
+Low-level tabular Hijri ↔ JDN helpers are exported for advanced use:
+
+```ts
+import { hijriToJdn, jdnToHijri, hijriMonthLength } from '@doranjs/holidays';
+
+hijriMonthLength(1447, 1); // 30 (Muharram)
+```

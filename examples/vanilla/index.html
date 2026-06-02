@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-doran-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>دوران — نمونه‌ی وب‌کامپوننت (HTML خالص)</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--doran-font-sans);
+        background: var(--doran-bg);
+        color: var(--doran-text);
+      }
+      .page {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.8rem;
+      }
+      .sub {
+        color: var(--doran-text-muted);
+        margin: 0.25rem 0 0;
+      }
+      .card {
+        background: var(--doran-surface);
+        border: 1px solid var(--doran-border);
+        border-radius: var(--doran-radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--doran-shadow-sm);
+      }
+      .card h2 {
+        margin: 0 0 0.35rem;
+        font-size: 1.05rem;
+      }
+      .card p.hint {
+        margin: 0 0 1.25rem;
+        font-size: 0.85rem;
+        color: var(--doran-text-muted);
+      }
+      .row {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .out {
+        margin-top: 0.75rem;
+        font-size: 0.9rem;
+        color: var(--doran-text-muted);
+      }
+      button.theme {
+        font-family: inherit;
+        border: 1px solid var(--doran-border);
+        background: var(--doran-surface);
+        color: var(--doran-text);
+        border-radius: var(--doran-radius-md);
+        padding: 0.5rem 0.9rem;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header style="display: flex; justify-content: space-between; align-items: center">
+        <div>
+          <h1>دوران</h1>
+          <p class="sub">وب‌کامپوننت‌ها در HTML خالص — بدون هیچ فریم‌ورکی</p>
+        </div>
+        <button class="theme" id="theme-toggle">🌙 تم تیره</button>
+      </header>
+
+      <section class="card">
+        <h2>تقویم</h2>
+        <p class="hint">انتخاب کشویی ماه/سال، نمایش تعطیلات و آخر هفته.</p>
+        <div class="row">
+          <doran-calendar show-holidays value="1405/03/12" id="cal"></doran-calendar>
+          <doran-calendar header-mode="separate" with-time show-holidays></doran-calendar>
+        </div>
+        <p class="out" id="cal-out">—</p>
+      </section>
+
+      <section class="card">
+        <h2>انتخابگرها</h2>
+        <p class="hint">انتخاب تاریخ و بازه‌ی تاریخی.</p>
+        <div class="row">
+          <doran-datepicker show-holidays placeholder="یک تاریخ انتخاب کنید"></doran-datepicker>
+          <doran-datepicker with-time placeholder="تاریخ و ساعت"></doran-datepicker>
+          <doran-rangepicker show-holidays></doran-rangepicker>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>ورودی زبان طبیعی</h2>
+        <p class="hint">«جمعه ساعت ۷ شب»، «۱۵ خرداد»، «هفته بعد» را امتحان کنید.</p>
+        <doran-nlp-input value="جمعه ساعت ۷ شب" style="--doran-nlp-width: 26rem"></doran-nlp-input>
+        <p class="out" id="nlp-out">—</p>
+      </section>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

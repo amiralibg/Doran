@@ -21,17 +21,20 @@ features:
     title: Immutable & typed
     details: An immutable DoranDate, strong types everywhere, and tree-shakeable builds with zero runtime dependencies in the core.
   - icon: 🗣️
-    title: Persian NLP
-    details: Parse everyday Persian like «فردا» and «جمعه ساعت ۷ شب» into precise dates with a confidence score.
+    title: Forgiving Persian NLP
+    details: Parse «فردا» or «جمعه ساعت ۷ شب» — plus Finglish («farda») and even text typed with the keyboard left in English — with a confidence score.
   - icon: 🎉
     title: Holidays included
     details: Iranian national, religious, and cultural holidays — with custom holiday registration.
   - icon: ⚛️
     title: RTL-first React
     details: Accessible, keyboard-navigable, dark-mode-aware calendar components, built on headless primitives.
+  - icon: 🌐
+    title: Works anywhere
+    details: Framework-agnostic Web Components drop into plain HTML, Vue, Svelte, or any framework — no build step required.
   - icon: 🎨
-    title: Elegant UI
-    details: A minimal, themeable design system inspired by Linear, Notion, and Raycast.
+    title: Elegant, themeable UI
+    details: A minimal design system where every part — colors, fonts, shadows, borders, radii, arrows — is a CSS variable you can override.
 ---
 
 ## Quick start

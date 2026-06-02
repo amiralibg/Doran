@@ -4,8 +4,9 @@
  * @packageDocumentation
  */
 
-export { DoranDate, type JalaliInput } from './doran-date';
+export { DoranDate, type JalaliInput, type SettableUnit } from './doran-date';
 export { parseJalali } from './parse';
+export { humanizeRelative } from './relative';
 
 // Conversion primitives (useful for advanced/low-level work).
 export {
@@ -54,8 +55,10 @@ export type {
   DoranDateOptions,
   DoranDateParts,
   GregorianParts,
+  Inclusivity,
   JalaliParts,
   Locale,
   LocaleLike,
+  RelativeTimeStrings,
   Weekday,
 } from './types';

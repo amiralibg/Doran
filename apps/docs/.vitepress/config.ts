@@ -15,12 +15,20 @@ export default defineConfig({
       { text: 'API', link: '/api/core' },
       { text: 'Examples', link: '/examples' },
       {
+        text: 'Demos',
+        items: [
+          { text: 'React demo', link: 'https://amiralibg.github.io/Doran/examples/react/' },
+          { text: 'Vanilla demo', link: 'https://amiralibg.github.io/Doran/examples/vanilla/' },
+        ],
+      },
+      {
         text: 'Packages',
         items: [
           { text: '@doranjs/core', link: '/api/core' },
           { text: '@doranjs/nlp', link: '/api/nlp' },
           { text: '@doranjs/holidays', link: '/api/holidays' },
           { text: '@doranjs/react', link: '/api/react' },
+          { text: '@doranjs/wc', link: '/api/wc' },
           { text: '@doranjs/ui', link: '/api/ui' },
         ],
       },
@@ -45,6 +53,7 @@ export default defineConfig({
             { text: '@doranjs/nlp', link: '/api/nlp' },
             { text: '@doranjs/holidays', link: '/api/holidays' },
             { text: '@doranjs/react', link: '/api/react' },
+            { text: '@doranjs/wc', link: '/api/wc' },
             { text: '@doranjs/ui', link: '/api/ui' },
           ],
         },

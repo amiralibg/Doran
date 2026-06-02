@@ -54,7 +54,8 @@
     "clean": "rm -rf dist .turbo coverage"
   },
   "dependencies": {
-    "@doranjs/core": "workspace:*"
+    "@doranjs/core": "workspace:*",
+    "@doranjs/nlp": "workspace:*"
   },
   "peerDependencies": {
     "@doranjs/ui": "workspace:*",

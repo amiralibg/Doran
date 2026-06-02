@@ -100,6 +100,16 @@ importers:
         specifier: ^6.0.7
         version: 6.4.2(@types/node@22.19.19)(jiti@2.6.1)(yaml@2.9.0)
 
+  examples/vanilla:
+    dependencies:
+      '@doranjs/wc':
+        specifier: workspace:*
+        version: link:../../packages/wc
+    devDependencies:
+      vite:
+        specifier: ^6.0.7
+        version: 6.4.2(@types/node@22.19.19)(jiti@2.6.1)(yaml@2.9.0)
+
   packages/core: {}
 
   packages/holidays:
@@ -119,6 +129,9 @@ importers:
       '@doranjs/core':
         specifier: workspace:*
         version: link:../core
+      '@doranjs/nlp':
+        specifier: workspace:*
+        version: link:../nlp
     devDependencies:
       '@doranjs/ui':
         specifier: workspace:*
@@ -150,6 +163,18 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+
+  packages/wc:
+    dependencies:
+      '@doranjs/core':
+        specifier: workspace:*
+        version: link:../core
+      '@doranjs/holidays':
+        specifier: workspace:*
+        version: link:../holidays
+      '@doranjs/nlp':
+        specifier: workspace:*
+        version: link:../nlp
 
   playground:
     dependencies:

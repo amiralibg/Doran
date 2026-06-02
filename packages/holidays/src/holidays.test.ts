@@ -1,6 +1,6 @@
-import { DoranDate } from '@doranjs/core';
+import { DoranDate, jalaliToJdn } from '@doranjs/core';
 import { afterEach, describe, expect, it } from 'vitest';
-import { hijriToJdn, jdnToHijri } from './hijri';
+import { hijriMonthLength, hijriToJdn, jdnToHijri } from './hijri';
 import {
   clearCustomHolidays,
   getHolidays,
@@ -8,8 +8,12 @@ import {
   isHoliday,
   registerSolarHoliday,
 } from './holidays';
+import { registerOfficialLunarYear, resetOfficialLunarYears } from './official';
 
-afterEach(() => clearCustomHolidays());
+afterEach(() => {
+  clearCustomHolidays();
+  resetOfficialLunarYears();
+});
 
 describe('getHolidays', () => {
   it('includes the fixed Nowruz block', () => {
@@ -34,8 +38,9 @@ describe('getHolidays', () => {
     }
   });
 
-  it('flags religious holidays as approximate and lunar', () => {
-    const religious = getHolidays(1405).filter((h) => h.type === 'religious');
+  it('flags tabular (unseeded-year) religious holidays as approximate and lunar', () => {
+    // 1405 has official dates; use an unseeded year for the tabular-approximate path.
+    const religious = getHolidays(1412).filter((h) => h.type === 'religious');
     expect(religious.length).toBeGreaterThan(0);
     expect(religious.every((h) => h.calendar === 'lunar' && h.approximate)).toBe(true);
   });
@@ -112,5 +117,78 @@ describe('tabular Hijri conversion', () => {
 
   it('anchors 1 Muharram 1445 to the calibrated date', () => {
     expect(jdnToHijri(hijriToJdn(1445, 1, 1))).toMatchObject({ year: 1445, month: 1, day: 1 });
+  });
+
+  it('gives tabular months alternating 30/29 days', () => {
+    expect(hijriMonthLength(1445, 1)).toBe(30); // Muharram
+    expect(hijriMonthLength(1445, 2)).toBe(29); // Safar
+  });
+
+  it('keeps a clamped "last day of Safar" occasion within Safar', () => {
+    // شهادت امام رضا is defined on Safar 30, but tabular Safar has 29 days; it must
+    // resolve to a date that is still in Safar, never overflow into Rabi al-Awwal.
+    for (const year of [1404, 1405, 1406]) {
+      const reza = getHolidays(year).find((h) => h.titleEn === 'Martyrdom of Imam Reza');
+      expect(reza, `expected Imam Reza in ${year}`).toBeDefined();
+      const hijri = jdnToHijri(jalaliToJdn(reza!.year, reza!.month, reza!.day));
+      expect(hijri.month).toBe(2); // Safar, not Rabi al-Awwal
+    }
+  });
+});
+
+describe('broadened observances', () => {
+  it('includes cultural observance days that are not days off', () => {
+    const holidays = getHolidays(1405);
+    const yalda = holidays.find((h) => h.titleEn === 'Yalda Night');
+    expect(yalda).toMatchObject({ month: 9, day: 30, official: false });
+    expect(holidays.some((h) => h.titleEn === 'Hafez Commemoration Day')).toBe(true);
+  });
+
+  it('exposes descriptions on key occasions', () => {
+    const nowruz = getHolidays(1405).find((h) => h.titleEn === 'Nowruz' && h.day === 1);
+    expect(nowruz?.description).toBeTruthy();
+  });
+});
+
+describe('official lunar dates', () => {
+  // Authoritative Iranian-calendar dates for the seeded years.
+  it.each([
+    [1404, 'Eid al-Ghadir', 3, 24],
+    [1404, 'Ashura', 4, 14],
+    [1404, 'Tasua', 4, 13],
+    [1405, 'Eid al-Ghadir', 3, 14],
+    [1405, 'Ashura', 4, 4],
+    [1405, 'Tasua', 4, 3],
+    [1405, 'Eid al-Adha', 3, 6],
+    [1405, 'Arbaeen', 5, 13],
+  ])('places %s in %i on %i/%i', (year, titleEn, month, day) => {
+    const match = getHolidays(year).find((h) => h.titleEn === titleEn);
+    expect(match, `expected ${titleEn} in ${year}`).toBeDefined();
+    expect({ month: match!.month, day: match!.day }).toEqual({ month, day });
+  });
+
+  it('marks officially-dated lunar holidays as exact (not approximate)', () => {
+    const ghadir = getHolidays(1405).find((h) => h.titleEn === 'Eid al-Ghadir');
+    expect(ghadir?.approximate).toBeFalsy();
+  });
+
+  it('does NOT place عید غدیر on 13 Khordad 1405 (the tabular drift)', () => {
+    const on13 = getHolidaysOn(DoranDate.fromJalali(1405, 3, 13, { timeZone: 'UTC' }));
+    expect(on13.some((h) => h.titleEn === 'Eid al-Ghadir')).toBe(false);
+    const on14 = getHolidaysOn(DoranDate.fromJalali(1405, 3, 14, { timeZone: 'UTC' }));
+    expect(on14.some((h) => h.titleEn === 'Eid al-Ghadir')).toBe(true);
+  });
+
+  it('falls back to the (approximate) tabular calc for unseeded years', () => {
+    const religious = getHolidays(1410).filter((h) => h.calendar === 'lunar');
+    expect(religious.length).toBeGreaterThan(0);
+    expect(religious.every((h) => h.approximate)).toBe(true);
+  });
+
+  it('lets callers register official dates for a year', () => {
+    registerOfficialLunarYear(1410, [{ titleEn: 'Eid al-Ghadir', month: 2, day: 25 }]);
+    const ghadir = getHolidays(1410).find((h) => h.titleEn === 'Eid al-Ghadir');
+    expect(ghadir).toMatchObject({ month: 2, day: 25 });
+    expect(ghadir?.approximate).toBeFalsy();
   });
 });

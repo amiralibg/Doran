@@ -29,6 +29,7 @@ export interface DoranDateParts {
 /** Calendar units used by arithmetic and `startOf` / `endOf`. */
 export type DateUnit =
   | 'year'
+  | 'quarter'
   | 'month'
   | 'week'
   | 'day'
@@ -39,6 +40,31 @@ export type DateUnit =
 
 /** Units accepted by {@link DoranDate.diff}. */
 export type DiffUnit = DateUnit;
+
+/** Inclusivity for {@link DoranDate.isBetween}: `[` / `]` inclusive, `(` / `)` exclusive. */
+export type Inclusivity = '()' | '[]' | '[)' | '(]';
+
+/**
+ * Relative-time phrase bundle used by {@link DoranDate.fromNow} and friends. Tokens
+ * with `%d` receive the (locale-formatted) count; `%s` in `future`/`past` receives the
+ * rendered phrase.
+ */
+export interface RelativeTimeStrings {
+  future: string;
+  past: string;
+  /** a few seconds */ s: string;
+  /** N seconds */ ss: string;
+  /** a minute */ m: string;
+  /** N minutes */ mm: string;
+  /** an hour */ h: string;
+  /** N hours */ hh: string;
+  /** a day */ d: string;
+  /** N days */ dd: string;
+  /** a month */ M: string;
+  /** N months */ MM: string;
+  /** a year */ y: string;
+  /** N years */ yy: string;
+}
 
 /** Options accepted when constructing a {@link DoranDate}. */
 export interface DoranDateOptions {
@@ -77,4 +103,6 @@ export interface Locale {
   formatNumber: (value: string) => string;
   /** Converts this locale's numerals back into Latin digits. */
   parseNumber: (value: string) => string;
+  /** Relative-time phrases for {@link DoranDate.fromNow}. Optional; a default is used. */
+  relativeTime?: RelativeTimeStrings;
 }
