@@ -43,9 +43,9 @@ individual is officially representing the community in public spaces.
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the
-community leaders responsible for enforcement at **conduct@doran.dev**. All complaints will
-be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported
+privately to the maintainer, [@amiralibg](https://github.com/amiralibg). All reports will
+be reviewed and handled fairly and in confidence.
 
 ## Attribution
 

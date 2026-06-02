@@ -1,24 +1,20 @@
 # Security Policy
 
-## Supported Versions
+Doran is pre-1.0, so security fixes land in the latest release — please keep up to date.
 
-Security fixes are released for the latest minor version of each `@doranjs/*` package. We
-recommend always running the most recent release.
+## Reporting a vulnerability
 
-## Reporting a Vulnerability
+**Please don't report security issues in public GitHub issues.**
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+Instead, report it privately via
+[GitHub's private vulnerability reporting](https://github.com/amiralibg/Doran/security/advisories/new).
 
-Instead, use [GitHub's private vulnerability reporting](https://github.com/amiralibg/Doran/security/advisories/new)
-or email **security@doran.dev**.
-
-Please include:
+Helpful details to include:
 
 - the affected package and version,
-- a description of the vulnerability and its impact,
+- what the vulnerability is and its impact,
 - steps to reproduce or a proof of concept,
-- any suggested mitigation.
+- any suggested fix.
 
-You can expect an initial response within **72 hours**. We will keep you informed
-throughout the process and credit you in the advisory unless you prefer to remain
-anonymous.
+I'll do my best to respond quickly, keep you updated, and credit you in the advisory
+(unless you'd rather stay anonymous).

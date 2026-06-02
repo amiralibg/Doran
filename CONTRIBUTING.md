@@ -29,7 +29,7 @@ This project and everyone participating in it is governed by the
 ```
 packages/   publishable libraries (@doranjs/*)
 apps/       the documentation site
-examples/   reference integrations (react, nextjs, tauri)
+examples/   reference integrations (react, vanilla, nextjs, tauri)
 playground/ local experiments
 ```
 
