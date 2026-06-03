@@ -1,250 +1,123 @@
-import { DoranDate } from '@doranjs/core';
-import { addWorkingDays, getHolidays, getHolidaysOn, workingDaysBetween } from '@doranjs/holidays';
-import { occurrences, parseDuration, parseRange, parseRecurrence } from '@doranjs/nlp';
-import {
-  DoranAgenda,
-  DoranCalendar,
-  DoranDatePicker,
-  DoranNlpInput,
-  DoranRangePicker,
-  type AgendaEvent,
-} from '@doranjs/react';
-import { Button, ChevronLeftIcon, ChevronRightIcon, ThemeProvider, useTheme } from '@doranjs/ui';
-import { useCallback, useMemo, useState } from 'react';
+import { ThemeProvider, useTheme } from '@doranjs/ui';
+import { useEffect, useState } from 'react';
+import { LangProvider, useLang } from './i18n/LangProvider';
+import { dirFor, type Lang } from './i18n/strings';
+import { CalendarSection } from './sections/CalendarSection';
+import { DatePickerSection } from './sections/DatePickerSection';
+import { RangePickerSection } from './sections/RangePickerSection';
+import { AgendaSection } from './sections/AgendaSection';
+import { NlpInputSection } from './sections/NlpInputSection';
+import { TimePickerSection } from './sections/TimePickerSection';
+import { ThemingSection } from './sections/ThemingSection';
+
+// The side nav. Each entry's `id` must match a <Section id="…"> and `labelKey` a
+// string key in the dictionary.
+const NAV = [
+  { id: 'calendar', labelKey: 'navCalendar' },
+  { id: 'datepicker', labelKey: 'navDatePicker' },
+  { id: 'rangepicker', labelKey: 'navRangePicker' },
+  { id: 'agenda', labelKey: 'navAgenda' },
+  { id: 'nlp-input', labelKey: 'navNlpInput' },
+  { id: 'time-picker', labelKey: 'navTimePicker' },
+  { id: 'theming', labelKey: 'navTheming' },
+] as const;
+
+// Stable list of section ids for the scroll-spy effect dependency.
+const NAV_IDS = NAV.map((n) => n.id);
 
 export function App() {
+  const [lang, setLang] = useState<Lang>('fa');
+
+  // Direction follows the language automatically: Persian is RTL, English is LTR.
   return (
-    <ThemeProvider defaultMode="light" direction="rtl">
-      <Shell />
-    </ThemeProvider>
+    <LangProvider lang={lang} setLang={setLang}>
+      <ThemeProvider defaultMode="light" direction={dirFor(lang)}>
+        <Shell />
+      </ThemeProvider>
+    </LangProvider>
   );
+}
+
+// Highlights the nav link for the section currently scrolled into view. The
+// rootMargin defines a thin band near the top of the viewport: whichever section
+// occupies it is "active".
+function useActiveSection(ids: readonly string[]): string {
+  const [active, setActive] = useState(ids[0] ?? '');
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const inView = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (inView[0]) setActive(inView[0].target.id);
+      },
+      { rootMargin: '-15% 0px -75% 0px' },
+    );
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
+  }, [ids]);
+  return active;
 }
 
 function Shell() {
   const { mode, toggleMode } = useTheme();
-  const [selected, setSelected] = useState<DoranDate>(DoranDate.now());
-  const [withTime, setWithTime] = useState<DoranDate>(DoranDate.now());
-
-  // Mark official holidays on the calendars.
-  const isHoliday = useCallback((day: DoranDate) => getHolidaysOn(day).some((h) => h.official), []);
-
-  const holidays = useMemo(
-    () => getHolidays(selected.year).filter((h) => h.official),
-    [selected.year],
-  );
-
-  // All official holidays of the selected year; the agenda only renders the selected
-  // week, so it naturally shows the holidays that fall in the week being viewed.
-  const events: AgendaEvent[] = holidays.map((h, i) => ({
-    id: String(i),
-    date: DoranDate.fromJalali(h.year, h.month, h.day),
-    title: h.title,
-    description: h.titleEn,
-    color: h.calendar === 'lunar' ? 'var(--doran-accent)' : 'var(--doran-primary)',
-  }));
+  const { lang, setLang, t } = useLang();
+  const active = useActiveSection(NAV_IDS);
 
   return (
-    <div className="page">
-      <header className="page__header">
-        <div>
-          <h1 className="page__title">دوران</h1>
-          <p className="page__subtitle">اکوسیستم متن‌باز تقویم فارسی — نمونه‌ی امکانات</p>
+    <div className="app">
+      <aside className="app__nav">
+        <div className="app__brand">
+          <span className="app__logo">دوران</span>
+          <span className="app__brand-sub">{t('brandSub')}</span>
         </div>
-        <Button variant="outline" onClick={toggleMode}>
-          {mode === 'light' ? '🌙 تم تیره' : '☀️ تم روشن'}
-        </Button>
-      </header>
+        <nav>
+          {NAV.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              className={
+                item.id === active ? 'app__nav-link app__nav-link--active' : 'app__nav-link'
+              }
+              aria-current={item.id === active ? 'true' : undefined}
+            >
+              {t(item.labelKey)}
+            </a>
+          ))}
+        </nav>
+      </aside>
 
-      {/* Calendars ------------------------------------------------------- */}
-      <section className="card">
-        <h2 className="card__title">تقویم</h2>
-        <p className="card__hint">
-          انتخاب ماه و سال به‌صورت کشویی، نمایش تعطیلات رسمی و آخر هفته‌ها.
-        </p>
-        <p className="card__hint">
-          ناوبری کامل با صفحه‌کلید: کلیدهای جهت‌نما (روز/هفته)، <kbd>Home</kbd>/<kbd>End</kbd> برای
-          ابتدا و انتهای هفته، <kbd>PageUp</kbd>/<kbd>PageDown</kbd> برای ماه (به‌همراه{' '}
-          <kbd>Shift</kbd> برای سال) و <kbd>Enter</kbd> برای انتخاب. عبور از لبه‌ی ماه، ماه را عوض
-          می‌کند.
-        </p>
-        <div className="grid">
+      <main className="app__main">
+        <header className="app__header">
           <div>
-            <span className="field-label">حالت کشویی (پیش‌فرض)</span>
-            <DoranCalendar value={selected} onChange={setSelected} isHoliday={isHoliday} />
-            <p className="result">انتخاب‌شده: {selected.format('dddd D MMMM YYYY')}</p>
+            <h1 className="app__title">{t('headerTitle')}</h1>
+            <p className="app__subtitle">{t('headerSubtitle')}</p>
           </div>
+          <div className="app__actions">
+            <button
+              type="button"
+              className="app__btn"
+              onClick={() => setLang(lang === 'fa' ? 'en' : 'fa')}
+            >
+              {lang === 'fa' ? t('langToEn') : t('langToFa')}
+            </button>
+            <button type="button" className="app__btn" onClick={toggleMode}>
+              {mode === 'light' ? t('themeToDark') : t('themeToLight')}
+            </button>
+          </div>
+        </header>
 
-          <div>
-            <span className="field-label">انتخاب جداگانه ماه/سال</span>
-            <DoranCalendar
-              headerMode="separate"
-              value={selected}
-              onChange={setSelected}
-              isHoliday={isHoliday}
-            />
-          </div>
-
-          <div>
-            <span className="field-label">با انتخاب ساعت</span>
-            <DoranCalendar withTime value={withTime} onChange={setWithTime} isHoliday={isHoliday} />
-            <p className="result">{withTime.format('dddd D MMMM YYYY — HH:mm')}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Pickers --------------------------------------------------------- */}
-      <section className="card">
-        <h2 className="card__title">انتخابگرها</h2>
-        <p className="card__hint">انتخاب تاریخ، تاریخ‌وزمان و بازه‌ی تاریخی.</p>
-        <div className="row">
-          <div>
-            <span className="field-label">انتخاب تاریخ</span>
-            <DoranDatePicker value={selected} onChange={setSelected} isHoliday={isHoliday} />
-          </div>
-          <div>
-            <span className="field-label">تاریخ و ساعت</span>
-            <DoranDatePicker withTime value={withTime} onChange={setWithTime} />
-          </div>
-          <div>
-            <span className="field-label">بازه‌ی تاریخ (دو ماهه + میان‌برها)</span>
-            <DoranRangePicker isHoliday={isHoliday} presets numberOfMonths={2} />
-          </div>
-        </div>
-      </section>
-
-      {/* Working days + advanced NLP ------------------------------------- */}
-      <section className="card">
-        <h2 className="card__title">روزهای کاری و زبان طبیعی پیشرفته</h2>
-        <p className="card__hint">
-          محاسبه‌ی روزهای کاری (با احتساب تعطیلات رسمی و جمعه‌ها) و تشخیص بازه، مدت و تکرار از متن
-          فارسی.
-        </p>
-        <WorkdayAndNlpDemo />
-      </section>
-
-      {/* Customization --------------------------------------------------- */}
-      <section className="card">
-        <h2 className="card__title">سفارشی‌سازی کامل</h2>
-        <p className="card__hint">
-          همه‌چیز با متغیرهای CSS قابل تغییر است: رنگ هر بخش، فونت، سایه، حاشیه، گردی گوشه‌ها و حتی
-          فلش‌های ناوبری.
-        </p>
-        <div className="row">
-          <div>
-            <span className="field-label">تم «رز» (فقط با متغیرهای CSS)</span>
-            <div className="theme-rose">
-              <DoranCalendar value={selected} onChange={setSelected} isHoliday={isHoliday} />
-            </div>
-          </div>
-          <div>
-            <span className="field-label">فلش‌های سفارشی</span>
-            <DoranCalendar
-              value={selected}
-              onChange={setSelected}
-              arrows={{
-                prev: <ChevronRightIcon style={{ width: '1.4em', height: '1.4em' }} />,
-                next: <ChevronLeftIcon style={{ width: '1.4em', height: '1.4em' }} />,
-              }}
-              hideFooter
-            />
-            <div className="chips">
-              <span className="chip">رنگ هر بخش</span>
-              <span className="chip">فونت</span>
-              <span className="chip">سایه</span>
-              <span className="chip">گردی گوشه</span>
-              <span className="chip">حاشیه</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* NLP ------------------------------------------------------------- */}
-      <section className="card">
-        <h2 className="card__title">ورودی زبان طبیعی</h2>
-        <p className="card__hint">
-          عبارت‌هایی مثل «جمعه ساعت ۷ شب»، «۱۵ خرداد»، «هفته‌ی بعد» یا «یک ربع به ۸» را تایپ کنید؛
-          پیشنهادها و تاریخِ تشخیص‌داده‌شده را زنده ببینید.
-        </p>
-        <NlpDemo />
-      </section>
-
-      {/* Agenda ---------------------------------------------------------- */}
-      <section className="card">
-        <h2 className="card__title">برنامه‌ی هفته (با تعطیلات رسمی)</h2>
-        <p className="card__hint">تعطیلات رسمی سالِ انتخاب‌شده روی نمای برنامه.</p>
-        <DoranAgenda start={selected.startOf('week')} days={7} events={events} />
-      </section>
+        <CalendarSection />
+        <DatePickerSection />
+        <RangePickerSection />
+        <AgendaSection />
+        <NlpInputSection />
+        <TimePickerSection />
+        <ThemingSection />
+      </main>
     </div>
   );
-}
-
-function NlpDemo() {
-  const [text, setText] = useState('جمعه ساعت ۷ شب');
-  const [resolved, setResolved] = useState<DoranDate | null>(null);
-
-  return (
-    <div className="stack">
-      <DoranNlpInput
-        value={text}
-        onChange={setText}
-        onResolve={(r) => setResolved(r?.date ?? null)}
-      />
-      <p className="result">
-        {resolved
-          ? `تشخیص: ${resolved.format('dddd D MMMM YYYY — HH:mm')}`
-          : 'هنوز چیزی تشخیص داده نشده'}
-      </p>
-    </div>
-  );
-}
-
-function WorkdayAndNlpDemo() {
-  const today = DoranDate.now().startOf('day');
-  const monthStart = today.startOf('month');
-  const nextMonthStart = monthStart.addMonths(1);
-
-  const fifthWorkingDay = addWorkingDays(today, 5);
-  const workdaysThisMonth = workingDaysBetween(monthStart, nextMonthStart);
-
-  const range = parseRange('از ۵ تا ۱۰ فروردین');
-  const duration = parseDuration('یک ساعت و نیم');
-  const recurrence = parseRecurrence('هر دوشنبه');
-  const nextMondays = recurrence ? occurrences(recurrence, today, 3) : [];
-
-  return (
-    <div className="grid">
-      <div className="stack">
-        <span className="field-label">روزهای کاری</span>
-        <p className="result">۵ روز کاری بعد: {fifthWorkingDay.format('dddd D MMMM YYYY')}</p>
-        <p className="result">
-          روزهای کاری {today.format('MMMM')}: {workdaysThisMonth.toLocaleString('fa-IR')} روز
-        </p>
-      </div>
-      <div className="stack">
-        <span className="field-label">تشخیص از متن</span>
-        <p className="result">
-          «از ۵ تا ۱۰ فروردین» →{' '}
-          {range ? `${range.start.format('D MMMM')} تا ${range.end.format('D MMMM')}` : '—'}
-        </p>
-        <p className="result">
-          «یک ساعت و نیم» → {duration ? `${duration.amount} ${unitLabel(duration.unit)}` : '—'}
-        </p>
-        <p className="result">
-          «هر دوشنبه» → {nextMondays.map((d) => d.format('D MMMM')).join('، ') || '—'}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function unitLabel(unit: string): string {
-  const labels: Record<string, string> = {
-    minute: 'دقیقه',
-    hour: 'ساعت',
-    day: 'روز',
-    week: 'هفته',
-    month: 'ماه',
-    year: 'سال',
-  };
-  return labels[unit] ?? unit;
 }

@@ -16,6 +16,7 @@
     "@doranjs/wc": "workspace:*"
   },
   "devDependencies": {
+    "shiki": "^4.1.0",
     "vite": "^6.0.7"
   }
 }

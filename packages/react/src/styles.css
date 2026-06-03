@@ -539,6 +539,7 @@
   display: flex;
   gap: var(--doran-calendar-gap, 0.75rem);
   align-items: flex-start;
+  justify-content: center;
 }
 
 .doran-rangepicker__presets {
