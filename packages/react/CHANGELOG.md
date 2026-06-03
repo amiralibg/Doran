@@ -1,5 +1,14 @@
 # @doranjs/react
 
+## 0.0.5
+
+### Patch Changes
+
+- [#8](https://github.com/amiralibg/Doran/pull/8) [`b8a564a`](https://github.com/amiralibg/Doran/commit/b8a564a8c5c479c5b676434207650ebae84dbafb) Thanks [@amiralibg](https://github.com/amiralibg)! - Center the range picker's calendar within its body (`justify-content: center` on
+  `.doran-rangepicker__body`), so a single-month picker no longer sits against the
+  inline-start edge when the picker is wider than the calendar. The `@doranjs/wc`
+  stylesheet, which bundles the React styles, ships the same fix.
+
 ## 0.0.4
 
 ### Patch Changes
