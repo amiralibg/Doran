@@ -33,7 +33,7 @@ examples/   reference integrations (react, vanilla, nextjs, tauri)
 playground/ local experiments
 ```
 
-Each package builds with [tsup](https://tsup.egoist.dev/) and tests with
+Each package builds with [tsdown](https://tsdown.dev/) and tests with
 [Vitest](https://vitest.dev/). Turborepo orchestrates tasks across the workspace.
 
 ## Development workflow
