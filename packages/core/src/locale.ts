@@ -1,5 +1,64 @@
 import { normalizeDigits, toLatinDigits, toPersianDigits } from './digits';
-import type { Locale, LocaleLike } from './types';
+import type { CalendarFormats, Locale, LocaleLike, LongDateFormat, WeekConfig } from './types';
+
+/** Persian ordinal: appends the suffix «م» (e.g. `۱ → "۱م"`), matching moment-jalaali. */
+const faOrdinal = (value: number): string => `${toPersianDigits(String(value))}م`;
+
+/** English ordinal: `1 → "1st"`, `2 → "2nd"`, `11 → "11th"`, etc. */
+const enOrdinal = (value: number): string => {
+  const suffixes = ['th', 'st', 'nd', 'rd'];
+  const v = value % 100;
+  return `${value}${suffixes[(v - 20) % 10] ?? suffixes[v] ?? suffixes[0]}`;
+};
+
+const faLongDateFormat: LongDateFormat = {
+  LT: 'HH:mm',
+  LTS: 'HH:mm:ss',
+  L: 'YYYY/MM/DD',
+  LL: 'D MMMM YYYY',
+  LLL: 'D MMMM YYYY [ساعت] HH:mm',
+  LLLL: 'dddd D MMMM YYYY [ساعت] HH:mm',
+};
+
+const faCalendar: CalendarFormats = {
+  sameDay: '[امروز ساعت] LT',
+  nextDay: '[فردا ساعت] LT',
+  nextWeek: 'dddd [ساعت] LT',
+  lastDay: '[دیروز ساعت] LT',
+  lastWeek: 'dddd [گذشته ساعت] LT',
+  sameElse: 'L',
+};
+
+/** Neutral fallback long-date templates for locales that omit their own. */
+export const DEFAULT_LONG_DATE_FORMAT: LongDateFormat = {
+  LT: 'HH:mm',
+  LTS: 'HH:mm:ss',
+  L: 'YYYY/MM/DD',
+  LL: 'D MMMM YYYY',
+  LLL: 'D MMMM YYYY HH:mm',
+  LLLL: 'dddd D MMMM YYYY HH:mm',
+};
+
+/** Neutral fallback calendar templates for locales that omit their own. */
+export const DEFAULT_CALENDAR: CalendarFormats = {
+  sameDay: '[Today at] LT',
+  nextDay: '[Tomorrow at] LT',
+  nextWeek: 'dddd [at] LT',
+  lastDay: '[Yesterday at] LT',
+  lastWeek: '[Last] dddd [at] LT',
+  sameElse: 'L',
+};
+
+/** Fallback season names for locales that omit their own. */
+export const DEFAULT_SEASONS: readonly [string, string, string, string] = [
+  'Spring',
+  'Summer',
+  'Autumn',
+  'Winter',
+];
+
+/** Persian week convention: weeks start on Saturday. */
+export const DEFAULT_WEEK: WeekConfig = { dow: 6, doy: 12 };
 
 /** The Persian (Iran) locale — the default for Doran. */
 export const faIR: Locale = {
@@ -41,6 +100,11 @@ export const faIR: Locale = {
     y: 'یک سال',
     yy: '%d سال',
   },
+  longDateFormat: faLongDateFormat,
+  calendar: faCalendar,
+  ordinal: faOrdinal,
+  seasons: ['بهار', 'تابستان', 'پاییز', 'زمستان'],
+  week: DEFAULT_WEEK,
 };
 
 /** An English locale using transliterated Persian month/weekday names. */
@@ -83,11 +147,60 @@ export const enUS: Locale = {
     y: 'a year',
     yy: '%d years',
   },
+  longDateFormat: {
+    LT: 'h:mm A',
+    LTS: 'h:mm:ss A',
+    L: 'YYYY/MM/DD',
+    LL: 'D MMMM YYYY',
+    LLL: 'D MMMM YYYY h:mm A',
+    LLLL: 'dddd, D MMMM YYYY h:mm A',
+  },
+  calendar: DEFAULT_CALENDAR,
+  ordinal: enOrdinal,
+  seasons: ['Bahar', 'Tabestan', 'Paeez', 'Zemestan'],
+  week: DEFAULT_WEEK,
+};
+
+/**
+ * The Dari (Afghanistan) locale. Uses the traditional Afghan zodiacal month names
+ * (حمل، ثور، …) over the same Solar Hijri date arithmetic as {@link faIR}; only the month
+ * names differ.
+ */
+export const faAF: Locale = {
+  name: 'fa-AF',
+  months: [
+    'حمل',
+    'ثور',
+    'جوزا',
+    'سرطان',
+    'اسد',
+    'سنبله',
+    'میزان',
+    'عقرب',
+    'قوس',
+    'جدی',
+    'دلو',
+    'حوت',
+  ],
+  monthsShort: ['حمل', 'ثور', 'جوز', 'سرط', 'اسد', 'سنب', 'میز', 'عقر', 'قوس', 'جدی', 'دلو', 'حوت'],
+  weekdays: ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه'],
+  weekdaysShort: ['شنبه', 'یک‌شنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه'],
+  weekdaysMin: ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'],
+  meridiem: ['قبل از ظهر', 'بعد از ظهر'],
+  formatNumber: toPersianDigits,
+  parseNumber: normalizeDigits,
+  relativeTime: faIR.relativeTime,
+  longDateFormat: faLongDateFormat,
+  calendar: faCalendar,
+  ordinal: faOrdinal,
+  seasons: ['بهار', 'تابستان', 'پاییز', 'زمستان'],
+  week: DEFAULT_WEEK,
 };
 
 const registry = new Map<string, Locale>([
   [faIR.name, faIR],
   [enUS.name, enUS],
+  [faAF.name, faAF],
 ]);
 
 let defaultLocale: Locale = faIR;

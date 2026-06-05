@@ -44,6 +44,49 @@ export type DiffUnit = DateUnit;
 /** Inclusivity for {@link DoranDate.isBetween}: `[` / `]` inclusive, `(` / `)` exclusive. */
 export type Inclusivity = '()' | '[]' | '[)' | '(]';
 
+/** Season of the Jalali year: `1 = spring (بهار)` … `4 = winter (زمستان)`. */
+export type Season = 1 | 2 | 3 | 4;
+
+/**
+ * Localized long-date format templates, expanded by the `L`/`LL`/`LLL`/`LLLL`/`LT`/`LTS`
+ * format tokens. Each value is itself a format pattern (see {@link DoranDate.format}).
+ */
+export interface LongDateFormat {
+  /** Time. */ LT: string;
+  /** Time with seconds. */ LTS: string;
+  /** Date. */ L: string;
+  /** Long date. */ LL: string;
+  /** Long date with time. */ LLL: string;
+  /** Full date with weekday and time. */ LLLL: string;
+}
+
+/**
+ * Calendar-time templates used by {@link DoranDate.calendar}. Each value is a format
+ * pattern; literal words are wrapped in `[...]`.
+ */
+export interface CalendarFormats {
+  /** Same calendar day. */ sameDay: string;
+  /** The next calendar day. */ nextDay: string;
+  /** Within the next week. */ nextWeek: string;
+  /** The previous calendar day. */ lastDay: string;
+  /** Within the previous week. */ lastWeek: string;
+  /** Anything further away. */ sameElse: string;
+}
+
+/** Week-numbering configuration (Moment-compatible). */
+export interface WeekConfig {
+  /**
+   * Day of week that starts a week, in Moment's numbering (`0 = Sunday … 6 = Saturday`).
+   * The Persian week starts on Saturday, i.e. `6`.
+   */
+  dow: number;
+  /**
+   * Determines which week is week 1: the week containing
+   * `Farvardin (doy - 7 + dow) + 1`. The Persian default is `12`.
+   */
+  doy: number;
+}
+
 /**
  * Relative-time phrase bundle used by {@link DoranDate.fromNow} and friends. Tokens
  * with `%d` receive the (locale-formatted) count; `%s` in `future`/`past` receives the
@@ -105,4 +148,14 @@ export interface Locale {
   parseNumber: (value: string) => string;
   /** Relative-time phrases for {@link DoranDate.fromNow}. Optional; a default is used. */
   relativeTime?: RelativeTimeStrings;
+  /** Templates for the localized `L`/`LL`/… format tokens. Optional; a default is used. */
+  longDateFormat?: LongDateFormat;
+  /** Templates for {@link DoranDate.calendar}. Optional; a default is used. */
+  calendar?: CalendarFormats;
+  /** Renders an ordinal, e.g. `1 → "1st"` (en) or `۱ → "۱م"` (fa). Optional. */
+  ordinal?: (value: number) => string;
+  /** Season names, index 0 = spring (بهار) … 3 = winter (زمستان). Optional. */
+  seasons?: readonly [string, string, string, string];
+  /** Week-numbering configuration. Optional; defaults to the Persian convention. */
+  week?: WeekConfig;
 }

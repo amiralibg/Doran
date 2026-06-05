@@ -8,6 +8,18 @@ export { DoranDate, type JalaliInput, type SettableUnit } from './doran-date';
 export { parseJalali } from './parse';
 export { humanizeRelative } from './relative';
 
+// Duration — an immutable length of time (Moment-compatible decomposition).
+export {
+  duration,
+  Duration,
+  type DurationInput,
+  type DurationObject,
+  type DurationUnit,
+} from './duration';
+
+// Range — an immutable interval between two dates.
+export { DoranRange, type ByOptions, type ContainsOptions } from './range';
+
 // Working-day (business-day) helpers — weekend-aware, optionally holiday-aware.
 export {
   addWorkingDays,
@@ -42,6 +54,7 @@ export { normalizeDigits, toLatinDigits, toPersianDigits } from './digits';
 // Locales.
 export {
   enUS,
+  faAF,
   faIR,
   getDefaultLocale,
   getLocale,
@@ -61,6 +74,7 @@ export {
 
 // Types.
 export type {
+  CalendarFormats,
   DateUnit,
   DiffUnit,
   DoranDateOptions,
@@ -70,6 +84,9 @@ export type {
   JalaliParts,
   Locale,
   LocaleLike,
+  LongDateFormat,
   RelativeTimeStrings,
+  Season,
   Weekday,
+  WeekConfig,
 } from './types';

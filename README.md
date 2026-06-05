@@ -46,6 +46,10 @@ today.toGregorian(); // native Date
 DoranDate.fromGregorian(new Date());
 ```
 
+`@doranjs/core` goes beyond `moment-jalaali` parity: localized formats (`L`/`LL`/`LLLL`),
+`calendar()` phrases, `week`/`weekYear`/`season` accessors, a `Duration` primitive, a
+`DoranRange` interval, and an Afghan/Dari `fa-AF` locale — all immutable and dependency-free.
+
 ## Development
 
 This repo uses [pnpm workspaces](https://pnpm.io/workspaces) and

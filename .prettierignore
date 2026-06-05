@@ -7,3 +7,6 @@ pnpm-lock.yaml
 *.tsbuildinfo
 apps/docs/.vitepress/cache
 apps/docs/.vitepress/dist
+
+# Generated parity fixture — compact single-line JSON, kept as emitted.
+packages/core/src/parity.fixture.json

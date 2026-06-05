@@ -8,8 +8,10 @@ import {
   jalaliToJdn,
   jdnToJalali,
 } from './conversion';
+import { duration, type Duration } from './duration';
 import { formatParts, type FormatContext } from './format';
-import { resolveLocale } from './locale';
+import { DEFAULT_CALENDAR, DEFAULT_SEASONS, DEFAULT_WEEK, resolveLocale } from './locale';
+import { parseJalali } from './parse';
 import { humanizeRelative } from './relative';
 import {
   getSystemTimeZone,
@@ -18,6 +20,7 @@ import {
   wallClockToInstant,
 } from './timezone';
 import type {
+  CalendarFormats,
   DateUnit,
   DiffUnit,
   DoranDateOptions,
@@ -25,7 +28,9 @@ import type {
   Inclusivity,
   Locale,
   LocaleLike,
+  Season,
   Weekday,
+  WeekConfig,
 } from './types';
 
 /** A single settable Jalali/clock field. */
@@ -42,6 +47,12 @@ export interface JalaliInput {
   millisecond?: number;
 }
 
+/**
+ * A full Gregorian ISO-8601 instant: a date *with* a time component (and an optional
+ * `Z`/offset). A bare `YYYY-MM-DD` is intentionally excluded so it stays Jalali.
+ */
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/;
+
 const MS_PER_SECOND = 1000;
 const MS_PER_MINUTE = 60 * MS_PER_SECOND;
 const MS_PER_HOUR = 60 * MS_PER_MINUTE;
@@ -57,6 +68,49 @@ function resolveConfig(options?: DoranDateOptions): ResolvedConfig {
     timeZone: options?.timeZone ?? getSystemTimeZone(),
     locale: resolveLocale(options?.locale),
   };
+}
+
+/** 1-based day of the Jalali year for a date given as a Julian Day Number. */
+function dayOfYearFromJdn(jdn: number, year: number): number {
+  return jdn - jalaliToJdn(year, 1, 1) + 1;
+}
+
+/**
+ * Locale week-of-year and week-numbering-year for a Jalali date — an exact port of
+ * moment-jalaali's `jWeekOfYear`. It shifts the date to the locale's reference weekday,
+ * then takes `ceil(jDayOfYear / 7)` of that shifted date. `dow`/`doy` follow Moment's
+ * numbering (`dow`: 0 = Sunday … 6 = Saturday).
+ */
+function jalaliWeekOfYear(
+  year: number,
+  month: number,
+  day: number,
+  week: WeekConfig,
+): { week: number; year: number } {
+  const greg = jalaliToGregorian(year, month, day);
+  const persianDow = gregorianWeekday(greg.year, greg.month, greg.day); // 0 = Saturday
+  const jsDow = (persianDow + 6) % 7; // 0 = Sunday — Moment's `day()`
+  const end = week.doy - week.dow;
+  let daysToDayOfWeek = week.doy - jsDow;
+  if (daysToDayOfWeek > end) daysToDayOfWeek -= 7;
+  if (daysToDayOfWeek < end - 7) daysToDayOfWeek += 7;
+
+  const adjustedJdn = jalaliToJdn(year, month, day) + daysToDayOfWeek;
+  const adjusted = jdnToJalali(adjustedJdn);
+  return {
+    week: Math.ceil(dayOfYearFromJdn(adjustedJdn, adjusted.year) / 7),
+    year: adjusted.year,
+  };
+}
+
+/** Number of locale weeks in the given Jalali year (52 or 53). */
+function weeksInJalaliYear(year: number, week: WeekConfig): number {
+  const lastDay = isLeapJalaliYear(year) ? 30 : 29;
+  const last = jalaliWeekOfYear(year, 12, lastDay, week);
+  if (last.year === year) return last.week;
+  // The final day belongs to next year's week 1; the prior week ends this year.
+  const prior = jdnToJalali(jalaliToJdn(year, 12, lastDay) - 7);
+  return jalaliWeekOfYear(prior.year, prior.month, prior.day, week).week;
 }
 
 /**
@@ -103,6 +157,11 @@ export class DoranDate {
     return new DoranDate(epochMs, timeZone, locale);
   }
 
+  /** Builds a date from a Unix timestamp in **seconds** (the inverse of {@link unix}). */
+  static fromUnix(seconds: number, options?: DoranDateOptions): DoranDate {
+    return DoranDate.fromEpochMs(seconds * MS_PER_SECOND, options);
+  }
+
   /** Builds a date from a native JavaScript `Date` (interpreted as an instant). */
   static fromGregorian(date: Date, options?: DoranDateOptions): DoranDate {
     const ms = date.getTime();
@@ -111,6 +170,40 @@ export class DoranDate {
     }
     const { timeZone, locale } = resolveConfig(options);
     return new DoranDate(ms, timeZone, locale);
+  }
+
+  /**
+   * Parses a date string into a {@link DoranDate}, or `null` if it cannot be parsed.
+   *
+   * - When `formats` is supplied (a pattern or an array of patterns), the input is read
+   *   as **Jalali** via {@link parseJalali}.
+   * - Otherwise a full Gregorian ISO-8601 instant — one carrying a time component (e.g.
+   *   `2024-03-20T08:30:00Z`) — is auto-detected and parsed as Gregorian; anything else
+   *   (including a bare `YYYY-MM-DD`) is parsed as Jalali using the common default formats.
+   *
+   * @example
+   * ```ts
+   * DoranDate.parse('1405/03/11');                 // Jalali
+   * DoranDate.parse('2024-03-20T08:30:00Z');       // Gregorian instant
+   * DoranDate.parse('11 خرداد 1405', 'D MMMM YYYY');
+   * ```
+   */
+  static parse(
+    input: string,
+    formats?: string | readonly string[],
+    options?: DoranDateOptions,
+  ): DoranDate | null {
+    if (formats !== undefined) {
+      return parseJalali(input, formats, options);
+    }
+    const trimmed = input.trim();
+    if (ISO_INSTANT.test(trimmed)) {
+      const ms = Date.parse(trimmed);
+      if (!Number.isNaN(ms)) {
+        return DoranDate.fromEpochMs(ms, options);
+      }
+    }
+    return parseJalali(input, undefined, options);
   }
 
   /** Builds a date from Jalali civil fields, interpreted in the target time zone. */
@@ -254,11 +347,43 @@ export class DoranDate {
     return jalaliToJdn(year, month, day) - jalaliToJdn(year, 1, 1) + 1;
   }
 
-  /** ISO-style week of the Jalali year (weeks begin on Saturday). */
+  #weekConfig(): WeekConfig {
+    return this.#locale.week ?? DEFAULT_WEEK;
+  }
+
+  /** Week of the Jalali year (weeks begin on Saturday by default). */
+  get week(): number {
+    const p = this.#computeParts();
+    return jalaliWeekOfYear(p.year, p.month, p.day, this.#weekConfig()).week;
+  }
+
+  /** Alias of {@link week}. */
   get weekOfYear(): number {
-    const firstDay = jalaliToGregorian(this.year, 1, 1);
-    const firstDow = gregorianWeekday(firstDay.year, firstDay.month, firstDay.day);
-    return Math.floor((this.dayOfYear - 1 + firstDow) / 7) + 1;
+    return this.week;
+  }
+
+  /**
+   * Week-numbering year. Usually equal to {@link year}, but the first/last days of the
+   * Jalali year can belong to a week that "lives" in the adjacent year.
+   */
+  get weekYear(): number {
+    const p = this.#computeParts();
+    return jalaliWeekOfYear(p.year, p.month, p.day, this.#weekConfig()).year;
+  }
+
+  /** Number of weeks in the current Jalali week-numbering year. */
+  get weeksInYear(): number {
+    return weeksInJalaliYear(this.year, this.#weekConfig());
+  }
+
+  /** Season of the Jalali year: `1 = spring (بهار)` … `4 = winter (زمستان)`. */
+  get season(): Season {
+    return (Math.floor((this.month - 1) / 3) + 1) as Season;
+  }
+
+  /** Localized name of the current {@link season}. */
+  get seasonName(): string {
+    return (this.#locale.seasons ?? DEFAULT_SEASONS)[this.season - 1] ?? '';
   }
 
   /** Number of days in the current Jalali month. */
@@ -629,6 +754,14 @@ export class DoranDate {
     return float ? value : Math.trunc(value);
   }
 
+  /**
+   * The signed {@link Duration} between this date and `other` (positive when this date is
+   * later), bound to this date's locale. Equivalent to `moment.duration(a.diff(b))`.
+   */
+  diffDuration(other: DoranDate): Duration {
+    return duration(this.#epochMs - other.#epochMs, 'millisecond', this.#locale);
+  }
+
   // ---------------------------------------------------------------------------
   // Reconfiguration (immutable)
   // ---------------------------------------------------------------------------
@@ -682,6 +815,32 @@ export class DoranDate {
     );
   }
 
+  /**
+   * A calendar-time phrase relative to `reference` (default: now), in this date's locale —
+   * e.g. `"امروز ساعت ۱۴:۳۰"`, `"دیروز ساعت ۹:۰۰"`, or a plain date when further away.
+   * Pass `formats` to override individual templates ({@link CalendarFormats}).
+   *
+   * @example
+   * ```ts
+   * date.calendar();
+   * date.calendar(other, { sameDay: '[today]' });
+   * ```
+   */
+  calendar(reference?: DoranDate, formats?: Partial<CalendarFormats>): string {
+    const ref = reference ?? DoranDate.now({ timeZone: this.#timeZone, locale: this.#locale });
+    const diffDays = this.startOf('day').diff(ref.startOf('day'), 'day');
+    const templates = { ...(this.#locale.calendar ?? DEFAULT_CALENDAR), ...formats };
+    let key: keyof CalendarFormats;
+    if (diffDays < -6) key = 'sameElse';
+    else if (diffDays < -1) key = 'lastWeek';
+    else if (diffDays < 0) key = 'lastDay';
+    else if (diffDays < 1) key = 'sameDay';
+    else if (diffDays < 2) key = 'nextDay';
+    else if (diffDays < 7) key = 'nextWeek';
+    else key = 'sameElse';
+    return this.format(templates[key]);
+  }
+
   // ---------------------------------------------------------------------------
   // Conversion & serialization
   // ---------------------------------------------------------------------------
@@ -701,9 +860,20 @@ export class DoranDate {
     return { ...this.#computeParts() };
   }
 
+  /** The Jalali civil fields as `[year, month, day, hour, minute, second, millisecond]`. */
+  toArray(): [number, number, number, number, number, number, number] {
+    const p = this.#computeParts();
+    return [p.year, p.month, p.day, p.hour, p.minute, p.second, p.millisecond];
+  }
+
   /** Epoch milliseconds — also enables `<`, `>`, and arithmetic coercion. */
   valueOf(): number {
     return this.#epochMs;
+  }
+
+  /** Unix timestamp in **seconds** (the inverse of {@link DoranDate.fromUnix}). */
+  unix(): number {
+    return Math.floor(this.#epochMs / MS_PER_SECOND);
   }
 
   /** ISO-8601-like string in the Jalali calendar, including the UTC offset. */
@@ -727,10 +897,15 @@ export class DoranDate {
    */
   format(pattern: string): string {
     const p = this.#computeParts();
+    const wk = jalaliWeekOfYear(p.year, p.month, p.day, this.#weekConfig());
     const ctx: FormatContext = {
       ...p,
       weekday: this.dayOfWeek,
       offsetMs: getTimeZoneOffsetMs(this.#epochMs, this.#timeZone),
+      epochMs: this.#epochMs,
+      dayOfYear: this.dayOfYear,
+      week: wk.week,
+      weekYear: wk.year,
     };
     return formatParts(ctx, pattern, this.#locale);
   }

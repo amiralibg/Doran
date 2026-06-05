@@ -48,7 +48,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "test": "vitest run",
+    "test": "vitest run --coverage",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src",

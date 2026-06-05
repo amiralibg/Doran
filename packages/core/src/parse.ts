@@ -191,24 +191,27 @@ const DEFAULT_FORMATS = [
  * cannot be parsed.
  *
  * @param input  The string to parse. Persian/Arabic digits are normalized first.
- * @param format Optional explicit format pattern (same tokens as {@link DoranDate.format}).
- *               When omitted, a set of common numeric formats is tried in turn.
+ * @param format Optional explicit format pattern, or an array of patterns to try in order
+ *               (same tokens as {@link DoranDate.format}). When omitted, a set of common
+ *               numeric formats is tried in turn.
  *
  * @example
  * ```ts
  * parseJalali('1405/03/11');
  * parseJalali('۱۴۰۵-۰۳-۱۱ ۰۷:۳۰');
  * parseJalali('11 خرداد 1405', 'D MMMM YYYY');
+ * parseJalali('1405-03-11', ['YYYY/MM/DD', 'YYYY-MM-DD']);
  * ```
  */
 export function parseJalali(
   input: string,
-  format?: string,
+  format?: string | readonly string[],
   options?: DoranDateOptions,
 ): DoranDate | null {
   const locale = resolveLocale(options?.locale);
   const normalized = normalizeDigits(input).trim();
-  const formats = format ? [format] : DEFAULT_FORMATS;
+  const formats =
+    format === undefined ? DEFAULT_FORMATS : Array.isArray(format) ? format : [format as string];
 
   for (const fmt of formats) {
     const compiled = compileFormat(fmt, locale);

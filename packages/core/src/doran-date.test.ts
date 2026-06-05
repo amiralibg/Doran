@@ -309,3 +309,40 @@ describe('quarter token', () => {
     expect(DoranDate.fromJalali(1405, 8, 1, UTC_EN).format('Q')).toBe('3');
   });
 });
+
+describe('DoranDate.parse', () => {
+  it('reads a bare numeric string as Jalali', () => {
+    const d = DoranDate.parse('1405/03/11', undefined, UTC);
+    expect(d?.year).toBe(1405);
+    expect(d?.month).toBe(3);
+    expect(d?.day).toBe(11);
+  });
+
+  it('keeps a bare YYYY-MM-DD Jalali, not Gregorian', () => {
+    const d = DoranDate.parse('1405-03-11', undefined, UTC);
+    expect(d?.year).toBe(1405);
+  });
+
+  it('auto-detects a Gregorian ISO instant', () => {
+    const d = DoranDate.parse('2024-03-20T00:00:00Z', undefined, UTC);
+    // 2024-03-20 is 1403/01/01 (Nowruz).
+    expect(d?.year).toBe(1403);
+    expect(d?.month).toBe(1);
+    expect(d?.day).toBe(1);
+  });
+
+  it('uses explicit formats as Jalali', () => {
+    const d = DoranDate.parse('11 خرداد 1405', 'D MMMM YYYY', UTC);
+    expect(d?.month).toBe(3);
+    expect(d?.day).toBe(11);
+  });
+
+  it('tries an array of formats in order', () => {
+    const d = DoranDate.parse('1405-03-11', ['YYYY/MM/DD', 'YYYY-MM-DD'], UTC);
+    expect(d?.day).toBe(11);
+  });
+
+  it('returns null for unparseable input', () => {
+    expect(DoranDate.parse('not a date', undefined, UTC)).toBeNull();
+  });
+});
