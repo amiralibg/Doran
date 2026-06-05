@@ -64,8 +64,12 @@
   },
   "devDependencies": {
     "@doranjs/ui": "workspace:*",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "jsdom": "^29.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }
