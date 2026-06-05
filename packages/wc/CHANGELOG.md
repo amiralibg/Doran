@@ -1,5 +1,15 @@
 # @doranjs/wc
 
+## 0.0.6
+
+### Patch Changes
+
+- [#10](https://github.com/amiralibg/Doran/pull/10) [`3a2d815`](https://github.com/amiralibg/Doran/commit/3a2d815e160cc206d3210ccba97896a2dc043b8b) Thanks [@amiralibg](https://github.com/amiralibg)! - Promote `@doranjs/react`, `@doranjs/wc`, and `@doranjs/ui` to stable. Each now ships a
+  full DOM-level test suite (rendering, interaction, keyboard a11y, and event contracts)
+  under `jsdom`, covering the calendar, date picker, range picker, time picker,
+  natural-language input, and agenda components/elements, the `useCalendar`/`useDateRange`
+  hooks, and the `Button`/`ThemeProvider` primitives. No runtime behavior changes.
+
 ## 0.0.5
 
 ### Patch Changes
