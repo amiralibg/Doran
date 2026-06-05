@@ -24,9 +24,9 @@ components, and a design system — all tree-shakeable, strongly typed, and immu
 | [`@doranjs/core`](./packages/core)         | Immutable `DoranDate`, conversions, arithmetic, format | ✅     |
 | [`@doranjs/nlp`](./packages/nlp)           | Persian natural-language date parsing                  | ✅     |
 | [`@doranjs/holidays`](./packages/holidays) | Iranian official & religious holidays                  | ✅     |
-| [`@doranjs/react`](./packages/react)       | RTL-first, accessible React calendar components        | 🚧     |
-| [`@doranjs/wc`](./packages/wc)             | Framework-agnostic Web Components for plain HTML       | 🚧     |
-| [`@doranjs/ui`](./packages/ui)             | Minimal, themeable design system                       | 🚧     |
+| [`@doranjs/react`](./packages/react)       | RTL-first, accessible React calendar components        | ✅     |
+| [`@doranjs/wc`](./packages/wc)             | Framework-agnostic Web Components for plain HTML       | ✅     |
+| [`@doranjs/ui`](./packages/ui)             | Minimal, themeable design system                       | ✅     |
 
 ## Quick start
 
