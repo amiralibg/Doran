@@ -1,5 +1,18 @@
 # @doranjs/holidays
 
+## 0.0.4
+
+### Patch Changes
+
+- [#12](https://github.com/amiralibg/Doran/pull/12) [`61081b7`](https://github.com/amiralibg/Doran/commit/61081b70894f1b15830e87cd28ab8958803ca080) Thanks [@amiralibg](https://github.com/amiralibg)! - Migrate the build toolchain from `tsup` (no longer maintained) to
+  [`tsdown`](https://tsdown.dev) (rolldown-based). The published output is
+  equivalent: same `.js`/`.cjs` + `.d.ts`/`.d.cts` entry points and sourcemaps, the
+  React and Web Component stylesheets ship unchanged, and `@doranjs/wc` still emits its
+  self-registering `dist/doran.global.js` IIFE bundle for CDN use. No API or runtime
+  behavior changes.
+- Updated dependencies [[`61081b7`](https://github.com/amiralibg/Doran/commit/61081b70894f1b15830e87cd28ab8958803ca080)]:
+  - @doranjs/core@0.0.4
+
 ## 0.0.3
 
 ### Patch Changes
