@@ -69,7 +69,7 @@ document.querySelector('doran-nlp-input').addEventListener('resolve', (e) => {
 ## Theming
 
 The elements reuse the same class names and CSS variables as the React components, so
-[the full token set](/api/ui) applies. Override per instance with inline styles:
+[the full token set](/en/api/ui) applies. Override per instance with inline styles:
 
 ```html
 <doran-calendar style="--doran-day-selected-bg: #e11d48; --doran-calendar-radius: 22px">

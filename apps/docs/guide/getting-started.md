@@ -1,9 +1,9 @@
-# Getting Started
+# شروع به کار
 
-Doran is a TypeScript monorepo of focused packages for the Persian (Jalali) calendar.
-Install only what you need — every package is independent and tree-shakeable.
+دوران یک monorepo از بسته‌های متمرکز TypeScript برای تقویم فارسی (جلالی) است.
+فقط آنچه را نیاز دارید نصب کنید — هر بسته مستقل و tree-shakeable است.
 
-## Installation
+## نصب
 
 ::: code-group
 
@@ -21,15 +21,15 @@ yarn add @doranjs/core
 
 :::
 
-The other packages build on the core:
+سایر بسته‌ها بر پایهٔ core ساخته شده‌اند:
 
 ```bash
-pnpm add @doranjs/nlp @doranjs/holidays              # logic
+pnpm add @doranjs/nlp @doranjs/holidays              # منطق
 pnpm add @doranjs/react @doranjs/ui react react-dom  # React UI
-pnpm add @doranjs/wc                                 # Web Components (any framework / plain HTML)
+pnpm add @doranjs/wc                                 # Web Components (هر framework / HTML ساده)
 ```
 
-## Your first date
+## نخستین تاریخ شما
 
 ```ts
 import { DoranDate } from '@doranjs/core';
@@ -41,40 +41,44 @@ today.format('YYYY/MM/DD'); // "۱۴۰۵/۰۳/۱۱"
 today.addDays(10).format('dddd D MMMM YYYY'); // "..."
 ```
 
-`DoranDate` is **immutable** — every `add*` / `with*` method returns a new instance.
+`DoranDate` **immutable** است — هر متد `add*` / `with*` یک instance تازه برمی‌گرداند.
 
-## Converting to and from Gregorian
+## تبدیل به/از میلادی
 
 ```ts
-DoranDate.fromGregorian(new Date()); // from a native Date
-DoranDate.fromJalali(1405, 3, 11); // from Jalali fields
-DoranDate.now().toGregorian(); // back to a native Date
+DoranDate.fromGregorian(new Date()); // از یک Date نیتیو
+DoranDate.fromJalali(1405, 3, 11); // از فیلدهای جلالی
+DoranDate.now().toGregorian(); // بازگشت به یک Date نیتیو
 ```
 
-## Time zones & locales
+## Time zone و Locale
 
-A `DoranDate` is an absolute instant plus an IANA time zone, so conversions are exact.
+یک `DoranDate` یک instant مطلق به‌علاوهٔ یک IANA time zone است، پس تبدیل‌ها دقیق‌اند.
 
 ```ts
 const tehran = DoranDate.fromJalali(1405, 3, 11, { timeZone: 'Asia/Tehran' });
-tehran.withTimeZone('UTC'); // same instant, different wall clock
-tehran.withLocale('en-US').format('dddd D MMMM YYYY'); // Latin output
+tehran.withTimeZone('UTC'); // همان instant، wall-clock متفاوت
+tehran.withLocale('en-US').format('dddd D MMMM YYYY'); // خروجی لاتین
 ```
 
-## Parsing natural language
+## Parse کردن زبان طبیعی
 
 ```ts
 import { parse } from '@doranjs/nlp';
 
 parse('جمعه ساعت ۷ شب'); // { date: DoranDate, confidence: 0.98, matched: '...' }
-parse('farda'); // Finglish also works → فردا
-parse('tvnh'); // even text typed with the keyboard left in English → فردا
+parse('farda'); // Finglish هم کار می‌کند → فردا
+parse('tvnh'); // حتی متنی که با layout انگلیسیِ کیبورد تایپ شده → فردا
 ```
 
-## Use in plain HTML (Web Components)
+عبارت‌های پشتیبانی‌شده طیف گسترده‌ای دارند — روزهای نسبی، روزهای هفته، تاریخ‌های صریح،
+anchorهای ماه (`اواخر اسفند`)، روزهای خاص، rangeها، durationها و قواعد recurrence.
+فهرست کامل را در reference بستهٔ [`@doranjs/nlp`](/en/api/nlp) ببینید.
 
-No bundler or framework required — import the package (which registers the elements)
-and the stylesheet:
+## استفاده در HTML ساده (Web Components)
+
+بدون نیاز به bundler یا framework — بسته را import کنید (که elementها را register می‌کند) و
+stylesheet را بیفزایید:
 
 ```html
 <link rel="stylesheet" href="https://unpkg.com/@doranjs/wc/dist/styles.css" />
@@ -85,10 +89,10 @@ and the stylesheet:
 <doran-nlp-input></doran-nlp-input>
 ```
 
-See [`@doranjs/wc`](/api/wc) for all elements, attributes, and events.
+برای همهٔ elementها، attributeها و eventها [`@doranjs/wc`](/en/api/wc) را ببینید.
 
-## Next steps
+## گام‌های بعدی
 
-- Read the [Architecture](/guide/architecture) overview.
-- Browse the [API Reference](/api/core).
-- See full [Examples](/examples).
+- مرور [معماری](/guide/architecture) را بخوانید.
+- [API Reference](/en/api/core) را مرور کنید.
+- [نمونه‌ها](/examples) را به‌طور کامل ببینید.

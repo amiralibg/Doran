@@ -11,7 +11,7 @@ import {
   UNITS,
   type Unit,
 } from './dictionary';
-import { NUMBER_WORD_PATTERN, parsePersianNumber } from './numbers';
+import { NUMBER_PHRASE_PATTERN, NUMBER_WORD_PATTERN, parsePersianNumber } from './numbers';
 import type { DayExtractor, DayMatch, TimeExtractor, TimeMatch } from './types';
 
 const FUTURE = FUTURE_WORDS.join('|');
@@ -37,16 +37,35 @@ const WEEKDAY_PATTERNS: Array<[RegExp, number]> = [
 const PART_OF_DAY_PATTERNS: Array<[RegExp, keyof typeof PART_OF_DAY]> = [
   [/بعد\s?از\s?ظهر/, 'بعدازظهر'],
   [/نیمه\s?شب/, 'نیمهشب'],
+  [/نیمروز/, 'نیمروز'],
   [/بامداد/, 'بامداد'],
+  [/سحرگاه|سحر/, 'سحر'],
   [/صبح/, 'صبح'],
   [/ظهر/, 'ظهر'],
   [/عصر/, 'عصر'],
   [/غروب/, 'غروب'],
+  [/شامگاه/, 'شامگاه'],
   [/شب/, 'شب'],
 ];
 
 function startOfDay(date: DoranDate): DoranDate {
   return date.startOf('day');
+}
+
+/**
+ * Detects a relative *year* qualifier anywhere in the text (`سال بعد`, `۳ سال دیگه`,
+ * `دو سال پیش`) and returns the signed year offset, or `0` if there is none. This lets an
+ * explicit date that omits its own year inherit a `N سال بعد/پیش` qualifier — e.g.
+ * «۳ سال دیگه ۱۱ دی» resolves to 11 Dey of `reference.year + 3`, not the current year.
+ */
+function relativeYearOffset(text: string): number {
+  const m = text.match(
+    new RegExp(`(?:(${NUMBER_PHRASE_PATTERN}|\\d+)\\s+)?سال\\s+(${FUTURE}|${PAST})`),
+  );
+  if (!m) return 0;
+  const amount = m[1] ? (parsePersianNumber(m[1]) ?? 1) : 1;
+  const sign = new RegExp(`^(?:${PAST})$`).test(m[2]!) ? -1 : 1;
+  return sign * amount;
 }
 
 // ---------------------------------------------------------------------------
@@ -57,10 +76,10 @@ function startOfDay(date: DoranDate): DoranDate {
 export const relativeDayExtractor: DayExtractor = (ctx) => {
   const patterns: Array<[RegExp, number]> = [
     [/پس\s?فردا/, 2],
-    [/پریروز|پریر/, -2],
+    [/پریروز|پریشب|پریر/, -2],
     [/فردا/, 1],
-    [/دیروز/, -1],
-    [/امروز/, 0],
+    [/دیروز|دیشب/, -1],
+    [/امروز|امشب/, 0],
   ];
   for (const [pattern, offset] of patterns) {
     const m = ctx.text.match(pattern);
@@ -98,9 +117,30 @@ export const specialDayExtractor: DayExtractor = (ctx) => {
   return null;
 };
 
-/** `اول/وسط/آخر ماه [بعد|قبل]`. */
+/** Resolves an anchor to a day offset inside a month given its length. */
+function anchorDay(anchor: 'first' | 'middle' | 'last', daysInMonth: number): number {
+  if (anchor === 'middle') return 14;
+  if (anchor === 'last') return daysInMonth - 1;
+  return 0;
+}
+
+/** `اول/وسط/آخر ماه [بعد|قبل]` and `اوایل/اواسط/اواخر <month-name>`. */
 export const monthAnchorExtractor: DayExtractor = (ctx) => {
   const anchors = Object.keys(MONTH_ANCHORS).join('|');
+
+  // `<anchor> <month-name> [<year>]` — e.g. «اواخر اسفند», «اوایل خرداد ۱۴۰۶».
+  const named = ctx.text.match(
+    new RegExp(`(${anchors})\\s+(${MONTH_ALT})(?:\\s+(\\d{3,4}))?(?=\\s|$)`),
+  );
+  if (named) {
+    const anchor = MONTH_ANCHORS[named[1]!]!;
+    const month = MONTHS[named[2]!]!;
+    const year = named[3] ? Number(named[3]) : ctx.reference.year + relativeYearOffset(ctx.text);
+    const monthStart = DoranDate.fromJalali({ year, month, day: 1 }, refOptions(ctx.reference));
+    const date = monthStart.addDays(anchorDay(anchor, monthStart.daysInMonth));
+    return { date, confidence: 0.9, span: named[0].trim() };
+  }
+
   const pattern = new RegExp(`(${anchors})\\s+ماه(?:\\s+(${FUTURE}|${PAST}|این|جاری|همین))?`);
   const m = ctx.text.match(pattern);
   if (!m) return null;
@@ -112,9 +152,7 @@ export const monthAnchorExtractor: DayExtractor = (ctx) => {
   else if (direction && new RegExp(`^(?:${PAST})$`).test(direction)) delta = -1;
 
   const monthStart = ctx.reference.addMonths(delta).startOf('month');
-  let date = monthStart;
-  if (anchor === 'middle') date = monthStart.addDays(14);
-  else if (anchor === 'last') date = monthStart.addDays(monthStart.daysInMonth - 1);
+  const date = monthStart.addDays(anchorDay(anchor, monthStart.daysInMonth));
 
   return { date, confidence: 0.9, span: m[0] };
 };
@@ -123,7 +161,7 @@ export const monthAnchorExtractor: DayExtractor = (ctx) => {
 export const relativeUnitExtractor: DayExtractor = (ctx) => {
   const units = Object.keys(UNITS).join('|');
   const pattern = new RegExp(
-    `(?:(${NUMBER_WORD_PATTERN}|\\d+)\\s+)?(${units})\\s+(${FUTURE}|${PAST})`,
+    `(?:(${NUMBER_PHRASE_PATTERN}|\\d+)\\s+)?(${units})(?:\\s*ی)?\\s+(${FUTURE}|${PAST})`,
   );
   const m = ctx.text.match(pattern);
   if (!m) return null;
@@ -136,11 +174,21 @@ export const relativeUnitExtractor: DayExtractor = (ctx) => {
   return { date, confidence: 0.92, span: m[0] };
 };
 
-/** Weekday names, optionally with `آینده`/`گذشته`. */
+/** Weekday names, optionally qualified by `آینده`/`گذشته` or `هفته بعد`/`هفته گذشته`. */
 export const weekdayExtractor: DayExtractor = (ctx) => {
   for (const [pattern, weekday] of WEEKDAY_PATTERNS) {
     const m = ctx.text.match(pattern);
     if (!m) continue;
+
+    // «<weekday> هفته بعد / هفته گذشته» — anchor to that weekday in the next/previous
+    // week (Iranian weeks start Saturday), regardless of where it falls relative to today.
+    const weekNext = new RegExp(`هفته(?:\\s*ی)?\\s+(?:${FUTURE})`).test(ctx.text);
+    const weekPast = new RegExp(`هفته(?:\\s*ی)?\\s+(?:${PAST})`).test(ctx.text);
+    if (weekNext || weekPast) {
+      const weekStart = ctx.reference.startOf('week');
+      const date = weekStart.addDays(weekday + (weekNext ? 7 : -7));
+      return { date: startOfDay(date), confidence: 0.95, span: m[0] };
+    }
 
     const isNext = new RegExp(`(?:${FUTURE})`).test(ctx.text);
     const isPast = new RegExp(`(?:${PAST})`).test(ctx.text);
@@ -189,14 +237,16 @@ export const explicitDateExtractor: DayExtractor = (ctx) => {
   // ordinal suffix (۱۵م / پانزدهم).
   const dayMonth = ctx.text.match(
     new RegExp(
-      `(${NUMBER_WORD_PATTERN}|\\d{1,2})\\s*(?:م|ام|اُم)?\\s+(${MONTH_ALT})(?:\\s*ماه)?(?:\\s+(\\d{3,4}))?(?=\\s|$)`,
+      `(${NUMBER_PHRASE_PATTERN}|\\d{1,2})\\s*(?:م|ام|اُم)?\\s+(${MONTH_ALT})(?:\\s*ماه)?(?:\\s+(\\d{3,4}))?(?=\\s|$)`,
     ),
   );
   if (dayMonth) {
     const day = parsePersianNumber(dayMonth[1]!);
     const month = MONTHS[dayMonth[2]!]!;
     if (day !== null && day >= 1 && day <= 31) {
-      const year = dayMonth[3] ? Number(dayMonth[3]) : ctx.reference.year;
+      const year = dayMonth[3]
+        ? Number(dayMonth[3])
+        : ctx.reference.year + relativeYearOffset(ctx.text);
       return {
         date: DoranDate.fromJalali({ year, month, day }, refOptions(ctx.reference)),
         confidence: dayMonth[3] ? 0.98 : 0.94,
@@ -223,7 +273,9 @@ export const explicitDateExtractor: DayExtractor = (ctx) => {
 /** `این هفته`, `همین ماه`, `سال جاری` → the start of the current period. */
 export const thisUnitExtractor: DayExtractor = (ctx) => {
   const units = Object.keys(UNITS).join('|');
-  const pattern = new RegExp(`(?:(?:${PRESENT})\\s+(${units})|(${units})\\s+(?:${PRESENT}))`);
+  const pattern = new RegExp(
+    `(?:(?:${PRESENT})\\s+(${units})|(${units})(?:\\s*ی)?\\s+(?:${PRESENT}))`,
+  );
   const m = ctx.text.match(pattern);
   if (!m) return null;
   const unit = UNITS[(m[1] ?? m[2])!] as Unit;
@@ -370,14 +422,18 @@ function refOptions(reference: DoranDate) {
 
 /** The default day extractors, in priority order. */
 export const defaultDayExtractors: DayExtractor[] = [
+  // Anchored months (`اواخر اسفند`, `اول فروردین`) run before the explicit-date
+  // extractor so its `<month> <year>` branch doesn't shadow `<anchor> <month> <year>`.
+  monthAnchorExtractor,
   explicitDateExtractor,
   specialDayExtractor,
   relativeDayExtractor,
-  monthAnchorExtractor,
+  // Before weekend/this-period/unit extractors so «جمعه هفته بعد» is read as a weekday
+  // anchored to next week, not the bare «هفته بعد» unit shift.
+  weekdayExtractor,
   weekendExtractor,
   thisUnitExtractor,
   relativeUnitExtractor,
-  weekdayExtractor,
 ];
 
 /** The default time extractors, in priority order. */

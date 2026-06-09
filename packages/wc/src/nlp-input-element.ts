@@ -1,4 +1,4 @@
-import { type DoranDate, type Locale } from '@doranjs/core';
+import { DoranDate, type Locale } from '@doranjs/core';
 import { parse, suggest, type Suggestion } from '@doranjs/nlp';
 import { esc, resolveLocaleAttr } from './util';
 
@@ -82,10 +82,15 @@ export class DoranNlpInputElement extends HTMLElement {
     const format = this.getAttribute('format');
     if (format) return `<bdi>${esc(d.format(format))}</bdi>`;
     const hasTime = date.hour !== 0 || date.minute !== 0;
+    // Show the year only when it isn't the current one, so near-term dates stay terse but a
+    // date that resolves to a different year (e.g. «۳ سال دیگه ۱۱ دی») isn't ambiguous.
+    const dayFormat = hasTime ? 'D MMMM' : 'dddd D MMMM';
+    const sameYear = date.year === DoranDate.now({ timeZone: date.timeZone }).year;
+    const dateStr = esc(d.format(sameYear ? dayFormat : `${dayFormat} YYYY`));
     if (hasTime) {
-      return `<bdi>${esc(d.format('D MMMM'))}</bdi><bdi dir="ltr" class="doran-nlp__time">${esc(d.format('HH:mm'))}</bdi>`;
+      return `<bdi>${dateStr}</bdi><bdi dir="ltr" class="doran-nlp__time">${esc(d.format('HH:mm'))}</bdi>`;
     }
-    return `<bdi>${esc(d.format('dddd D MMMM'))}</bdi>`;
+    return `<bdi>${dateStr}</bdi>`;
   }
 
   #build(): void {

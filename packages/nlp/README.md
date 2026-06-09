@@ -21,7 +21,18 @@ parse('جمعه ساعت ۷ شب');
 
 parse('دو هفته دیگر');
 parse('اول ماه بعد');
+parse('بیست و یکم خرداد'); // compound number words
+parse('اواخر اسفند'); // anchored months
+parse('جمعه هفته بعد'); // weekday in the following week
 parse('نوروز سال آینده');
+```
+
+It is forgiving: Finglish and text typed with the keyboard left in English still resolve.
+
+```ts
+parse('farda'); // Finglish → فردا
+parse('emshab'); // → tonight
+parse('tvnh'); // US-QWERTY keystrokes for «فردا» → tomorrow
 ```
 
 Pass a `reference` date to resolve relative expressions deterministically:
@@ -34,14 +45,20 @@ parse('فردا', { reference: DoranDate.fromJalali(1405, 1, 1) });
 
 ## Supported expressions
 
-| Category      | Examples                                          |
-| ------------- | ------------------------------------------------- |
-| Relative days | `امروز`, `فردا`, `پس فردا`, `دیروز`, `پریروز`     |
-| Weekdays      | `شنبه`, `سه شنبه آینده`, `جمعه گذشته`             |
-| Units         | `دو هفته دیگر`, `۳ روز پیش`, `سال آینده`          |
-| Month anchors | `اول ماه بعد`, `آخر ماه`, `وسط ماه قبل`           |
-| Special days  | `نوروز`, `نوروز سال آینده`, `یلدا`, `سیزده به در` |
-| Time of day   | `ساعت ۷ شب`, `ساعت ۱۴:۳۰`, `شنبه صبح`             |
+| Category       | Examples                                                    |
+| -------------- | ----------------------------------------------------------- |
+| Relative days  | `امروز`, `امشب`, `فردا`, `دیروز`, `دیشب`, `پریروز`, `پریشب` |
+| Weekdays       | `شنبه`, `سه شنبه آینده`, `جمعه هفته بعد`                    |
+| Explicit dates | `۱۵ خرداد`, `بیست و یکم خرداد`, `۱۴۰۵/۰۳/۲۰`                |
+| Units          | `دو هفته دیگر`, `۳ روز پیش`, `سال آینده`                    |
+| Month anchors  | `اول ماه بعد`, `آخر ماه`, `اواخر اسفند`                     |
+| Special days   | `نوروز`, `نوروز سال آینده`, `یلدا`, `سیزده به در`           |
+| Time of day    | `ساعت ۷ شب`, `ساعت ۱۴:۳۰`, `شنبه صبح`, `سحر`, `نیمروز`      |
+
+Beyond `parse`, the package also exports `parseRange` («از ۵ تا ۱۰ فروردین»),
+`parseDuration` («یک ساعت و نیم»), `parseRecurrence` / `occurrences` («هر دوشنبه»,
+«یک روز در میان»), and `suggest` for autocomplete. See the
+[full API reference](https://amiralibg.github.io/Doran/en/api/nlp).
 
 ## Architecture
 

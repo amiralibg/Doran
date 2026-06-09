@@ -3,8 +3,15 @@ import { normalize } from './normalize';
 import { parsePersianNumber } from './numbers';
 import type { ParseOptions, RangeResult } from './types';
 
-/** Splits «(از|بین) X (تا|الی) Y» into its two halves. */
-const RANGE_PATTERN = /^(?:از\s+|بین\s+)?(.+?)\s+(?:تا|الی)\s+(.+)$/;
+/**
+ * Splits a range expression into its two halves. Handles «از X تا Y», «X تا Y»,
+ * «X الی Y», and «(ما)بین X و Y». The «بین … و …» form is tried first so its «و»
+ * separator is not mistaken for part of an endpoint.
+ */
+const RANGE_PATTERNS: RegExp[] = [
+  /^(?:ما\s?بین|بین)\s+(.+?)\s+(?:تا|الی|و)\s+(.+)$/,
+  /^(?:از\s+)?(.+?)\s+(?:تا|الی)\s+(.+)$/,
+];
 
 /**
  * Parses a Persian date-range expression such as «از ۵ تا ۱۰ فروردین», «از فردا تا
@@ -20,7 +27,11 @@ const RANGE_PATTERN = /^(?:از\s+|بین\s+)?(.+?)\s+(?:تا|الی)\s+(.+)$/;
  */
 export function parseRange(input: string, options?: ParseOptions): RangeResult | null {
   const text = normalize(input);
-  const m = text.match(RANGE_PATTERN);
+  let m: RegExpMatchArray | null = null;
+  for (const pattern of RANGE_PATTERNS) {
+    m = text.match(pattern);
+    if (m) break;
+  }
   if (!m) return null;
 
   const leftRaw = m[1]!.trim();

@@ -1,0 +1,165 @@
+/* ---------------------------------------------------------------------------
+ * Persian (RTL) locale styling.
+ *
+ * VitePress sets dir="rtl" on <html> for the Farsi locale but does not mirror
+ * its physical (left/right) CSS — code blocks are already forced LTR via the
+ * theme's own rtl:ignore rules, but blockquotes, lists, table headers and
+ * heading anchors keep their LTR sides. We (a) load a Persian font for the fa
+ * locale and (b) flip the doc-content rules below. Everything is scoped so the
+ * English (/en/) pages keep the default Inter / LTR styling untouched.
+ * ------------------------------------------------------------------------- */
+
+/* Persian font for the fa locale only (English keeps Inter). Higher specificity
+   than the theme's :root rule, so it wins. */
+html[lang='fa-IR'] {
+  --vp-font-family-base: 'Vazirmatn', 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Persian glyphs sit taller — a slightly looser line-height reads better. */
+html[lang='fa-IR'] .vp-doc {
+  line-height: 1.85;
+}
+
+/* Blockquote: accent border + indent move to the right. */
+[dir='rtl'] .vp-doc blockquote {
+  border-left: 0;
+  padding-left: 0;
+  border-right: 2px solid var(--vp-c-divider);
+  padding-right: 16px;
+}
+
+/* Lists: indent from the right edge. */
+[dir='rtl'] .vp-doc ul,
+[dir='rtl'] .vp-doc ol {
+  padding-left: 0;
+  padding-right: 1.25rem;
+}
+
+/* Table headers align to the start (right), like the body cells. */
+[dir='rtl'] .vp-doc th {
+  text-align: right;
+}
+
+/* Heading anchor (#) belongs on the right edge in RTL. */
+[dir='rtl'] .vp-doc .header-anchor {
+  left: auto;
+  right: 0;
+  margin-left: 0;
+  margin-right: -0.87em;
+}
+
+/* External-link icon spacing flips to the inline-end side. */
+[dir='rtl']
+  :is(.vp-external-link-icon, .vp-doc a[href*='://'], .vp-doc a[target='_blank']):not(
+    :is(.no-icon, svg a, :has(img, svg))
+  )::after {
+  margin-left: 0;
+  margin-right: 4px;
+}
+
+/* Inline code / numerals stay LTR inside Persian prose. */
+[dir='rtl'] .vp-doc :not(pre) > code {
+  direction: ltr;
+  unicode-bidi: embed;
+}
+
+/* ---------------------------------------------------------------------------
+ * Navbar — mirror the search box and its inner icon/placeholder/keys spacing,
+ * which the theme tunes for LTR. Scoped to the search container so the modal
+ * search button isn't affected. (Nav items themselves are flex, so dir="rtl"
+ * already reorders them correctly.)
+ * ------------------------------------------------------------------------- */
+
+[dir='rtl'] .VPNavBarSearch {
+  padding-left: 0;
+  padding-right: 24px;
+}
+@media (min-width: 768px) {
+  [dir='rtl'] .VPNavBarSearch {
+    padding-right: 32px;
+  }
+}
+
+[dir='rtl'] .VPNavBarSearch .DocSearch-Button {
+  margin-left: 0;
+  margin-right: 16px;
+}
+
+[dir='rtl'] .VPNavBarSearch .DocSearch-Search-Icon {
+  margin-right: 0;
+  margin-left: 8px;
+}
+
+[dir='rtl'] .VPNavBarSearch .DocSearch-Button-Placeholder {
+  padding-right: 0;
+  padding-left: 16px;
+}
+
+/* The "extra" overflow menu's negative pull flips to the other edge. */
+[dir='rtl'] .VPNavBarExtra {
+  margin-right: 0;
+  margin-left: -12px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Doc layout — the sidebar lives on the right and the page content / outline
+ * mirror accordingly. VitePress positions these with physical left/padding-left
+ * that it doesn't flip for RTL, so we mirror them at the same breakpoints
+ * (sidebar appears at 960px; the centering gutter at 1440px).
+ * ------------------------------------------------------------------------- */
+
+/* Sidebar pinned to the right edge. */
+[dir='rtl'] .VPSidebar {
+  left: auto;
+  right: 0;
+}
+
+/* Mobile drawer slides in from the right. */
+@media (max-width: 959px) {
+  [dir='rtl'] .VPSidebar {
+    transform: translateX(100%);
+  }
+  [dir='rtl'] .VPSidebar.open {
+    transform: translateX(0);
+  }
+}
+
+/* Wide screens: the sidebar's centering gutter sits on the right. */
+@media (min-width: 1440px) {
+  [dir='rtl'] .VPSidebar {
+    padding-left: 32px;
+    padding-right: max(32px, calc((100% - (var(--vp-layout-max-width) - 64px)) / 2));
+  }
+}
+
+/* Content reserves space for the sidebar on the right. */
+[dir='rtl'] .VPContent.has-sidebar {
+  padding-left: 0;
+  padding-right: var(--vp-sidebar-width);
+}
+@media (min-width: 1440px) {
+  [dir='rtl'] .VPContent.has-sidebar {
+    padding-left: calc((100vw - var(--vp-layout-max-width)) / 2);
+    padding-right: calc((100vw - var(--vp-layout-max-width)) / 2 + var(--vp-sidebar-width));
+  }
+}
+
+/* Sticky local (mobile) nav padding follows the sidebar to the right. */
+@media (min-width: 960px) {
+  [dir='rtl'] .VPLocalNav.has-sidebar {
+    padding-left: 0;
+    padding-right: var(--vp-sidebar-width);
+  }
+}
+@media (min-width: 1440px) {
+  [dir='rtl'] .VPLocalNav.has-sidebar {
+    padding-left: 0;
+    padding-right: calc((100vw - var(--vp-layout-max-width)) / 2 + var(--vp-sidebar-width));
+  }
+}
+
+/* Outline ("در این صفحه") aside: the gap sits on its inner (right) side. */
+[dir='rtl'] .VPDoc .aside {
+  padding-left: 0;
+  padding-right: 32px;
+}

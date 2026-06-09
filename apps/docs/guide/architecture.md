@@ -1,8 +1,7 @@
-# Architecture
+# معماری
 
-Doran follows **domain-driven package boundaries** with a strict, one-directional
-dependency graph. Each package owns a single concern and exposes a stable, strongly
-typed surface.
+دوران از **مرزبندی بسته‌ها بر پایهٔ domain** با یک dependency graph یک‌سویه و سخت‌گیرانه
+پیروی می‌کند. هر بسته مسئول یک concern واحد است و یک API پایدار و strongly-typed عرضه می‌کند.
 
 ## Dependency graph
 
@@ -12,60 +11,60 @@ typed surface.
                  @doranjs/core
                    ▲        ▲
 @doranjs/react ────┘        └──── @doranjs/wc
-   │  (also → @doranjs/nlp)         (also → @doranjs/nlp + @doranjs/holidays)
-   └──▶ @doranjs/ui  (peer, theming)
+   │  (همچنین → @doranjs/nlp)       (همچنین → @doranjs/nlp + @doranjs/holidays)
+   └──▶ @doranjs/ui  (peer، برای theming)
 ```
 
-- **`@doranjs/core`** has **zero runtime dependencies** and no knowledge of UI.
-- **`@doranjs/nlp`** and **`@doranjs/holidays`** depend only on the core.
-- **`@doranjs/react`** depends on the core and **`@doranjs/nlp`** (for the natural-language
-  input), and uses **`@doranjs/ui`** as a peer for theming and primitives.
-- **`@doranjs/wc`** ships framework-agnostic Web Components built on the core,
-  **`@doranjs/nlp`**, and **`@doranjs/holidays`** — usable in plain HTML or any framework.
-- **`@doranjs/ui`** is a standalone design system (the React peer of `@doranjs/react`).
+- **`@doranjs/core`** هیچ runtime dependency ندارد و از UI بی‌خبر است.
+- **`@doranjs/nlp`** و **`@doranjs/holidays`** تنها به core وابسته‌اند.
+- **`@doranjs/react`** به core و **`@doranjs/nlp`** (برای ورودیِ زبان طبیعی) وابسته است و
+  از **`@doranjs/ui`** به‌عنوان یک peer برای theming و primitiveها استفاده می‌کند.
+- **`@doranjs/wc`** یک‌سری Web Componentِ مستقل از framework عرضه می‌کند که بر پایهٔ core،
+  **`@doranjs/nlp`** و **`@doranjs/holidays`** ساخته شده‌اند — قابل‌استفاده در HTML ساده یا هر frameworkی.
+- **`@doranjs/ui`** یک design system مستقل است (همان UI peerِ مربوط به `@doranjs/react`).
 
-## Core design decisions
+## تصمیم‌های کلیدی طراحی
 
 ### Immutability
 
-`DoranDate` is immutable. Every operation returns a new instance, which makes dates safe
-to share, memoize, and use as React state.
+`DoranDate` تغییرناپذیر (immutable) است. هر عملیات یک instance تازه برمی‌گرداند، که تاریخ‌ها را
+برای share کردن، memoize و استفاده به‌عنوان state در React امن می‌کند.
 
-### Instant + time zone model
+### مدل Instant + Time zone
 
-A `DoranDate` stores an absolute instant (epoch milliseconds) and an IANA time zone.
-Civil (wall-clock) Jalali fields are _derived_ by projecting the instant into the zone.
-This keeps every conversion and time-zone change exact, and is implemented purely on top
-of the standard `Intl` API — no time-zone database is bundled.
+یک `DoranDate` یک instant مطلق (epoch milliseconds) و یک IANA time zone را نگه می‌دارد.
+فیلدهای civil (wall-clock) جلالی با project کردن آن instant در time zone مربوطه _محاسبه_
+می‌شوند. این کار هر تبدیل و هر تغییر time zone را دقیق نگه می‌دارد و کاملاً روی API استاندارد
+`Intl` پیاده‌سازی شده است — هیچ time-zone database ای همراه بسته ارسال نمی‌شود.
 
-### Julian Day Number pivot
+### محور Julian Day Number (JDN)
 
-All calendar conversions pivot through the **Julian Day Number (JDN)**. Both Gregorian↔
-JDN and Jalali↔JDN are exact integer operations, so day arithmetic is trivial and
-round-trips never drift. The Jalali algorithm is the well-established Borkowski / jalaali
-implementation, validated by an exhaustive day-by-day round-trip test.
+همهٔ تبدیل‌های تقویمی حول **Julian Day Number (JDN)** می‌چرخند. هر دو تبدیل Gregorian↔JDN و
+Jalali↔JDN عملیات integer دقیق‌اند، پس محاسبهٔ روزها ساده است و round-tripها هرگز drift
+نمی‌کنند. الگوریتم جلالی همان پیاده‌سازی جاافتادهٔ Borkowski / jalaali است که با یک تست
+round-trip روزبه‌روز اعتبارسنجی شده است.
 
-### Calendar vs. duration arithmetic
+### محاسبهٔ Calendar در برابر Duration
 
-- **Calendar units** (`addDays`, `addMonths`, `addYears`) operate on civil fields and
-  clamp overflowing days (e.g. Esfand 30 → 29 in a common year).
-- **Duration units** (`addHours`, `addMinutes`, …) operate on the absolute instant.
+- **Calendar units** (`addDays`، `addMonths`، `addYears`) روی فیلدهای civil عمل می‌کنند و
+  روزهای سرریز را clamp می‌کنند (مثلاً ۳۰ اسفند → ۲۹ در سال عادی).
+- **Duration units** (`addHours`، `addMinutes`، …) روی instant مطلق عمل می‌کنند.
 
-This mirrors how humans reason about "next month" vs. "in 24 hours".
+این رفتار با شیوهٔ استدلال انسان دربارهٔ «ماه بعد» در برابر «۲۴ ساعت دیگر» هم‌خوانی دارد.
 
 ## Extensibility
 
-- **Locales** — register additional locales with `registerLocale`.
-- **NLP** — the parser is a pipeline of day/time extractors; register your own with
-  `Parser.useDay` / `Parser.useTime`, and add Finglish aliases with `registerFinglish`.
-- **Holidays** — register custom solar or lunar holidays.
-- **React** — every component is built on headless primitives (`buildMonthGrid`,
-  `useCalendar`, `useDateRange`, `useNlpSuggest`) you can use to build a bespoke UI.
-- **Web Components** — the same UI as custom elements (`<doran-calendar>`, …) for any
-  framework or plain HTML; see [`@doranjs/wc`](/api/wc).
+- **Locales** — localeهای بیشتری را با `registerLocale` ثبت کنید.
+- **NLP** — این parser یک pipeline از day/time extractorهاست؛ extractorهای خودتان را با
+  `Parser.useDay` / `Parser.useTime` ثبت کنید و Finglish aliasها را با `registerFinglish` بیفزایید.
+- **Holidays** — تعطیلات شمسی یا قمریِ سفارشی را register کنید.
+- **React** — هر کامپوننت بر پایهٔ headless primitiveها (`buildMonthGrid`، `useCalendar`،
+  `useDateRange`، `useNlpSuggest`) ساخته شده که با آن‌ها می‌توانید یک UI سفارشی بسازید.
+- **Web Components** — همان UI در قالب custom element (`<doran-calendar>`، …) برای هر
+  framework یا HTML ساده؛ [`@doranjs/wc`](/en/api/wc) را ببینید.
 
-## Quality bar
+## معیار کیفیت
 
-Calendar correctness is the project's top priority. Any change to conversion, leap-year,
-or arithmetic logic must ship with tests covering reference dates, leap-year edge cases,
-and round-trip conversions.
+صحتِ calendar نخستین اولویت پروژه است. هر تغییر در منطق conversion، leap-year یا arithmetic
+باید همراه با testهایی باشد که تاریخ‌های مرجع، edge caseهای سال کبیسه و round-trip conversions
+را پوشش دهند.

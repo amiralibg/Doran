@@ -1,5 +1,5 @@
 import { normalize } from './normalize';
-import { NUMBER_WORD_PATTERN, parsePersianNumber } from './numbers';
+import { NUMBER_PHRASE_PATTERN, parsePersianNumber } from './numbers';
 import type { DurationResult, DurationUnit } from './types';
 
 /** Unit keywords → canonical duration unit (extends the date units with time units). */
@@ -31,7 +31,7 @@ export function parseDuration(input: string): DurationResult | null {
   const text = normalize(input);
 
   const pattern = new RegExp(
-    `(?:(${NUMBER_WORD_PATTERN}|\\d+(?:\\.\\d+)?)\\s+|(نیم)\\s+)?(${UNIT_ALT})(\\s+و\\s+نیم)?`,
+    `(?:(${NUMBER_PHRASE_PATTERN}|\\d+(?:\\.\\d+)?)\\s+|(نیم)\\s+)?(${UNIT_ALT})(\\s+و\\s+نیم)?`,
   );
   const m = text.match(pattern);
   if (!m) return null;

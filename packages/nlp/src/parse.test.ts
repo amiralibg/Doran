@@ -191,6 +191,119 @@ describe('richer time', () => {
   });
 });
 
+describe('extra relative days', () => {
+  it('parses امشب (tonight) as today, evening', () => {
+    const { date } = parsed('امشب');
+    expect(date.isSame(reference.startOf('day'), 'day')).toBe(true);
+    expect(date.hour).toBe(20); // «شب» → night
+  });
+
+  it('parses دیشب (last night) as yesterday evening', () => {
+    const { date } = parsed('دیشب');
+    expect(date.startOf('day').isSame(reference.addDays(-1).startOf('day'))).toBe(true);
+    expect(date.hour).toBe(20); // «شب» → night
+  });
+
+  it('parses پریشب (night before last) as two days ago', () => {
+    expect(parsed('پریشب').date.startOf('day').isSame(reference.addDays(-2).startOf('day'))).toBe(
+      true,
+    );
+  });
+});
+
+describe('compound number-word days', () => {
+  it('parses بیست و یکم خرداد (21 Khordad)', () => {
+    const { date } = parsed('بیست و یکم خرداد');
+    expect(date.month).toBe(3);
+    expect(date.day).toBe(21);
+  });
+
+  it('parses بیست و سه تیر (23 Tir)', () => {
+    const { date } = parsed('بیست و سه تیر');
+    expect(date.month).toBe(4);
+    expect(date.day).toBe(23);
+  });
+});
+
+describe('anchored months', () => {
+  it('parses اول فروردین (first of Farvardin)', () => {
+    const { date } = parsed('اول فروردین');
+    expect(date.month).toBe(1);
+    expect(date.day).toBe(1);
+  });
+
+  it('parses اوایل خرداد (early Khordad) as the first', () => {
+    const { date } = parsed('اوایل خرداد');
+    expect(date.month).toBe(3);
+    expect(date.day).toBe(1);
+  });
+
+  it('parses اواخر اسفند (late Esfand) as the last day of the month', () => {
+    const { date } = parsed('اواخر اسفند');
+    expect(date.month).toBe(12);
+    expect(date.day).toBe(date.daysInMonth);
+  });
+});
+
+describe('explicit date + relative year', () => {
+  it('parses ۳ سال دیگه ۱۱ دی (11 Dey, three years out)', () => {
+    const { date } = parsed('۳ سال دیگه ۱۱ دی');
+    expect(date.year).toBe(reference.year + 3); // 1408
+    expect(date.month).toBe(10);
+    expect(date.day).toBe(11);
+  });
+
+  it('parses ۱۱ دی سال بعد (11 Dey next year)', () => {
+    const { date } = parsed('۱۱ دی سال بعد');
+    expect(date.year).toBe(reference.year + 1);
+    expect([date.month, date.day]).toEqual([10, 11]);
+  });
+
+  it('parses دو سال پیش ۱۵ خرداد (15 Khordad, two years ago)', () => {
+    const { date } = parsed('دو سال پیش ۱۵ خرداد');
+    expect(date.year).toBe(reference.year - 2);
+    expect([date.month, date.day]).toEqual([3, 15]);
+  });
+
+  it('still resolves a bare explicit date in the reference year', () => {
+    expect(parsed('۱۵ خرداد').date.year).toBe(reference.year);
+  });
+});
+
+describe('weekday week-shifts', () => {
+  it('parses جمعه هفته بعد (Friday next week) into the following week', () => {
+    const { date } = parsed('جمعه هفته بعد');
+    expect(date.dayOfWeek).toBe(6);
+    const diff = date.diff(reference.startOf('day'), 'day');
+    expect(diff).toBeGreaterThan(7);
+    expect(diff).toBeLessThanOrEqual(14);
+  });
+
+  it('parses شنبه هفته گذشته (Saturday last week) into the previous week', () => {
+    const { date } = parsed('شنبه هفته گذشته');
+    expect(date.dayOfWeek).toBe(0);
+    expect(date.isBefore(reference.startOf('day'))).toBe(true);
+  });
+
+  it('tolerates the ezafe ی in هفته‌ی بعد', () => {
+    expect(parsed('هفته‌ی بعد').date.diff(reference.startOf('day'), 'day')).toBe(7);
+  });
+});
+
+describe('extra part-of-day words', () => {
+  it.each([
+    ['نیمروز', 12],
+    ['سحر', 5],
+    ['شامگاه', 19],
+  ])('parses فردا %s at hour %i', (part, hour) => {
+    expect(parsed(`فردا ${part}`).date.hour).toBe(hour);
+  });
+
+  it('reads شامگاه as PM for a clock time (ساعت ۷ شامگاه → 19:00)', () => {
+    expect(parsed('ساعت ۷ شامگاه').date.hour).toBe(19);
+  });
+});
+
 describe('robustness', () => {
   it('returns null for unrecognized input', () => {
     expect(parse('یک جمله بی‌ربط', opts)).toBeNull();
@@ -231,6 +344,11 @@ describe('search-expression robustness', () => {
     expect(date.hour).toBe(19);
   });
 
+  it('parses emshab (tonight) and a spaced compound weekday', () => {
+    expect(parse('emshab', opts)?.date.isSame(reference.startOf('day'), 'day')).toBe(true);
+    expect(parse('panj shanbe', opts)?.date.dayOfWeek).toBe(5); // پنجشنبه
+  });
+
   it('still returns null for true gibberish', () => {
     expect(parse('qwzx', opts)).toBeNull();
   });
@@ -241,6 +359,11 @@ describe('number words', () => {
     ['یک', 1],
     ['دو', 2],
     ['بیست و یک', 21],
+    ['هفتاد', 70],
+    ['نود و نه', 99],
+    ['صد', 100],
+    ['صد و بیست و سه', 123],
+    ['دویست و پنجاه', 250],
     ['۱۵', 15],
   ])('parses %s as %i', (word, value) => {
     expect(parsePersianNumber(word)).toBe(value);

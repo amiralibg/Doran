@@ -1,23 +1,23 @@
-# Examples
+# نمونه‌ها
 
-## Live demos
+## دموهای live
 
-Try the components right in your browser — these deploy alongside these docs:
+کامپوننت‌ها را همین‌جا در مرورگرتان امتحان کنید — این‌ها در کنار همین مستندات deploy می‌شوند:
 
-- **[React demo →](https://amiralibg.github.io/Doran/examples/react/)** — every component, theming, pickers, and NLP input.
-- **[Vanilla / Web Components demo →](https://amiralibg.github.io/Doran/examples/vanilla/)** — the same UI in plain HTML, no framework.
+- **[دموی React ←](https://amiralibg.github.io/Doran/examples/react/)** — همهٔ کامپوننت‌ها، theming، pickerها و NLP input.
+- **[دموی Vanilla / Web Components ←](https://amiralibg.github.io/Doran/examples/vanilla/)** — همان UI در HTML ساده، بدون framework.
 
-## Source
+## کد منبع
 
-Runnable reference integrations live in the
-[`examples/`](https://github.com/amiralibg/Doran/tree/main/examples) directory of the repo:
+نمونه‌های مرجعِ قابل‌اجرا در پوشهٔ
+[`examples/`](https://github.com/amiralibg/Doran/tree/main/examples) مخزن قرار دارند:
 
-- [`examples/react`](https://github.com/amiralibg/Doran/tree/main/examples/react) — a Vite + React playground using every component.
-- [`examples/vanilla`](https://github.com/amiralibg/Doran/tree/main/examples/vanilla) — `@doranjs/wc` custom elements in plain HTML.
-- [`examples/nextjs`](https://github.com/amiralibg/Doran/tree/main/examples/nextjs) — Next.js App Router usage (with `'use client'` boundaries).
-- [`examples/tauri`](https://github.com/amiralibg/Doran/tree/main/examples/tauri) — a desktop app shell.
+- [`examples/react`](https://github.com/amiralibg/Doran/tree/main/examples/react) — یک playground مبتنی بر Vite + React که از همهٔ کامپوننت‌ها استفاده می‌کند.
+- [`examples/vanilla`](https://github.com/amiralibg/Doran/tree/main/examples/vanilla) — custom elementهای `@doranjs/wc` در HTML ساده.
+- [`examples/nextjs`](https://github.com/amiralibg/Doran/tree/main/examples/nextjs) — استفاده با App Router نکست‌جی‌اس (با boundaryهای `'use client'`).
+- [`examples/tauri`](https://github.com/amiralibg/Doran/tree/main/examples/tauri) — shell یک اپلیکیشن desktop.
 
-## Date math
+## محاسبات تاریخ
 
 ```ts
 import { DoranDate } from '@doranjs/core';
@@ -25,11 +25,11 @@ import { DoranDate } from '@doranjs/core';
 const start = DoranDate.fromJalali(1405, 1, 1);
 const end = start.addMonths(3).endOf('month');
 
-end.diff(start, 'day'); // number of days in Q1
+end.diff(start, 'day'); // تعداد روزهای سه‌ماههٔ اول
 start.isLeapYear(); // false
 ```
 
-## Build a custom calendar (headless)
+## ساخت تقویم سفارشی (headless)
 
 ```tsx
 import { buildMonthGrid } from '@doranjs/react';
@@ -62,7 +62,7 @@ function MiniMonth({ year, month }: { year: number; month: number }) {
 }
 ```
 
-## Natural language → calendar
+## زبان طبیعی ← تقویم
 
 ```ts
 import { parse } from '@doranjs/nlp';
@@ -73,7 +73,7 @@ if (result && result.confidence > 0.8) {
 }
 ```
 
-## Highlight holidays
+## برجسته‌سازی تعطیلات
 
 ```ts
 import { getHolidays } from '@doranjs/holidays';

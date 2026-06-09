@@ -1,6 +1,6 @@
 import type { DoranDate } from '@doranjs/core';
 import { normalize } from './normalize';
-import { NUMBER_WORD_PATTERN, parsePersianNumber } from './numbers';
+import { NUMBER_PHRASE_PATTERN, parsePersianNumber } from './numbers';
 import type { RecurrenceFreq, RecurrenceResult } from './types';
 
 /** Weekday matchers, compound names first so `شنبه` does not shadow `یکشنبه`. */
@@ -48,6 +48,17 @@ export function parseRecurrence(input: string): RecurrenceResult | null {
     if (m) return { freq, interval: 1, confidence: 0.9, matched: m[0]! };
   }
 
+  // «[N] <unit> در میان» (e.g. «یک روز در میان» = every other day → interval N+1).
+  for (const [pattern, freq] of UNIT_FREQ) {
+    const m = text.match(
+      new RegExp(`(?:(${NUMBER_PHRASE_PATTERN}|\\d+)\\s+)?(${pattern.source})\\s+در\\s?میان`),
+    );
+    if (m) {
+      const n = m[1] ? (parsePersianNumber(m[1]) ?? 1) : 1;
+      return { freq, interval: n + 1, confidence: 0.9, matched: m[0]! };
+    }
+  }
+
   // Require «هر» as a standalone word (followed by a space) so it does not match
   // substrings like «ظهر». The per-rule patterns below also anchor on «هر ».
   if (!/(?:^|\s)هر\s/.test(text)) return null;
@@ -63,12 +74,17 @@ export function parseRecurrence(input: string): RecurrenceResult | null {
   // «هر [N] <unit>» → interval N (default 1) of the unit's frequency.
   for (const [pattern, freq] of UNIT_FREQ) {
     const m = text.match(
-      new RegExp(`هر\\s+(?:(${NUMBER_WORD_PATTERN}|\\d+)\\s+)?(${pattern.source})`),
+      new RegExp(`هر\\s+(?:(${NUMBER_PHRASE_PATTERN}|\\d+)\\s+)?(${pattern.source})`),
     );
     if (m) {
       const interval = m[1] ? (parsePersianNumber(m[1]) ?? 1) : 1;
       return { freq, interval, confidence: 0.92, matched: m[0]! };
     }
+  }
+
+  // «هر <part-of-day>» (e.g. «هر صبح», «هر شب») → a daily rule.
+  if (/هر\s+(?:صبح|ظهر|عصر|غروب|شب|بامداد|سحر|شامگاه|نیمروز|بعد\s?از\s?ظهر)/.test(text)) {
+    return { freq: 'daily', interval: 1, confidence: 0.9, matched: text };
   }
 
   return null;
