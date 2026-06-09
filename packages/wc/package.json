@@ -1,6 +1,6 @@
 {
   "name": "@doranjs/wc",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Framework-agnostic Web Components (custom elements) for the Persian calendar — use Doran in plain HTML or any framework.",
   "license": "MIT",
   "author": "Doran Contributors",

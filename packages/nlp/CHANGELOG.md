@@ -1,5 +1,28 @@
 # @doranjs/nlp
 
+## 0.1.0
+
+### Minor Changes
+
+- [#14](https://github.com/amiralibg/Doran/pull/14) [`b125d4b`](https://github.com/amiralibg/Doran/commit/b125d4bfc24c6cb980cefab8669c9e55452649fd) Thanks [@amiralibg](https://github.com/amiralibg)! - Broaden natural-language date parsing to cover more ways users phrase dates:
+  - Compound number-word days and counts (`بیست و یکم خرداد`), plus number words up to the
+    hundreds (`صد و بیست و سه`).
+  - More relative days: `امشب`, `دیشب`, `پریشب`.
+  - Anchored named months (`اول فروردین`, `اوایل خرداد`, `اواخر اسفند`) and the
+    `اوایل/اواسط/اواخر` anchors.
+  - Weekday + week shift (`جمعه هفته بعد`, `شنبه هفته گذشته`) resolved to the correct week.
+  - Relative-year qualifiers fold into an explicit date that omits its own year, so
+    `۳ سال دیگه ۱۱ دی` resolves to 11 Dey of the +3 year (not the current year).
+  - Tolerance for the colloquial ezafe «ی» in unit phrases (`هفته‌ی بعد`).
+  - Extra parts of day: `نیمروز`, `سحر`, `شامگاه`.
+  - `parseRange` now accepts the `(ما)بین X و Y` form; `parseRecurrence` understands
+    `یک روز در میان` (every other day) and `هر <part-of-day>` (e.g. `هر شب`).
+  - More Finglish aliases (`emshab`, `dishab`, spaced compound weekdays like `panj shanbe`,
+    recurrence adverbs).
+
+  The `DoranNlpInput` / `<doran-nlp-input>` resolved-date preview now shows the year when it
+  differs from the current year, so dates that resolve to another year are no longer ambiguous.
+
 ## 0.0.4
 
 ### Patch Changes
