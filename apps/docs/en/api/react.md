@@ -72,7 +72,7 @@ overriding components — colors, fonts, shadows, borders, radii, and arrows:
 </div>
 ```
 
-See [`@doranjs/ui`](/api/ui) for the full token list.
+See [`@doranjs/ui`](/en/api/ui) for the full token list.
 
 ## Headless primitives
 

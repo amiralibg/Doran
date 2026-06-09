@@ -1,10 +1,10 @@
-# Migration Guide
+# راهنمای مهاجرت
 
-Moving to Doran from another Persian-date library is usually a small, mechanical change.
+مهاجرت به دوران از یک کتابخانهٔ دیگرِ تاریخ فارسی معمولاً تغییری کوچک و مکانیکی است.
 
-## From `moment-jalaali`
+## از `moment-jalaali`
 
-| `moment-jalaali`                     | Doran (`@doranjs/core`)         |
+| `moment-jalaali`                     | دوران (`@doranjs/core`)         |
 | ------------------------------------ | ------------------------------- |
 | `moment()`                           | `DoranDate.now()`               |
 | `moment(date)`                       | `DoranDate.fromGregorian(date)` |
@@ -13,29 +13,28 @@ Moving to Doran from another Persian-date library is usually a small, mechanical
 | `m.format('jYYYY/jMM/jDD')`          | `d.format('YYYY/MM/DD')`        |
 | `m.toDate()`                         | `d.toGregorian()`               |
 
-Key differences:
+تفاوت‌های کلیدی:
 
-- Doran is **immutable** — `d.addMonths(1)` returns a new value; it does not mutate `d`.
-- There is no `j` prefix in format tokens; tokens are always interpreted in the Jalali
-  calendar.
-- Months are **1-based** (`1` = Farvardin), unlike Moment's 0-based `jMonth()`.
+- دوران **immutable** است — `d.addMonths(1)` یک مقدار تازه برمی‌گرداند؛ `d` را mutate نمی‌کند.
+- در format tokenها پیشوند `j` وجود ندارد؛ tokenها همیشه در تقویم جلالی تفسیر می‌شوند.
+- ماه‌ها **۱-based** هستند (`1` = فروردین)، برخلاف `jMonth()` که در Moment صفر-based است.
 
-## From `jalaali-js`
+## از `jalaali-js`
 
-`jalaali-js` exposes raw conversion functions. Doran offers the same primitives plus a
-rich `DoranDate`:
+`jalaali-js` توابع conversion خام را عرضه می‌کند. دوران همان primitiveها به‌علاوهٔ یک
+`DoranDate` کامل را ارائه می‌دهد:
 
-| `jalaali-js`                 | Doran                                                  |
+| `jalaali-js`                 | دوران                                                  |
 | ---------------------------- | ------------------------------------------------------ |
 | `jalaali.toJalaali(g)`       | `gregorianToJalali(y, m, d)`                           |
 | `jalaali.toGregorian(j)`     | `jalaaliToGregorian(jy, jm, jd)` (`jalaliToGregorian`) |
 | `jalaali.isLeapJalaaliYear`  | `isLeapJalaliYear`                                     |
 | `jalaali.jalaaliMonthLength` | `jalaliMonthLength`                                    |
 
-The numeric results are identical — Doran uses the same underlying algorithm.
+نتایج عددی یکسان‌اند — دوران از همان الگوریتم زیرین استفاده می‌کند.
 
-## From `dayjs` (with a Jalali plugin)
+## از `dayjs` (با plugin جلالی)
 
-`DoranDate.format` uses a familiar `dayjs`-style token vocabulary (`YYYY`, `MM`, `dddd`,
-`HH`, `A`, …), so most format strings carry over directly. See the
-[`@doranjs/core` API](/api/core) for the full token table.
+`DoranDate.format` از همان واژگان tokenِ آشنای `dayjs` استفاده می‌کند (`YYYY`، `MM`، `dddd`،
+`HH`، `A`، …)، پس بیشتر format stringها مستقیماً منتقل می‌شوند. برای جدول کامل tokenها
+[API بستهٔ `@doranjs/core`](/en/api/core) را ببینید.

@@ -35,6 +35,13 @@ describe('parseRange', () => {
     expect(r.end.day).toBe(10);
   });
 
+  it('parses «بین ۵ و ۱۰ فروردین» (بین … و … form)', () => {
+    const r = parseRange('بین ۵ و ۱۰ فروردین', opts)!;
+    expect(r).not.toBeNull();
+    expect([r.start.month, r.start.day]).toEqual([1, 5]);
+    expect([r.end.month, r.end.day]).toEqual([1, 10]);
+  });
+
   it('returns null when there is no range', () => {
     expect(parseRange('فردا', opts)).toBeNull();
   });
@@ -81,6 +88,18 @@ describe('parseRecurrence', () => {
   it('parses adverbs of frequency', () => {
     expect(parseRecurrence('هفتگی')).toMatchObject({ freq: 'weekly', interval: 1 });
     expect(parseRecurrence('ماهانه')).toMatchObject({ freq: 'monthly', interval: 1 });
+  });
+
+  it('parses «یک روز در میان» (every other day) as a daily rule, interval 2', () => {
+    expect(parseRecurrence('یک روز در میان')).toMatchObject({ freq: 'daily', interval: 2 });
+  });
+
+  it('parses «هر شب» (every night) as a daily rule', () => {
+    expect(parseRecurrence('هر شب')).toMatchObject({ freq: 'daily', interval: 1 });
+  });
+
+  it('parses a compound interval «هر بیست و یک روز»', () => {
+    expect(parseRecurrence('هر بیست و یک روز')).toMatchObject({ freq: 'daily', interval: 21 });
   });
 
   it('does not match «ظهر» (no false «هر»)', () => {

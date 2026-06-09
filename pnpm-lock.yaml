@@ -62,6 +62,9 @@ importers:
 
   apps/docs:
     devDependencies:
+      '@fontsource/vazirmatn':
+        specifier: ^5.2.8
+        version: 5.2.8
       vitepress:
         specifier: ^1.5.0
         version: 1.6.4(@algolia/client-search@5.53.0)(@types/node@22.19.19)(@types/react@18.3.29)(postcss@8.5.15)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(search-insights@2.17.3)(typescript@5.9.3)
@@ -985,6 +988,9 @@ packages:
     peerDependenciesMeta:
       '@noble/hashes':
         optional: true
+
+  '@fontsource/vazirmatn@5.2.8':
+    resolution: {integrity: sha512-WoDgv8R/y1gwgTS8Q2uL8d2ayeSGNv2IrYQ4wHmJkVwYPb8KVODrqbbvEjBqLOo5WP5kLJIrO06FRDMnSFuCaA==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -4347,6 +4353,8 @@ snapshots:
       levn: 0.4.1
 
   '@exodus/bytes@1.15.1': {}
+
+  '@fontsource/vazirmatn@5.2.8': {}
 
   '@humanfs/core@0.19.2':
     dependencies:

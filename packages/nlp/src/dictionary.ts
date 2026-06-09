@@ -27,6 +27,7 @@ export const WEEKDAY_LABELS = [
 /** Relative-day keywords → day offset from the reference date. */
 export const RELATIVE_DAYS: Record<string, number> = {
   امروز: 0,
+  امشب: 0,
   فردا: 1,
   پسفردا: 2,
   پسینفردا: 2,
@@ -34,6 +35,7 @@ export const RELATIVE_DAYS: Record<string, number> = {
   دیشب: -1,
   پریروز: -2,
   پریر: -2,
+  پریشب: -2,
 };
 
 /** Persian Solar Hijri month names → month number (1–12). */
@@ -85,24 +87,32 @@ export const TIME_FRACTIONS: Record<string, number> = {
 
 /** Day-of-month anchors used by month expressions. */
 export const MONTH_ANCHORS: Record<string, 'first' | 'middle' | 'last'> = {
+  اوایل: 'first',
   اول: 'first',
   ابتدای: 'first',
+  ابتدا: 'first',
   آغاز: 'first',
+  اواسط: 'middle',
   وسط: 'middle',
   میانه: 'middle',
+  اواخر: 'last',
   آخر: 'last',
   پایان: 'last',
   انتهای: 'last',
+  انتها: 'last',
 };
 
 /** Part-of-day keywords → a default hour and whether they force PM. */
 export const PART_OF_DAY: Record<string, { hour: number; pm: boolean | null }> = {
+  سحر: { hour: 5, pm: false },
   بامداد: { hour: 5, pm: false },
   صبح: { hour: 8, pm: false },
   ظهر: { hour: 12, pm: null },
+  نیمروز: { hour: 12, pm: null },
   بعدازظهر: { hour: 15, pm: true },
   عصر: { hour: 17, pm: true },
   غروب: { hour: 19, pm: true },
+  شامگاه: { hour: 19, pm: true },
   شب: { hour: 20, pm: true },
   نیمهشب: { hour: 0, pm: null },
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import { type DoranDate, faIR, type Locale } from '@doranjs/core';
+import { DoranDate, faIR, type Locale } from '@doranjs/core';
 import {
   parse,
   suggest,
@@ -75,8 +75,12 @@ function previewParts(date: DoranDate, locale: Locale, format?: string): Preview
   const d = date.withLocale(locale);
   if (format) return { date: d.format(format) };
   const hasTime = date.hour !== 0 || date.minute !== 0;
-  if (hasTime) return { date: d.format('D MMMM'), time: d.format('HH:mm') };
-  return { date: d.format('dddd D MMMM') };
+  // Show the year only when it isn't the current one, so near-term dates stay terse but a
+  // date that resolves to a different year (e.g. «۳ سال دیگه ۱۱ دی») isn't ambiguous.
+  const dayFormat = hasTime ? 'D MMMM' : 'dddd D MMMM';
+  const sameYear = date.year === DoranDate.now({ timeZone: date.timeZone }).year;
+  const dateStr = d.format(sameYear ? dayFormat : `${dayFormat} YYYY`);
+  return hasTime ? { date: dateStr, time: d.format('HH:mm') } : { date: dateStr };
 }
 
 /**

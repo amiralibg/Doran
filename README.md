@@ -8,6 +8,11 @@
 [![CI](https://github.com/amiralibg/Doran/actions/workflows/ci.yml/badge.svg)](https://github.com/amiralibg/Doran/actions/workflows/ci.yml)
 [![pnpm](https://img.shields.io/badge/maintained%20with-pnpm-cc00ff.svg)](https://pnpm.io/)
 
+**[📖 Documentation](https://amiralibg.github.io/Doran/)** ·
+**[🧭 Examples](https://amiralibg.github.io/Doran/examples)** ·
+**[⚛️ React demo](https://amiralibg.github.io/Doran/examples/react/)** ·
+**[🌐 Vanilla demo](https://amiralibg.github.io/Doran/examples/vanilla/)**
+
 </div>
 
 > **دوران** — A complete, accurate, and developer-friendly toolkit for the Solar Hijri
@@ -45,6 +50,29 @@ today.toGregorian(); // native Date
 
 DoranDate.fromGregorian(new Date());
 ```
+
+Parse Persian dates from free text — including Finglish and keyboard-layout typos:
+
+```ts
+import { parse } from '@doranjs/nlp';
+
+parse('جمعه ساعت ۷ شب'); // → { date, confidence, matched }
+parse('بیست و یکم خرداد'); // compound number words
+parse('اواخر اسفند'); // anchored months
+parse('farda'); // Finglish → فردا
+parse('tvnh'); // keyboard left in English → فردا
+```
+
+## Documentation
+
+- **[Docs site](https://amiralibg.github.io/Doran/)** — bilingual (فارسی by default, with an
+  English locale at [`/en/`](https://amiralibg.github.io/Doran/en/)).
+- **[Getting started](https://amiralibg.github.io/Doran/en/guide/getting-started)** ·
+  **[Architecture](https://amiralibg.github.io/Doran/en/guide/architecture)** ·
+  **[API reference](https://amiralibg.github.io/Doran/en/api/core)**
+- **[Examples & live demos](https://amiralibg.github.io/Doran/examples)** — runnable
+  [React](https://amiralibg.github.io/Doran/examples/react/) and
+  [Vanilla / Web Component](https://amiralibg.github.io/Doran/examples/vanilla/) playgrounds.
 
 ## Development
 
