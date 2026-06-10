@@ -61,7 +61,7 @@ round-trip روزبه‌روز اعتبارسنجی شده است.
 - **React** — هر کامپوننت بر پایهٔ headless primitiveها (`buildMonthGrid`، `useCalendar`،
   `useDateRange`، `useNlpSuggest`) ساخته شده که با آن‌ها می‌توانید یک UI سفارشی بسازید.
 - **Web Components** — همان UI در قالب custom element (`<doran-calendar>`، …) برای هر
-  framework یا HTML ساده؛ [`@doranjs/wc`](/en/api/wc) را ببینید.
+  framework یا HTML ساده؛ [`@doranjs/wc`](/api/wc) را ببینید.
 
 ## معیار کیفیت
 

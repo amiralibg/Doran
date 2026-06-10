@@ -163,3 +163,67 @@ html[lang='fa-IR'] .vp-doc {
   padding-left: 0;
   padding-right: 32px;
 }
+
+/* ---------------------------------------------------------------------------
+ * Navbar — on doc (has-sidebar) pages VitePress absolutely pins the logo/title
+ * to the LEFT edge and reserves the sidebar gutter on the left of the nav
+ * content, so the Farsi navbar renders LTR (logo stuck on the left). Mirror the
+ * title to the right edge and swap the content/divider gutters so the navbar
+ * reads RTL: logo on the right, menu + search + icons clustered on the left.
+ * (The home page navbar has no sidebar and already mirrors via flexbox.)
+ * ------------------------------------------------------------------------- */
+
+@media (min-width: 960px) {
+  [dir='rtl'] .VPNavBar.has-sidebar .title {
+    left: auto;
+    right: 0;
+  }
+  [dir='rtl'] .VPNavBar.has-sidebar .content {
+    padding-left: 32px;
+    padding-right: var(--vp-sidebar-width);
+  }
+  [dir='rtl'] .VPNavBar.has-sidebar .divider {
+    padding-left: 0;
+    padding-right: var(--vp-sidebar-width);
+  }
+}
+
+@media (min-width: 1440px) {
+  [dir='rtl'] .VPNavBar.has-sidebar .title {
+    padding-left: 32px;
+    padding-right: max(32px, calc((100% - (var(--vp-layout-max-width) - 64px)) / 2));
+  }
+  [dir='rtl'] .VPNavBar.has-sidebar .content {
+    padding-left: calc((100vw - var(--vp-layout-max-width)) / 2 + 32px);
+    padding-right: calc((100vw - var(--vp-layout-max-width)) / 2 + var(--vp-sidebar-width));
+  }
+  [dir='rtl'] .VPNavBar.has-sidebar .divider {
+    padding-left: 0;
+    padding-right: calc((100vw - var(--vp-layout-max-width)) / 2 + var(--vp-sidebar-width));
+  }
+}
+
+/* Social links sit at the inline-end (now the left); flip the edge trim. */
+[dir='rtl'] .VPNavBar .social-links {
+  margin-right: 0;
+  margin-left: -8px;
+}
+
+/* The wider divider around the appearance toggle flips to the mirrored side. */
+[dir='rtl'] .VPNavBar .menu + .appearance::before,
+[dir='rtl'] .VPNavBar .translations + .appearance::before {
+  margin-right: 8px;
+  margin-left: 16px;
+}
+[dir='rtl'] .VPNavBar .appearance + .social-links::before {
+  margin-left: 8px;
+  margin-right: 16px;
+}
+
+/* Dropdown + language-switcher caret: keep the 4px gap between the label and
+   its chevron, which is the chevron's inline-end (right) side in RTL. The
+   theme's physical margin-left would otherwise push the gap to the far side. */
+[dir='rtl'] .VPFlyout .text-icon {
+  margin-left: 0;
+  margin-right: 4px;
+}

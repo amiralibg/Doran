@@ -19,7 +19,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'راهنما', link: '/guide/getting-started' },
-          { text: 'API', link: '/en/api/core' },
+          { text: 'API', link: '/api/core' },
           { text: 'نمونه‌ها', link: '/examples' },
           {
             text: 'دموها',
@@ -31,12 +31,12 @@ export default defineConfig({
           {
             text: 'بسته‌ها',
             items: [
-              { text: '@doranjs/core', link: '/en/api/core' },
-              { text: '@doranjs/nlp', link: '/en/api/nlp' },
-              { text: '@doranjs/holidays', link: '/en/api/holidays' },
-              { text: '@doranjs/react', link: '/en/api/react' },
-              { text: '@doranjs/wc', link: '/en/api/wc' },
-              { text: '@doranjs/ui', link: '/en/api/ui' },
+              { text: '@doranjs/core', link: '/api/core' },
+              { text: '@doranjs/nlp', link: '/api/nlp' },
+              { text: '@doranjs/holidays', link: '/api/holidays' },
+              { text: '@doranjs/react', link: '/api/react' },
+              { text: '@doranjs/wc', link: '/api/wc' },
+              { text: '@doranjs/ui', link: '/api/ui' },
             ],
           },
         ],
@@ -48,6 +48,19 @@ export default defineConfig({
                 { text: 'شروع به کار', link: '/guide/getting-started' },
                 { text: 'معماری', link: '/guide/architecture' },
                 { text: 'راهنمای مهاجرت', link: '/guide/migration' },
+              ],
+            },
+          ],
+          '/api/': [
+            {
+              text: 'مرجع API',
+              items: [
+                { text: '@doranjs/core', link: '/api/core' },
+                { text: '@doranjs/nlp', link: '/api/nlp' },
+                { text: '@doranjs/holidays', link: '/api/holidays' },
+                { text: '@doranjs/react', link: '/api/react' },
+                { text: '@doranjs/wc', link: '/api/wc' },
+                { text: '@doranjs/ui', link: '/api/ui' },
               ],
             },
           ],
