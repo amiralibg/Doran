@@ -73,7 +73,7 @@ parse('tvnh'); // حتی متنی که با layout انگلیسیِ کیبورد
 
 عبارت‌های پشتیبانی‌شده طیف گسترده‌ای دارند — روزهای نسبی، روزهای هفته، تاریخ‌های صریح،
 anchorهای ماه (`اواخر اسفند`)، روزهای خاص، rangeها، durationها و قواعد recurrence.
-فهرست کامل را در reference بستهٔ [`@doranjs/nlp`](/en/api/nlp) ببینید.
+فهرست کامل را در reference بستهٔ [`@doranjs/nlp`](/api/nlp) ببینید.
 
 ## استفاده در HTML ساده (Web Components)
 
@@ -89,10 +89,10 @@ stylesheet را بیفزایید:
 <doran-nlp-input></doran-nlp-input>
 ```
 
-برای همهٔ elementها، attributeها و eventها [`@doranjs/wc`](/en/api/wc) را ببینید.
+برای همهٔ elementها، attributeها و eventها [`@doranjs/wc`](/api/wc) را ببینید.
 
 ## گام‌های بعدی
 
 - مرور [معماری](/guide/architecture) را بخوانید.
-- [API Reference](/en/api/core) را مرور کنید.
+- [API Reference](/api/core) را مرور کنید.
 - [نمونه‌ها](/examples) را به‌طور کامل ببینید.

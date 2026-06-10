@@ -37,4 +37,4 @@
 
 `DoranDate.format` از همان واژگان tokenِ آشنای `dayjs` استفاده می‌کند (`YYYY`، `MM`، `dddd`،
 `HH`، `A`، …)، پس بیشتر format stringها مستقیماً منتقل می‌شوند. برای جدول کامل tokenها
-[API بستهٔ `@doranjs/core`](/en/api/core) را ببینید.
+[API بستهٔ `@doranjs/core`](/api/core) را ببینید.
