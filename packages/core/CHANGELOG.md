@@ -1,5 +1,29 @@
 # @doranjs/core
 
+## 0.1.0
+
+### Minor Changes
+
+- [#17](https://github.com/amiralibg/Doran/pull/17) [`0df4b50`](https://github.com/amiralibg/Doran/commit/0df4b509e1a132352ec8d525566c8477a6b1d9c6) Thanks [@amiralibg](https://github.com/amiralibg)! - **`@doranjs/core`**
+  - `durationToHuman(seconds, locale?)` — standalone duration humanizer replacing `moment.duration(s, 'seconds').humanize()`. Uses the global default locale when none is given.
+
+  **`@doranjs/react`**
+  - `DoranRangePicker` / `useDateRange`: `onChange` now receives a second argument `gregorian: GregorianDateRange` (`{ start: Date | null; end: Date | null }`) so you can post Gregorian ISO strings to your backend without extra conversion.
+  - `DoranRangePicker`: `locale` prop now falls back to `getDefaultLocale()` (consistent with `DoranDatePicker`).
+  - New exported type: `GregorianDateRange`.
+
+- [#17](https://github.com/amiralibg/Doran/pull/17) [`0df4b50`](https://github.com/amiralibg/Doran/commit/0df4b509e1a132352ec8d525566c8477a6b1d9c6) Thanks [@amiralibg](https://github.com/amiralibg)! - **Breaking fix:** `toISOString()` and `toJSON()` now return a standard Gregorian UTC ISO-8601 string (e.g. `"2026-05-31T10:09:05.000Z"`), matching `Date`, `dayjs`, and `moment` — making `JSON.stringify({ d: DoranDate.now() })` safe to send to any backend without extra conversion.
+
+  **Migration:** if you relied on the previous Jalali ISO output, replace `.toISOString()` with `.toJalaliISO()`.
+
+  New methods added:
+  - `toJalaliISO()` — the former `toISOString()` behaviour (Jalali calendar, local offset)
+  - `toGregorianISO()` — explicit alias for the new `toISOString()`
+  - `toGregorianParts()` — Gregorian wall-clock fields in the instance's time zone
+  - `formatGregorian(pattern)` — format with Gregorian fields using the same token vocabulary
+  - `unix()` — epoch seconds (moment/dayjs parity)
+  - `toMillis()` — epoch milliseconds as a method (dayjs parity)
+
 ## 0.0.4
 
 ### Patch Changes
