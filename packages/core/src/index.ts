@@ -4,7 +4,14 @@
  * @packageDocumentation
  */
 
-export { DoranDate, type JalaliInput, type SettableUnit } from './doran-date';
+export {
+  DoranDate,
+  freeze,
+  type JalaliInput,
+  type NowInput,
+  type NowSource,
+  type SettableUnit,
+} from './doran-date';
 export { parseJalali } from './parse';
 export { durationToHuman, humanizeRelative } from './relative';
 

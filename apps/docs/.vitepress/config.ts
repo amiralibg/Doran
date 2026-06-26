@@ -47,6 +47,7 @@ export default defineConfig({
               items: [
                 { text: 'شروع به کار', link: '/guide/getting-started' },
                 { text: 'Backendها و سریال‌سازی', link: '/guide/backends' },
+                { text: 'تست با دوران', link: '/guide/testing' },
                 { text: 'معماری', link: '/guide/architecture' },
                 { text: 'راهنمای مهاجرت', link: '/guide/migration' },
               ],
@@ -111,6 +112,7 @@ export default defineConfig({
               items: [
                 { text: 'Getting Started', link: '/en/guide/getting-started' },
                 { text: 'Backends & serialization', link: '/en/guide/backends' },
+                { text: 'Testing with Doran', link: '/en/guide/testing' },
                 { text: 'Architecture', link: '/en/guide/architecture' },
                 { text: 'Migration Guide', link: '/en/guide/migration' },
               ],

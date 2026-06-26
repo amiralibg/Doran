@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { DoranDate } from './doran-date';
+import { afterEach, describe, expect, it } from 'vitest';
+import { DoranDate, freeze } from './doran-date';
 import { enUS } from './locale';
 import type { DoranDateOptions } from './types';
 
@@ -344,6 +344,58 @@ describe('relative time', () => {
 describe('quarter token', () => {
   it('formats Q', () => {
     expect(DoranDate.fromJalali(1405, 8, 1, UTC_EN).format('Q')).toBe('3');
+  });
+});
+
+describe('freezable clock', () => {
+  afterEach(() => DoranDate.resetNow());
+
+  const fixed = DoranDate.fromGregorian(new Date('2021-03-21T00:00:00Z'), UTC);
+
+  it('setNow with a fixed instant freezes now() and today-dependent APIs', () => {
+    DoranDate.setNow(fixed);
+    expect(DoranDate.now(UTC).toObject()).toMatchObject({ year: 1400, month: 1, day: 1 });
+    expect(fixed.isToday()).toBe(true);
+    expect(fixed.addDays(1).isTomorrow()).toBe(true);
+    expect(fixed.addDays(-1).isYesterday()).toBe(true);
+  });
+
+  it('accepts number, Date and a function source', () => {
+    DoranDate.setNow(fixed.epochMs);
+    expect(DoranDate.now(UTC).year).toBe(1400);
+    DoranDate.setNow(new Date('2021-03-21T00:00:00Z'));
+    expect(DoranDate.now(UTC).year).toBe(1400);
+    DoranDate.setNow(() => fixed.epochMs);
+    expect(DoranDate.now(UTC).year).toBe(1400);
+  });
+
+  it('resetNow restores the real clock', () => {
+    DoranDate.setNow(fixed);
+    DoranDate.resetNow();
+    expect(DoranDate.now().year).toBeGreaterThan(1400);
+  });
+
+  it('freeze fixes now() only inside the callback and restores after', () => {
+    const before = DoranDate.now().year;
+    const result = freeze(fixed, () => DoranDate.now(UTC).year);
+    expect(result).toBe(1400);
+    expect(DoranDate.now().year).toBe(before);
+  });
+
+  it('freeze restores the clock even when the callback throws', () => {
+    expect(() =>
+      freeze(fixed, () => {
+        throw new Error('boom');
+      }),
+    ).toThrow('boom');
+    expect(DoranDate.now().year).toBeGreaterThan(1400);
+  });
+
+  it('freeze restores after an async callback settles', async () => {
+    await freeze(fixed, async () => {
+      expect(DoranDate.now(UTC).year).toBe(1400);
+    });
+    expect(DoranDate.now().year).toBeGreaterThan(1400);
   });
 });
 

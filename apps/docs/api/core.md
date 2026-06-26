@@ -20,9 +20,15 @@ DoranDate.tryFromJalali(year, month, day, options?);
 DoranDate.min(...dates); // زودترین
 DoranDate.max(...dates); // دیرترین
 DoranDate.isValid(year, month, day); // boolean
+
+// کلاک قابل‌فریز برای تست‌های قطعی (بدون دستکاری Date سراسری)
+DoranDate.setNow(source); // number | Date | DoranDate | (() => اینها)
+DoranDate.resetNow();
+freeze(instant, fn); // هِلپر مستقل — درون fn مقدار now() را فریز و سپس بازمی‌گرداند
 ```
 
-`options` برابر `{ timeZone?: string; locale?: string | Locale }` است.
+`options` برابر `{ timeZone?: string; locale?: string | Locale }` است. برای دستور کلاک
+قابل‌فریز [تست با دوران](/guide/testing) را ببینید.
 
 ### مدیریت تاریخ‌های نامعتبر
 

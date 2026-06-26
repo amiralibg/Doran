@@ -20,9 +20,15 @@ DoranDate.tryFromJalali(year, month, day, options?);
 DoranDate.min(...dates); // earliest
 DoranDate.max(...dates); // latest
 DoranDate.isValid(year, month, day); // boolean
+
+// Freezable clock for deterministic tests (no global Date monkey-patching)
+DoranDate.setNow(source); // number | Date | DoranDate | (() => those)
+DoranDate.resetNow();
+freeze(instant, fn); // standalone helper — freezes now() inside fn, then restores
 ```
 
-`options` is `{ timeZone?: string; locale?: string | Locale }`.
+`options` is `{ timeZone?: string; locale?: string | Locale }`. See
+[Testing with Doran](/en/guide/testing) for the freezable-clock recipe.
 
 ### Handling invalid dates
 

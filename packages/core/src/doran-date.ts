@@ -59,6 +59,25 @@ function resolveConfig(options?: DoranDateOptions): ResolvedConfig {
   };
 }
 
+/** A fixed instant accepted by {@link DoranDate.setNow} / {@link freeze}. */
+export type NowInput = number | Date | DoranDate;
+/** A clock source: a fixed instant, or a function re-evaluated on every `now` read. */
+export type NowSource = NowInput | (() => NowInput);
+
+/** The injected clock, or `null` to use the real `Date.now()`. Module-private. */
+let nowSource: NowSource | null = null;
+
+function nowInputToMs(value: NowInput): number {
+  if (typeof value === 'number') return value;
+  if (value instanceof Date) return value.getTime();
+  return value.epochMs; // DoranDate
+}
+
+function currentEpochMs(): number {
+  if (nowSource === null) return Date.now();
+  return nowInputToMs(typeof nowSource === 'function' ? nowSource() : nowSource);
+}
+
 /**
  * An immutable Solar Hijri (Persian / Jalali) date-time.
  *
@@ -91,10 +110,35 @@ export class DoranDate {
   // Factories
   // ---------------------------------------------------------------------------
 
-  /** The current instant. */
+  /**
+   * The current instant. Reads the injected clock when one is set via
+   * {@link setNow} / {@link freeze}, otherwise the real `Date.now()`. Every
+   * `now`-dependent API (`today`, `isToday`, `fromNow`, …) routes through here.
+   */
   static now(options?: DoranDateOptions): DoranDate {
     const { timeZone, locale } = resolveConfig(options);
-    return new DoranDate(Date.now(), timeZone, locale);
+    return new DoranDate(currentEpochMs(), timeZone, locale);
+  }
+
+  /**
+   * Overrides what {@link now} returns — for deterministic tests, without
+   * monkey-patching the global `Date`. Pass a fixed instant to freeze the clock,
+   * or a function (re-evaluated each read) for a controllable clock.
+   *
+   * @example
+   * ```ts
+   * DoranDate.setNow(DoranDate.fromJalali(1405, 1, 1)); // frozen
+   * DoranDate.setNow(() => Date.now() + 3600_000);      // always +1h
+   * DoranDate.resetNow();                                // back to real time
+   * ```
+   */
+  static setNow(source: NowSource): void {
+    nowSource = source;
+  }
+
+  /** Restores {@link now} to the real `Date.now()`. */
+  static resetNow(): void {
+    nowSource = null;
   }
 
   /** Builds a date from epoch milliseconds (UTC). Throws `RangeError` on `NaN`/non-finite input. */
@@ -864,4 +908,35 @@ export class DoranDate {
     };
     return formatParts(ctx, pattern, GREGORIAN_LOCALE);
   }
+}
+
+/**
+ * Runs `fn` with {@link DoranDate.now} frozen at `instant`, then restores the
+ * previous clock — even if `fn` throws. If `fn` returns a promise, the clock is
+ * restored when it settles, so `await freeze(...)` works too. Nests safely.
+ *
+ * @example
+ * ```ts
+ * freeze(DoranDate.fromJalali(1405, 1, 1), () => {
+ *   expect(DoranDate.now().format('YYYY/MM/DD')).toBe('۱۴۰۵/۰۱/۰۱');
+ * });
+ * ```
+ */
+export function freeze<T>(instant: NowInput, fn: () => T): T {
+  const previous = nowSource;
+  nowSource = instant;
+  let result: T;
+  try {
+    result = fn();
+  } catch (error) {
+    nowSource = previous;
+    throw error;
+  }
+  if (result != null && typeof (result as { then?: unknown }).then === 'function') {
+    return (result as unknown as Promise<unknown>).finally(() => {
+      nowSource = previous;
+    }) as unknown as T;
+  }
+  nowSource = previous;
+  return result;
 }
