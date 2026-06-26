@@ -22,6 +22,7 @@ export {
   useCalendar,
   useDateRange,
   type DateRange,
+  type GregorianDateRange,
   type UseCalendarOptions,
   type UseCalendarReturn,
   type UseDateRangeOptions,

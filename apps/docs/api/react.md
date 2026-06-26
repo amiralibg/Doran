@@ -26,6 +26,71 @@ import { DoranCalendar, DoranDatePicker } from '@doranjs/react';
 <DoranDatePicker placeholder="انتخاب تاریخ" />
 ```
 
+## propهای `DoranDatePicker`
+
+| Prop              | Type                                         | پیش‌فرض              | توضیح                                               |
+| ----------------- | -------------------------------------------- | -------------------- | --------------------------------------------------- |
+| `value`           | `DoranDate \| null`                          | —                    | مقدار controlled                                    |
+| `defaultValue`    | `DoranDate \| null`                          | —                    | مقدار اولیهٔ uncontrolled                           |
+| `onChange`        | `(date: DoranDate, gregorian: Date) => void` | —                    | هنگام انتخاب؛ آرگومان دوم `Date` نیتیو برای backend |
+| `locale`          | `Locale \| string`                           | `getDefaultLocale()` | locale قالب‌بندی — از پیش‌فرض جهانی fallback می‌کند |
+| `format`          | `string`                                     | `'YYYY/MM/DD'`       | الگوی نمایش                                         |
+| `placeholder`     | `string`                                     | `'انتخاب تاریخ'`     | placeholder ورودی                                   |
+| `min`             | `DoranDate`                                  | —                    | زودترین تاریخ قابل انتخاب                           |
+| `max`             | `DoranDate`                                  | —                    | دیرترین تاریخ قابل انتخاب                           |
+| `disabled`        | `boolean`                                    | `false`              | غیرفعال کردن ورودی                                  |
+| `className`       | `string`                                     | —                    | کلاس اضافه‌شده به عنصر root                         |
+| `style`           | `CSSProperties`                              | —                    | استایل inline فوروارد به root                       |
+| `id`              | `string`                                     | —                    | `id` فوروارد به root                                |
+| `size`            | `'sm' \| 'md' \| 'lg'`                       | —                    | ارتفاع‌های پیش‌تعریف: 32 / 40 / 48 پیکسل            |
+| `withTime`        | `boolean`                                    | `false`              | نمایش انتخابگر ساعت                                 |
+| `headerMode`      | `'dropdown' \| 'separate'`                   | `'dropdown'`         | پنل‌های ماه/سال یا `<select>`های نیتیو              |
+| `minuteStep`      | `number`                                     | `1`                  | گام دقیقه                                           |
+| `isHoliday`       | `(day: DoranDate) => boolean`                | —                    | نشانه‌گذاری تعطیل                                   |
+| `weekends`        | `number[]`                                   | `[6]`                | اندیس‌های آخر هفته (۰ = شنبه)                       |
+| `arrows`          | `{ prev, next }`                             | chevron              | گره‌های فلش سفارشی                                  |
+| `showOutsideDays` | `boolean`                                    | —                    | نمایش روزهای ماه‌های مجاور                          |
+
+```tsx
+// ارسال تاریخ به backend
+<DoranDatePicker
+  size="md"
+  style={{ width: 200 }}
+  onChange={(d, gregorian) => {
+    await api.post('/events', { date: gregorian.toISOString() });
+  }}
+/>;
+
+// locale جهانی — یک بار در root برنامه:
+setDefaultLocale(enUS); // همهٔ pickerها بدون prop اضافه به انگلیسی تبدیل می‌شوند
+```
+
+## propهای `DoranRangePicker`
+
+| Prop             | Type                                                        | پیش‌فرض              | توضیح                                         |
+| ---------------- | ----------------------------------------------------------- | -------------------- | --------------------------------------------- |
+| `value`          | `DateRange`                                                 | —                    | بازهٔ controlled                              |
+| `defaultValue`   | `DateRange`                                                 | —                    | بازهٔ اولیه                                   |
+| `onChange`       | `(range: DateRange, gregorian: GregorianDateRange) => void` | —                    | آرگومان دوم، شامل `Date` نیتیو برای start/end |
+| `locale`         | `Locale \| string`                                          | `getDefaultLocale()` | از پیش‌فرض جهانی fallback می‌کند              |
+| `numberOfMonths` | `number`                                                    | `1`                  | تعداد ماه‌های نمایش داده‌شده                  |
+| `presets`        | `boolean \| RangePreset[]`                                  | —                    | `true` برای presetهای آماده                   |
+| `isHoliday`      | `(day: DoranDate) => boolean`                               | —                    | نشانه‌گذاری تعطیل                             |
+| `weekends`       | `number[]`                                                  | `[6]`                | اندیس‌های آخر هفته                            |
+
+```tsx
+import { DoranRangePicker, type GregorianDateRange } from '@doranjs/react';
+
+<DoranRangePicker
+  presets
+  onChange={(range, { start, end }) => {
+    if (start && end) {
+      setFilter({ from: start.toISOString(), to: end.toISOString() });
+    }
+  }}
+/>;
+```
+
 ## انتخاب ماه، سال و ساعت
 
 `DoranCalendar` (و `DoranDatePicker`) این propها را می‌پذیرند:

@@ -142,7 +142,11 @@ export class DoranDatePickerElement extends HTMLElement {
         if (v !== null) calendar.setAttribute(attr, v);
       }
       if (this.#selected) {
-        calendar.setAttribute('value', this.#selected.format('YYYY/MM/DD'));
+        const s = this.#selected;
+        calendar.setAttribute(
+          'value',
+          `${s.year}/${String(s.month).padStart(2, '0')}/${String(s.day).padStart(2, '0')}`,
+        );
       }
       calendar.addEventListener('change', (e) => {
         const detail = (e as CustomEvent).detail as { date: DoranDate };

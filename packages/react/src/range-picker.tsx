@@ -1,6 +1,6 @@
 'use client';
 
-import { type DoranDate, faIR, type Locale } from '@doranjs/core';
+import { type DoranDate, getDefaultLocale, type Locale } from '@doranjs/core';
 import { Button, ChevronLeftIcon, ChevronRightIcon, cn } from '@doranjs/ui';
 import { useState } from 'react';
 import {
@@ -47,7 +47,7 @@ function addMonths({ year, month }: YearMonth, delta: number): YearMonth {
  * side-by-side multi-month view via `numberOfMonths`.
  */
 export function DoranRangePicker({
-  locale = faIR,
+  locale = getDefaultLocale(),
   headerMode = 'dropdown',
   isHoliday,
   weekends,

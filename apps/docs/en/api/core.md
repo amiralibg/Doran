@@ -84,18 +84,70 @@ d.fromNow(true); // bare duration, no suffix: "۳ روز"
 
 Phrases come from the locale's `relativeTime` bundle (provided for `fa-IR` and `en-US`).
 
+#### `durationToHuman` — standalone duration humanizer
+
+Replaces `moment.duration(s, 'seconds').humanize()`:
+
+```ts
+import { durationToHuman } from '@doranjs/core';
+
+durationToHuman(3600); // "یک ساعت"  (uses global default locale)
+durationToHuman(3600, enUS); // "an hour"
+durationToHuman(3600, 'en-US'); // "an hour"
+durationToHuman(90 * 60, faIR); // "۲ ساعت"
+```
+
 ### Conversion & formatting
 
 ```ts
-d.toGregorian(); // Date
-d.toObject(); // { year, month, day, hour, minute, second, millisecond }
-d.toISOString();
-d.toJSON();
-d.valueOf();
+d.toGregorian(); // native Date (the underlying instant)
+d.toDate(); // alias of toGregorian()
+d.toObject(); // Jalali fields: { year, month, day, hour, minute, second, millisecond }
+d.toGregorianParts(); // Gregorian fields in this instance's time zone
+
+// Serialization
+d.toISOString(); // Gregorian UTC ISO-8601 — "2026-05-31T10:09:05.000Z" (safe for backends)
+d.toGregorianISO(); // explicit alias of toISOString()
+d.toJalaliISO(); // Jalali ISO with local offset — "1405-03-11T13:39:05.000+03:30"
+d.toJSON(); // same as toISOString() — JSON.stringify is safe by default
+d.valueOf(); // epoch milliseconds (enables < > arithmetic)
+d.unix(); // epoch seconds  (moment/dayjs parity)
+d.toMillis(); // epoch milliseconds as a method (dayjs parity)
+
+// Formatting
+d.format(pattern); // Jalali fields, e.g. "YYYY/MM/DD"
+d.formatGregorian(pattern); // Gregorian fields, same token set
 d.withTimeZone(tz);
 d.withLocale(locale);
 d.clone();
-d.format(pattern);
+```
+
+#### `formatGregorian` — Gregorian output without a second library
+
+```ts
+date.formatGregorian('YYYY-MM-DD'); // "2026-05-31"
+date.formatGregorian('YYYY-MM-DD HH:mm:ss'); // "2026-05-31 10:09:05"
+date.formatGregorian('YYYY/MM/DD HH:mm'); // "2026/05/31 10:09"
+```
+
+Supports all numeric tokens (`YYYY`, `MM`, `DD`, `HH`, `mm`, `ss`, `SSS`, `Z`, `ZZ`).
+For Gregorian month/weekday names use `Intl.DateTimeFormat` on `toGregorian()`.
+
+#### Sending dates to your backend
+
+```ts
+// ✅ toISOString() is now Gregorian UTC — safe to POST directly
+const payload = { createdAt: date.toISOString() };
+
+// ✅ JSON.stringify is also safe
+const json = JSON.stringify({ date });
+
+// ✅ Display Jalali to the user, store Gregorian on the server
+<span>{date.format('YYYY/MM/DD')}</span>
+await api.post('/events', { date: date.toISOString() });
+
+// ✅ Round-trips losslessly
+const restored = DoranDate.fromGregorian(new Date(date.toISOString()));
 ```
 
 ### Format tokens

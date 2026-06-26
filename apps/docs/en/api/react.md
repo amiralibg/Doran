@@ -26,6 +26,78 @@ import { DoranCalendar, DoranDatePicker } from '@doranjs/react';
 <DoranDatePicker placeholder="انتخاب تاریخ" />
 ```
 
+## `DoranDatePicker` props
+
+| Prop              | Type                                         | Default              | Description                                                                      |
+| ----------------- | -------------------------------------------- | -------------------- | -------------------------------------------------------------------------------- |
+| `value`           | `DoranDate \| null`                          | —                    | Controlled value                                                                 |
+| `defaultValue`    | `DoranDate \| null`                          | —                    | Uncontrolled initial value                                                       |
+| `onChange`        | `(date: DoranDate, gregorian: Date) => void` | —                    | Called on selection; second arg is the native `Date` for backend use             |
+| `locale`          | `Locale \| string`                           | `getDefaultLocale()` | Formatting locale — falls back to the global default set by `setDefaultLocale()` |
+| `format`          | `string`                                     | `'YYYY/MM/DD'`       | Display pattern (`+ 'HH:mm'` when `withTime`)                                    |
+| `placeholder`     | `string`                                     | `'انتخاب تاریخ'`     | Input placeholder                                                                |
+| `min`             | `DoranDate`                                  | —                    | Earliest selectable date                                                         |
+| `max`             | `DoranDate`                                  | —                    | Latest selectable date                                                           |
+| `disabled`        | `boolean`                                    | `false`              | Disables the input                                                               |
+| `className`       | `string`                                     | —                    | Added to the root element                                                        |
+| `style`           | `CSSProperties`                              | —                    | Inline style forwarded to the root element                                       |
+| `id`              | `string`                                     | —                    | `id` forwarded to the root element                                               |
+| `size`            | `'sm' \| 'md' \| 'lg'`                       | —                    | Preset heights: 32 / 40 / 48 px                                                  |
+| `withTime`        | `boolean`                                    | `false`              | Show a time picker and carry the time on the value                               |
+| `headerMode`      | `'dropdown' \| 'separate'`                   | `'dropdown'`         | In-place month/year panels, or native `<select>`s                                |
+| `minuteStep`      | `number`                                     | `1`                  | Minute increment for the time stepper                                            |
+| `isHoliday`       | `(day: DoranDate) => boolean`                | —                    | Mark holiday days (dot + holiday color)                                          |
+| `weekends`        | `number[]`                                   | `[6]`                | Weekday indices treated as weekend (0 = Saturday)                                |
+| `arrows`          | `{ prev, next }`                             | chevrons             | Custom navigation arrow nodes                                                    |
+| `showOutsideDays` | `boolean`                                    | —                    | Show days from adjacent months in the grid                                       |
+
+```tsx
+// Minimal usage
+<DoranDatePicker onChange={(d, gregorian) => console.log(gregorian.toISOString())} />;
+
+// Controlled, with backend POST
+const [date, setDate] = useState<DoranDate | null>(null);
+<DoranDatePicker
+  value={date}
+  size="md"
+  style={{ width: 200 }}
+  onChange={(d, greg) => {
+    setDate(d);
+    await api.post('/events', { date: greg.toISOString() });
+  }}
+/>;
+
+// Locale follows global default — call once at app root:
+setDefaultLocale(enUS);
+// Now every picker shows Latin digits and English month names with no extra prop.
+```
+
+## `DoranRangePicker` props
+
+| Prop             | Type                                                        | Default              | Description                                                             |
+| ---------------- | ----------------------------------------------------------- | -------------------- | ----------------------------------------------------------------------- |
+| `value`          | `DateRange`                                                 | —                    | Controlled range (`{ start, end }`)                                     |
+| `defaultValue`   | `DateRange`                                                 | —                    | Uncontrolled initial range                                              |
+| `onChange`       | `(range: DateRange, gregorian: GregorianDateRange) => void` | —                    | Called on each selection step; second arg carries native `Date` objects |
+| `locale`         | `Locale \| string`                                          | `getDefaultLocale()` | Falls back to the global default                                        |
+| `numberOfMonths` | `number`                                                    | `1`                  | Side-by-side month grids                                                |
+| `presets`        | `boolean \| RangePreset[]`                                  | —                    | `true` for built-in presets, or a custom array                          |
+| `isHoliday`      | `(day: DoranDate) => boolean`                               | —                    | Mark holiday days                                                       |
+| `weekends`       | `number[]`                                                  | `[6]`                | Weekend indices                                                         |
+
+```tsx
+import { DoranRangePicker, type GregorianDateRange } from '@doranjs/react';
+
+<DoranRangePicker
+  presets
+  onChange={(range, { start, end }) => {
+    if (start && end) {
+      setFilter({ from: start.toISOString(), to: end.toISOString() });
+    }
+  }}
+/>;
+```
+
 ## Month, year & time selection
 
 `DoranCalendar` (and `DoranDatePicker`) accept:

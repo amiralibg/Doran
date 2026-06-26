@@ -1,6 +1,6 @@
 'use client';
 
-import { type DoranDate, faIR, type Locale } from '@doranjs/core';
+import { type DoranDate, getDefaultLocale, type Locale } from '@doranjs/core';
 import { Button, cn } from '@doranjs/ui';
 import { useState } from 'react';
 import {
@@ -53,7 +53,7 @@ function combineDayAndTime(day: DoranDate, time: TimeValue): DoranDate {
  * control over state, compose {@link useCalendar} and {@link DoranMonthView} yourself.
  */
 export function DoranCalendar({
-  locale = faIR,
+  locale = getDefaultLocale(),
   showOutsideDays,
   headerMode = 'dropdown',
   withTime = false,

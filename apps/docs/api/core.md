@@ -84,18 +84,70 @@ d.fromNow(true); // مدت خام، بدون پسوند: "۳ روز"
 
 عبارت‌ها از bundleِ `relativeTime` مربوط به locale می‌آیند (برای `fa-IR` و `en-US` فراهم شده است).
 
+#### `durationToHuman` — humanizer مستقل مدت‌زمان
+
+جایگزین `moment.duration(s, 'seconds').humanize()`:
+
+```ts
+import { durationToHuman } from '@doranjs/core';
+
+durationToHuman(3600); // "یک ساعت"  (از locale پیش‌فرض جهانی استفاده می‌کند)
+durationToHuman(3600, enUS); // "an hour"
+durationToHuman(3600, 'en-US'); // "an hour"
+durationToHuman(90 * 60, faIR); // "۲ ساعت"
+```
+
 ### تبدیل و قالب‌بندی
 
 ```ts
-d.toGregorian(); // Date
-d.toObject(); // { year, month, day, hour, minute, second, millisecond }
-d.toISOString();
-d.toJSON();
-d.valueOf();
+d.toGregorian(); // Date نیتیو (لحظهٔ زیرین)
+d.toDate(); // نام مستعار toGregorian()
+d.toObject(); // فیلدهای جلالی: { year, month, day, hour, minute, second, millisecond }
+d.toGregorianParts(); // فیلدهای میلادی در timezone این نمونه
+
+// Serialization
+d.toISOString(); // ISO-8601 میلادی UTC — "2026-05-31T10:09:05.000Z" (ایمن برای backend)
+d.toGregorianISO(); // نام مستعار صریح toISOString()
+d.toJalaliISO(); // ISO جلالی با offset محلی — "1405-03-11T13:39:05.000+03:30"
+d.toJSON(); // مانند toISOString() — JSON.stringify پیش‌فرض ایمن است
+d.valueOf(); // epoch milliseconds (برای < > و ریاضیات)
+d.unix(); // epoch به ثانیه (پریتی با moment/dayjs)
+d.toMillis(); // epoch milliseconds به‌عنوان method (پریتی با dayjs)
+
+// قالب‌بندی
+d.format(pattern); // فیلدهای جلالی، مثلاً "YYYY/MM/DD"
+d.formatGregorian(pattern); // فیلدهای میلادی، همان مجموعهٔ token
 d.withTimeZone(tz);
 d.withLocale(locale);
 d.clone();
-d.format(pattern);
+```
+
+#### `formatGregorian` — خروجی میلادی بدون کتابخانهٔ دوم
+
+```ts
+date.formatGregorian('YYYY-MM-DD'); // "2026-05-31"
+date.formatGregorian('YYYY-MM-DD HH:mm:ss'); // "2026-05-31 10:09:05"
+date.formatGregorian('YYYY/MM/DD HH:mm'); // "2026/05/31 10:09"
+```
+
+tokenهای عددی (`YYYY`, `MM`, `DD`, `HH`, `mm`, `ss`, `SSS`, `Z`, `ZZ`) کار می‌کنند.
+برای نام ماه/روز هفتهٔ میلادی از `Intl.DateTimeFormat` روی `toGregorian()` استفاده کنید.
+
+#### ارسال تاریخ به backend
+
+```ts
+// ✅ toISOString() اکنون میلادی UTC است — می‌توانید مستقیم POST کنید
+const payload = { createdAt: date.toISOString() };
+
+// ✅ JSON.stringify هم ایمن است
+const json = JSON.stringify({ date });
+
+// ✅ نمایش جلالی به کاربر، ذخیرهٔ میلادی روی سرور
+<span>{date.format('YYYY/MM/DD')}</span>
+await api.post('/events', { date: date.toISOString() });
+
+// ✅ round-trip بدون اتلاف
+const restored = DoranDate.fromGregorian(new Date(date.toISOString()));
 ```
 
 ### Tokenهای format
