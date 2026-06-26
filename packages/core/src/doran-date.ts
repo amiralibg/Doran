@@ -8,7 +8,7 @@ import {
   jalaliToJdn,
   jdnToJalali,
 } from './conversion';
-import { formatOffset, formatParts, TOKEN, type FormatContext } from './format';
+import { formatParts, GREGORIAN_LOCALE, type FormatContext } from './format';
 import { resolveLocale } from './locale';
 import { humanizeRelative } from './relative';
 import {
@@ -790,57 +790,22 @@ export class DoranDate {
 
   /**
    * Formats the date using **Gregorian** calendar fields with the same token
-   * vocabulary as {@link format}.
-   *
-   * Numeric tokens (`YYYY`, `MM`, `DD`, `HH`, `mm`, `ss`, `SSS`, `Z`, `ZZ`) work
-   * as expected. Name tokens (`MMMM`, `dddd`, etc.) are not supported — use
-   * `Intl.DateTimeFormat` on `toGregorian()` for Gregorian month/weekday names.
+   * vocabulary as {@link format}. Names render in English and digits stay Latin
+   * (ASCII), so the output is safe to send to a backend.
    *
    * @example
    * ```ts
    * date.formatGregorian('YYYY-MM-DD HH:mm') // "2026-05-31 10:09"
+   * date.formatGregorian('DD MMM YYYY')      // "31 May 2026"
    * ```
    */
   formatGregorian(pattern: string): string {
     const g = instantToWallClock(this.#epochMs, this.#timeZone);
-    const offsetMs = getTimeZoneOffsetMs(this.#epochMs, this.#timeZone);
-    const pad = (n: number, len = 2) => String(n).padStart(len, '0');
-    return pattern.replace(new RegExp(TOKEN.source, 'g'), (match, literal: string | undefined) => {
-      if (literal !== undefined) return literal;
-      switch (match) {
-        case 'YYYY':
-          return pad(g.year, 4);
-        case 'YY':
-          return pad(g.year % 100);
-        case 'MM':
-          return pad(g.month);
-        case 'M':
-          return String(g.month);
-        case 'DD':
-          return pad(g.day);
-        case 'D':
-          return String(g.day);
-        case 'HH':
-          return pad(g.hour);
-        case 'H':
-          return String(g.hour);
-        case 'mm':
-          return pad(g.minute);
-        case 'm':
-          return String(g.minute);
-        case 'ss':
-          return pad(g.second);
-        case 's':
-          return String(g.second);
-        case 'SSS':
-          return pad(g.millisecond, 3);
-        case 'Z':
-          return formatOffset(offsetMs, true);
-        case 'ZZ':
-          return formatOffset(offsetMs, false);
-        default:
-          return match;
-      }
-    });
+    const ctx: FormatContext = {
+      ...g,
+      weekday: this.dayOfWeek,
+      offsetMs: getTimeZoneOffsetMs(this.#epochMs, this.#timeZone),
+    };
+    return formatParts(ctx, pattern, GREGORIAN_LOCALE);
   }
 }

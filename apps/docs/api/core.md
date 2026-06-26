@@ -127,11 +127,12 @@ d.clone();
 ```ts
 date.formatGregorian('YYYY-MM-DD'); // "2026-05-31"
 date.formatGregorian('YYYY-MM-DD HH:mm:ss'); // "2026-05-31 10:09:05"
-date.formatGregorian('YYYY/MM/DD HH:mm'); // "2026/05/31 10:09"
+date.formatGregorian('DD MMM YYYY'); // "31 May 2026"
+date.formatGregorian('dddd D MMMM YYYY'); // "Sunday 31 May 2026"
 ```
 
-tokenهای عددی (`YYYY`, `MM`, `DD`, `HH`, `mm`, `ss`, `SSS`, `Z`, `ZZ`) کار می‌کنند.
-برای نام ماه/روز هفتهٔ میلادی از `Intl.DateTimeFormat` روی `toGregorian()` استفاده کنید.
+**همان مجموعهٔ token** که `format` دارد پشتیبانی می‌شود (جدول پایین). نام‌ها به انگلیسی و
+ارقام لاتین (ASCII) رندر می‌شوند، پس خروجی برای ارسال به backend امن است.
 
 #### ارسال تاریخ به backend
 

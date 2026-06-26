@@ -4,6 +4,37 @@ function pad(value: number, length = 2): string {
   return String(Math.abs(value)).padStart(length, '0');
 }
 
+/**
+ * Locale for rendering **Gregorian** fields: English names and Latin (ASCII)
+ * digits, so the same token vocabulary as {@link formatParts} works for
+ * {@link DoranDate.formatGregorian}. Weekday arrays are Saturday-first to match
+ * the {@link Weekday} index convention (0 = Saturday).
+ */
+export const GREGORIAN_LOCALE: Locale = {
+  name: 'en-gregorian',
+  months: [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ],
+  monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  weekdays: ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+  weekdaysShort: ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+  weekdaysMin: ['Sa', 'Su', 'Mo', 'Tu', 'We', 'Th', 'Fr'],
+  meridiem: ['AM', 'PM'],
+  formatNumber: (value) => value,
+  parseNumber: (value) => value,
+};
+
 /** Context required to render a format pattern. */
 export interface FormatContext extends DoranDateParts {
   weekday: Weekday;

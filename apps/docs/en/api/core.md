@@ -127,11 +127,12 @@ d.clone();
 ```ts
 date.formatGregorian('YYYY-MM-DD'); // "2026-05-31"
 date.formatGregorian('YYYY-MM-DD HH:mm:ss'); // "2026-05-31 10:09:05"
-date.formatGregorian('YYYY/MM/DD HH:mm'); // "2026/05/31 10:09"
+date.formatGregorian('DD MMM YYYY'); // "31 May 2026"
+date.formatGregorian('dddd D MMMM YYYY'); // "Sunday 31 May 2026"
 ```
 
-Supports all numeric tokens (`YYYY`, `MM`, `DD`, `HH`, `mm`, `ss`, `SSS`, `Z`, `ZZ`).
-For Gregorian month/weekday names use `Intl.DateTimeFormat` on `toGregorian()`.
+Supports the **same token set** as `format` (see below). Names render in English
+and digits stay Latin (ASCII), so the output is safe to send to a backend.
 
 #### Sending dates to your backend
 

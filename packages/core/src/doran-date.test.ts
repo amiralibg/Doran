@@ -362,6 +362,18 @@ describe('Gregorian output helpers', () => {
     expect(d.formatGregorian('YYYY/MM/DD HH:mm:ss')).toBe('2026/06/01 08:00:00');
   });
 
+  it('formatGregorian renders English name tokens with ASCII digits', () => {
+    expect(d.formatGregorian('DD MMM YYYY')).toBe('01 Jun 2026');
+    expect(d.formatGregorian('dddd D MMMM YYYY')).toBe('Monday 1 June 2026');
+    expect(d.formatGregorian('ddd dd')).toBe('Mon Mo');
+    expect(d.formatGregorian('Q')).toBe('2');
+    expect(d.formatGregorian('h:mm A')).toBe('8:00 AM');
+  });
+
+  it('formatGregorian honours escaped literals', () => {
+    expect(d.formatGregorian('[Today is] dddd')).toBe('Today is Monday');
+  });
+
   it('unix returns epoch seconds', () => {
     const ms = new Date('2026-06-01T08:00:00.000Z').getTime();
     expect(d.unix()).toBe(Math.floor(ms / 1000));
