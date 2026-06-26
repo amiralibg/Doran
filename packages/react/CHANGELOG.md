@@ -1,5 +1,33 @@
 # @doranjs/react
 
+## 0.1.0
+
+### Minor Changes
+
+- [#17](https://github.com/amiralibg/Doran/pull/17) [`0df4b50`](https://github.com/amiralibg/Doran/commit/0df4b509e1a132352ec8d525566c8477a6b1d9c6) Thanks [@amiralibg](https://github.com/amiralibg)! - **`@doranjs/core`**
+  - `durationToHuman(seconds, locale?)` — standalone duration humanizer replacing `moment.duration(s, 'seconds').humanize()`. Uses the global default locale when none is given.
+
+  **`@doranjs/react`**
+  - `DoranRangePicker` / `useDateRange`: `onChange` now receives a second argument `gregorian: GregorianDateRange` (`{ start: Date | null; end: Date | null }`) so you can post Gregorian ISO strings to your backend without extra conversion.
+  - `DoranRangePicker`: `locale` prop now falls back to `getDefaultLocale()` (consistent with `DoranDatePicker`).
+  - New exported type: `GregorianDateRange`.
+
+- [#17](https://github.com/amiralibg/Doran/pull/17) [`0df4b50`](https://github.com/amiralibg/Doran/commit/0df4b509e1a132352ec8d525566c8477a6b1d9c6) Thanks [@amiralibg](https://github.com/amiralibg)! - All React components (`DoranCalendar`, `DoranMonthView`, `DoranAgenda`, `DoranTimePicker`, `DoranNlpInput`) now fall back to `getDefaultLocale()` instead of hardcoding `faIR`. A single `setDefaultLocale(enUS)` at the app root is now enough to switch every component — no per-instance `locale` prop needed.
+
+  `DoranNlpInput.onResolve` now receives a second argument `gregorian: Date | null` — the resolved instant as a native `Date` — consistent with `DoranDatePicker` and `DoranRangePicker`.
+
+- [#17](https://github.com/amiralibg/Doran/pull/17) [`0df4b50`](https://github.com/amiralibg/Doran/commit/0df4b509e1a132352ec8d525566c8477a6b1d9c6) Thanks [@amiralibg](https://github.com/amiralibg)! - `DoranDatePicker` DX improvements:
+  - **Locale inheritance:** the `locale` prop now falls back to `getDefaultLocale()` instead of always defaulting to `faIR`. A single `setDefaultLocale(enUS)` at the app root is sufficient — no need to pass `locale` on every picker instance.
+  - **`onChange` second argument:** `onChange(date, gregorian)` now receives the selected instant as a native `Date` as its second argument, so you can send Gregorian ISO strings to your backend without an extra `.toGregorian()` call. Existing handlers that accept one argument are unaffected.
+  - **`style` and `id` props** are forwarded to the root element, so you can set `width` inline without a wrapper `<span>`.
+  - **`size` prop** (`"sm"` | `"md"` | `"lg"`) maps to 32 / 40 / 48 px heights via `--doran-input-height`, matching antd/MUI conventions.
+
+### Patch Changes
+
+- Updated dependencies [[`0df4b50`](https://github.com/amiralibg/Doran/commit/0df4b509e1a132352ec8d525566c8477a6b1d9c6), [`0df4b50`](https://github.com/amiralibg/Doran/commit/0df4b509e1a132352ec8d525566c8477a6b1d9c6)]:
+  - @doranjs/core@0.1.0
+  - @doranjs/nlp@0.1.1
+
 ## 0.0.8
 
 ### Patch Changes
