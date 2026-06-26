@@ -46,6 +46,7 @@ export default defineConfig({
               text: 'مقدمه',
               items: [
                 { text: 'شروع به کار', link: '/guide/getting-started' },
+                { text: 'Backendها و سریال‌سازی', link: '/guide/backends' },
                 { text: 'معماری', link: '/guide/architecture' },
                 { text: 'راهنمای مهاجرت', link: '/guide/migration' },
               ],
@@ -109,6 +110,7 @@ export default defineConfig({
               text: 'Introduction',
               items: [
                 { text: 'Getting Started', link: '/en/guide/getting-started' },
+                { text: 'Backends & serialization', link: '/en/guide/backends' },
                 { text: 'Architecture', link: '/en/guide/architecture' },
                 { text: 'Migration Guide', link: '/en/guide/migration' },
               ],

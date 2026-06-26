@@ -3,6 +3,29 @@
 Doran is a TypeScript monorepo of focused packages for the Persian (Jalali) calendar.
 Install only what you need — every package is independent and tree-shakeable.
 
+## The mental model: one instant, two calendars
+
+Read this first — it prevents the most common (and most expensive) mistake.
+
+A `DoranDate` is a single **instant** in time. That instant can be _rendered_ two ways:
+
+- **Jalali** for your users — `format(...)`
+- **Gregorian** for your backend — `formatGregorian(...)`, `toISOString()`
+
+> Same instant, two views. `format` is what a person reads; `toISOString()` is what a
+> server stores. They describe the _same moment_ — they are not different dates.
+
+```ts
+const d = DoranDate.now();
+
+d.format('YYYY/MM/DD'); // "۱۴۰۵/۰۳/۱۱"  → show this to the user
+d.toISOString(); // "2026-06-01T08:00:00.000Z"  → send this to the server
+```
+
+⚠️ `toISOString()` is **Gregorian UTC** — safe to send to any backend. Do **not** send
+`toJalaliISO()` to your API. See [Backends & serialization](/en/guide/backends) for the
+full recipe and round-trip.
+
 ## Installation
 
 ::: code-group
