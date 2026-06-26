@@ -37,6 +37,37 @@ describe('DoranDate factories', () => {
   });
 });
 
+describe('invalid-date policy', () => {
+  it('fromJalali throws on a non-existent date instead of rolling over', () => {
+    // 1404 is not a leap year, so Esfand (month 12) has only 29 days.
+    expect(() => DoranDate.fromJalali(1404, 12, 31, UTC)).toThrow(RangeError);
+    expect(() => DoranDate.fromJalali(1400, 13, 1, UTC)).toThrow(RangeError);
+    expect(() => DoranDate.fromJalali(1400, 1, 0, UTC)).toThrow(RangeError);
+  });
+
+  it('fromJalali throws on NaN / non-finite fields', () => {
+    expect(() => DoranDate.fromJalali(NaN, 1, 1, UTC)).toThrow(RangeError);
+    expect(() => DoranDate.fromJalali({ year: 1400, month: 1, day: 1, hour: NaN }, UTC)).toThrow(
+      RangeError,
+    );
+  });
+
+  it('fromEpochMs throws on NaN', () => {
+    expect(() => DoranDate.fromEpochMs(NaN, UTC)).toThrow(RangeError);
+  });
+
+  it('tryFromJalali returns null instead of throwing', () => {
+    expect(DoranDate.tryFromJalali(1404, 12, 31, UTC)).toBeNull();
+    expect(DoranDate.tryFromJalali({ year: 1400, month: 13, day: 1 }, UTC)).toBeNull();
+    expect(DoranDate.tryFromJalali(1404, 12, 29, UTC)?.day).toBe(29);
+  });
+
+  it('tryFromGregorian returns null on an invalid Date', () => {
+    expect(DoranDate.tryFromGregorian(new Date('nonsense'))).toBeNull();
+    expect(DoranDate.tryFromGregorian(new Date('2021-03-21T00:00:00Z'), UTC)?.year).toBe(1400);
+  });
+});
+
 describe('field accessors', () => {
   it('computes the Persian weekday (0 = Saturday)', () => {
     // 2021-03-21 (Nowruz 1400) was a Sunday.

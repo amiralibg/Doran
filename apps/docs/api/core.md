@@ -13,12 +13,39 @@ DoranDate.fromGregorian(date: Date, options?);
 DoranDate.fromJalali(year, month, day, options?);
 DoranDate.fromJalali({ year, month, day, hour?, minute?, second?, millisecond? }, options?);
 
+// نسخه‌های بدون throw — به‌جای throw مقدار DoranDate | null برمی‌گردانند
+DoranDate.tryFromGregorian(date: Date, options?);
+DoranDate.tryFromJalali(year, month, day, options?);
+
 DoranDate.min(...dates); // زودترین
 DoranDate.max(...dates); // دیرترین
 DoranDate.isValid(year, month, day); // boolean
 ```
 
 `options` برابر `{ timeZone?: string; locale?: string | Locale }` است.
+
+### مدیریت تاریخ‌های نامعتبر
+
+دوران هرگز `Invalid Date` خاموش تولید نمی‌کند. سیاست بر اساس منشأ ورودی تقسیم می‌شود:
+
+- **سازنده‌ها (constructors) `RangeError` پرتاب می‌کنند** روی ورودی نامعتبر — این فیلدها را شما
+  کنترل می‌کنید، پس مقدار بد یک باگ است که باید فوراً دیده شود. `fromJalali` تاریخ تقویمی را
+  اعتبارسنجی می‌کند و **هرگز سرریز نمی‌شود**: ۳۱ اسفند در سال غیرکبیسه throw می‌کند، نه اینکه به
+  ۱ فروردین تبدیل شود.
+- **سازنده‌های `try*` مقدار `null` برمی‌گردانند** وقتی می‌خواهید به‌جای catch شاخه بزنید:
+  `tryFromJalali`، `tryFromGregorian`.
+- **`parseJalali` مقدار `null` برمی‌گرداند** برای رشته‌های غیرقابل‌تجزیه یا خارج از بازه — تجزیهٔ
+  متن نامطمئن طبیعتاً گاهی شکست می‌خورد.
+
+```ts
+DoranDate.fromJalali(1404, 12, 31); // ❌ RangeError پرتاب می‌کند (۱۴۰۴ کبیسه نیست)
+DoranDate.tryFromJalali(1404, 12, 31); // ← null
+DoranDate.fromGregorian(new Date('nope')); // ❌ RangeError پرتاب می‌کند
+DoranDate.tryFromGregorian(new Date('nope')); // ← null
+parseJalali('not a date'); // ← null
+
+DoranDate.isValid(1404, 12, 31); // ← false (پیش از ساختن بررسی کنید)
+```
 
 ### Accessorها
 

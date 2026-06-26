@@ -13,12 +13,40 @@ DoranDate.fromGregorian(date: Date, options?);
 DoranDate.fromJalali(year, month, day, options?);
 DoranDate.fromJalali({ year, month, day, hour?, minute?, second?, millisecond? }, options?);
 
+// Non-throwing variants — return DoranDate | null instead of throwing
+DoranDate.tryFromGregorian(date: Date, options?);
+DoranDate.tryFromJalali(year, month, day, options?);
+
 DoranDate.min(...dates); // earliest
 DoranDate.max(...dates); // latest
 DoranDate.isValid(year, month, day); // boolean
 ```
 
 `options` is `{ timeZone?: string; locale?: string | Locale }`.
+
+### Handling invalid dates
+
+Doran never produces a silent `Invalid Date`. The policy is split by where the
+input comes from:
+
+- **Constructors throw** `RangeError` on invalid input — you control these fields,
+  so a bad value is a bug worth surfacing immediately. `fromJalali` validates the
+  calendar date and **never rolls over**: Esfand 31 in a non-leap year throws
+  rather than becoming Farvardin 1.
+- **`try*` constructors return `null`** when you'd rather branch than catch:
+  `tryFromJalali`, `tryFromGregorian`.
+- **`parseJalali` returns `null`** for unparseable or out-of-range strings — parsing
+  untrusted text is expected to sometimes fail.
+
+```ts
+DoranDate.fromJalali(1404, 12, 31); // ❌ throws RangeError (1404 is not a leap year)
+DoranDate.tryFromJalali(1404, 12, 31); // → null
+DoranDate.fromGregorian(new Date('nope')); // ❌ throws RangeError
+DoranDate.tryFromGregorian(new Date('nope')); // → null
+parseJalali('not a date'); // → null
+
+DoranDate.isValid(1404, 12, 31); // → false (check before constructing)
+```
 
 ### Accessors
 

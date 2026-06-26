@@ -97,13 +97,16 @@ export class DoranDate {
     return new DoranDate(Date.now(), timeZone, locale);
   }
 
-  /** Builds a date from epoch milliseconds (UTC). */
+  /** Builds a date from epoch milliseconds (UTC). Throws `RangeError` on `NaN`/non-finite input. */
   static fromEpochMs(epochMs: number, options?: DoranDateOptions): DoranDate {
+    if (!Number.isFinite(epochMs)) {
+      throw new RangeError(`Cannot construct a DoranDate from a non-finite epoch: ${epochMs}.`);
+    }
     const { timeZone, locale } = resolveConfig(options);
     return new DoranDate(epochMs, timeZone, locale);
   }
 
-  /** Builds a date from a native JavaScript `Date` (interpreted as an instant). */
+  /** Builds a date from a native JavaScript `Date` (interpreted as an instant). Throws on an invalid `Date`. */
   static fromGregorian(date: Date, options?: DoranDateOptions): DoranDate {
     const ms = date.getTime();
     if (Number.isNaN(ms)) {
@@ -113,7 +116,18 @@ export class DoranDate {
     return new DoranDate(ms, timeZone, locale);
   }
 
-  /** Builds a date from Jalali civil fields, interpreted in the target time zone. */
+  /** Like {@link fromGregorian}, but returns `null` instead of throwing on an invalid `Date`. */
+  static tryFromGregorian(date: Date, options?: DoranDateOptions): DoranDate | null {
+    return Number.isNaN(date.getTime()) ? null : DoranDate.fromGregorian(date, options);
+  }
+
+  /**
+   * Builds a date from Jalali civil fields, interpreted in the target time zone.
+   *
+   * Throws `RangeError` on a non-existent date (e.g. Esfand 31 in a non-leap year)
+   * or non-finite fields — it never silently rolls over into the next month. Use
+   * {@link tryFromJalali} for a non-throwing variant.
+   */
   static fromJalali(
     year: number,
     month: number,
@@ -142,9 +156,51 @@ export class DoranDate {
       options = optionsArg;
     }
 
+    if (!DoranDate.#isValidInput(input)) {
+      throw new RangeError(
+        `Invalid Jalali date: ${input.year}/${input.month}/${input.day}. ` +
+          `Use DoranDate.tryFromJalali for a non-throwing variant.`,
+      );
+    }
+
     const { timeZone, locale } = resolveConfig(options);
     const epochMs = DoranDate.#jalaliToInstant(input, timeZone);
     return new DoranDate(epochMs, timeZone, locale);
+  }
+
+  /** Like {@link fromJalali}, but returns `null` instead of throwing on an invalid date. */
+  static tryFromJalali(
+    year: number,
+    month: number,
+    day: number,
+    options?: DoranDateOptions,
+  ): DoranDate | null;
+  static tryFromJalali(input: JalaliInput, options?: DoranDateOptions): DoranDate | null;
+  static tryFromJalali(
+    yearOrInput: number | JalaliInput,
+    monthOrOptions?: number | DoranDateOptions,
+    dayArg?: number,
+    optionsArg?: DoranDateOptions,
+  ): DoranDate | null {
+    try {
+      // Forward the same overloaded arguments unchanged.
+      return DoranDate.fromJalali(
+        yearOrInput as number,
+        monthOrOptions as number,
+        dayArg as number,
+        optionsArg,
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  /** Validates Jalali civil fields: real calendar date plus finite time components. */
+  static #isValidInput(input: JalaliInput): boolean {
+    const timeFinite = [input.hour, input.minute, input.second, input.millisecond].every(
+      (value) => value === undefined || Number.isFinite(value),
+    );
+    return timeFinite && isValidJalaliDate(input.year, input.month, input.day);
   }
 
   /** The earliest of the given dates. Throws if none are provided. */
