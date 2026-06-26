@@ -1,4 +1,5 @@
-import type { Locale, RelativeTimeStrings } from './types';
+import { resolveLocale } from './locale';
+import type { Locale, LocaleLike, RelativeTimeStrings } from './types';
 
 /** Fallback relative-time strings (English) when a locale omits its own. */
 const DEFAULT_RELATIVE: RelativeTimeStrings = {
@@ -71,4 +72,19 @@ export function humanizeRelative(deltaMs: number, locale: Locale, withoutSuffix 
 
   if (withoutSuffix) return phrase;
   return (future ? rt.future : rt.past).replace('%s', phrase);
+}
+
+/**
+ * Humanizes a duration in seconds using the global default locale (or a given locale).
+ * Returns the bare phrase without a "ago"/"in" suffix — equivalent to
+ * `moment.duration(s, 'seconds').humanize()`.
+ *
+ * @example
+ * ```ts
+ * durationToHuman(45);          // "a minute"  (en-US)
+ * durationToHuman(3 * 3600, faIR); // "۳ ساعت"
+ * ```
+ */
+export function durationToHuman(seconds: number, locale?: LocaleLike): string {
+  return humanizeRelative(seconds * 1000, resolveLocale(locale), true);
 }

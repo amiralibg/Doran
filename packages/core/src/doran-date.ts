@@ -8,7 +8,7 @@ import {
   jalaliToJdn,
   jdnToJalali,
 } from './conversion';
-import { formatParts, type FormatContext } from './format';
+import { formatOffset, formatParts, TOKEN, type FormatContext } from './format';
 import { resolveLocale } from './locale';
 import { humanizeRelative } from './relative';
 import {
@@ -701,28 +701,81 @@ export class DoranDate {
     return { ...this.#computeParts() };
   }
 
+  /**
+   * The Gregorian wall-clock fields for this instant in its time zone.
+   * Useful when you need the Gregorian date without converting to a `Date` object.
+   */
+  toGregorianParts(): {
+    year: number;
+    month: number;
+    day: number;
+    hour: number;
+    minute: number;
+    second: number;
+    millisecond: number;
+  } {
+    return { ...instantToWallClock(this.#epochMs, this.#timeZone) };
+  }
+
+  /** Epoch milliseconds (UTC). Alias of the `epochMs` getter, for dayjs/moment parity. */
+  toMillis(): number {
+    return this.#epochMs;
+  }
+
+  /** Unix timestamp in whole seconds (UTC). */
+  unix(): number {
+    return Math.floor(this.#epochMs / 1000);
+  }
+
   /** Epoch milliseconds — also enables `<`, `>`, and arithmetic coercion. */
   valueOf(): number {
     return this.#epochMs;
   }
 
-  /** ISO-8601-like string in the Jalali calendar, including the UTC offset. */
+  /**
+   * Standard Gregorian UTC ISO-8601 string, identical to `new Date(…).toISOString()`.
+   * Safe to send to backends and to round-trip via `new Date(…)` or
+   * `DoranDate.fromGregorian(new Date(…))`.
+   *
+   * For the Jalali ISO representation use {@link toJalaliISO}.
+   */
   toISOString(): string {
+    return new Date(this.#epochMs).toISOString();
+  }
+
+  /** Alias of {@link toISOString} — explicit Gregorian UTC ISO-8601. */
+  toGregorianISO(): string {
+    return new Date(this.#epochMs).toISOString();
+  }
+
+  /**
+   * ISO-8601-like string in the **Jalali** calendar with the local UTC offset.
+   * Example: `"1405-03-11T13:39:05.000+03:30"`.
+   *
+   * Use this when you need a Jalali-calendar ISO string for display; use
+   * {@link toISOString} when communicating with backends or `JSON.stringify`.
+   */
+  toJalaliISO(): string {
     return this.format('YYYY-MM-DDTHH:mm:ss.SSSZ');
   }
 
-  /** Serializes via {@link DoranDate.toISOString} for `JSON.stringify`. */
+  /**
+   * Serializes as a Gregorian UTC ISO-8601 string for `JSON.stringify`, matching the
+   * behaviour of native `Date`. This makes `JSON.stringify({ d: DoranDate.now() })`
+   * safe to send to any backend without additional conversion.
+   */
   toJSON(): string {
     return this.toISOString();
   }
 
-  /** Default string form: `YYYY/MM/DD HH:mm:ss`. */
+  /** Default string form: `YYYY/MM/DD HH:mm:ss` (Jalali). */
   toString(): string {
     return this.format('YYYY/MM/DD HH:mm:ss');
   }
 
   /**
    * Formats the date using the token vocabulary documented on {@link formatParts}.
+   * All tokens (`YYYY`, `MM`, `DD`, `dddd`, etc.) refer to **Jalali** fields.
    * @param pattern Token pattern, e.g. `"dddd D MMMM YYYY"`.
    */
   format(pattern: string): string {
@@ -733,5 +786,61 @@ export class DoranDate {
       offsetMs: getTimeZoneOffsetMs(this.#epochMs, this.#timeZone),
     };
     return formatParts(ctx, pattern, this.#locale);
+  }
+
+  /**
+   * Formats the date using **Gregorian** calendar fields with the same token
+   * vocabulary as {@link format}.
+   *
+   * Numeric tokens (`YYYY`, `MM`, `DD`, `HH`, `mm`, `ss`, `SSS`, `Z`, `ZZ`) work
+   * as expected. Name tokens (`MMMM`, `dddd`, etc.) are not supported — use
+   * `Intl.DateTimeFormat` on `toGregorian()` for Gregorian month/weekday names.
+   *
+   * @example
+   * ```ts
+   * date.formatGregorian('YYYY-MM-DD HH:mm') // "2026-05-31 10:09"
+   * ```
+   */
+  formatGregorian(pattern: string): string {
+    const g = instantToWallClock(this.#epochMs, this.#timeZone);
+    const offsetMs = getTimeZoneOffsetMs(this.#epochMs, this.#timeZone);
+    const pad = (n: number, len = 2) => String(n).padStart(len, '0');
+    return pattern.replace(new RegExp(TOKEN.source, 'g'), (match, literal: string | undefined) => {
+      if (literal !== undefined) return literal;
+      switch (match) {
+        case 'YYYY':
+          return pad(g.year, 4);
+        case 'YY':
+          return pad(g.year % 100);
+        case 'MM':
+          return pad(g.month);
+        case 'M':
+          return String(g.month);
+        case 'DD':
+          return pad(g.day);
+        case 'D':
+          return String(g.day);
+        case 'HH':
+          return pad(g.hour);
+        case 'H':
+          return String(g.hour);
+        case 'mm':
+          return pad(g.minute);
+        case 'm':
+          return String(g.minute);
+        case 'ss':
+          return pad(g.second);
+        case 's':
+          return String(g.second);
+        case 'SSS':
+          return pad(g.millisecond, 3);
+        case 'Z':
+          return formatOffset(offsetMs, true);
+        case 'ZZ':
+          return formatOffset(offsetMs, false);
+        default:
+          return match;
+      }
+    });
   }
 }

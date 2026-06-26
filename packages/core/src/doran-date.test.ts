@@ -173,9 +173,15 @@ describe('formatting', () => {
     expect(d.format('[ساعت] h A')).toBe('ساعت 7 PM');
   });
 
-  it('produces an ISO-like string with offset', () => {
+  it('toJalaliISO produces a Jalali ISO-like string with offset', () => {
     const d = DoranDate.fromJalali({ year: 1400, month: 1, day: 1, hour: 6, minute: 30 }, UTC_EN);
-    expect(d.toISOString()).toBe('1400-01-01T06:30:00.000+00:00');
+    expect(d.toJalaliISO()).toBe('1400-01-01T06:30:00.000+00:00');
+  });
+
+  it('toISOString produces Gregorian UTC ISO-8601', () => {
+    // 1400/01/01 = 2021-03-21
+    const d = DoranDate.fromJalali({ year: 1400, month: 1, day: 1, hour: 6, minute: 30 }, UTC_EN);
+    expect(d.toISOString()).toBe('2021-03-21T06:30:00.000Z');
   });
 });
 
@@ -307,5 +313,61 @@ describe('relative time', () => {
 describe('quarter token', () => {
   it('formats Q', () => {
     expect(DoranDate.fromJalali(1405, 8, 1, UTC_EN).format('Q')).toBe('3');
+  });
+});
+
+describe('toISOString / toJSON / toGregorianISO', () => {
+  // 1400/01/01 in Jalali = 2021-03-21 in Gregorian
+  const d = DoranDate.fromGregorian(new Date('2021-03-21T10:30:00.000Z'), UTC);
+
+  it('toISOString returns Gregorian UTC ISO-8601', () => {
+    expect(d.toISOString()).toBe('2021-03-21T10:30:00.000Z');
+  });
+
+  it('toGregorianISO is an alias for toISOString', () => {
+    expect(d.toGregorianISO()).toBe(d.toISOString());
+  });
+
+  it('toJSON returns the same Gregorian UTC string', () => {
+    expect(d.toJSON()).toBe('2021-03-21T10:30:00.000Z');
+  });
+
+  it('JSON.stringify round-trips losslessly', () => {
+    const json = JSON.stringify({ d });
+    const parsed = JSON.parse(json) as { d: string };
+    expect(new Date(parsed.d).toISOString()).toBe(d.toISOString());
+  });
+
+  it('toJalaliISO contains the Jalali year (Persian digits in fa-IR)', () => {
+    // faIR locale emits Persian digits — 1400 = ۱۴۰۰
+    expect(d.toJalaliISO()).toContain('۱۴۰۰');
+    expect(d.toJalaliISO()).not.toContain('2021');
+  });
+});
+
+describe('Gregorian output helpers', () => {
+  // 2026-06-01T08:00:00Z
+  const d = DoranDate.fromGregorian(new Date('2026-06-01T08:00:00.000Z'), UTC);
+
+  it('toGregorianParts returns correct Gregorian fields', () => {
+    const parts = d.toGregorianParts();
+    expect(parts.year).toBe(2026);
+    expect(parts.month).toBe(6);
+    expect(parts.day).toBe(1);
+    expect(parts.hour).toBe(8);
+  });
+
+  it('formatGregorian formats numeric tokens', () => {
+    expect(d.formatGregorian('YYYY-MM-DD')).toBe('2026-06-01');
+    expect(d.formatGregorian('YYYY/MM/DD HH:mm:ss')).toBe('2026/06/01 08:00:00');
+  });
+
+  it('unix returns epoch seconds', () => {
+    const ms = new Date('2026-06-01T08:00:00.000Z').getTime();
+    expect(d.unix()).toBe(Math.floor(ms / 1000));
+  });
+
+  it('toMillis returns epoch milliseconds', () => {
+    expect(d.toMillis()).toBe(d.epochMs);
   });
 });

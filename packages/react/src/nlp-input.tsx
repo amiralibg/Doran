@@ -1,6 +1,6 @@
 'use client';
 
-import { DoranDate, faIR, type Locale } from '@doranjs/core';
+import { DoranDate, getDefaultLocale, type Locale } from '@doranjs/core';
 import {
   parse,
   suggest,
@@ -48,8 +48,12 @@ export interface DoranNlpInputProps {
   value?: string;
   defaultValue?: string;
   onChange?: (text: string) => void;
-  /** Called whenever the text resolves (or stops resolving) to a date. */
-  onResolve?: (result: ParseResult | null) => void;
+  /**
+   * Called whenever the text resolves (or stops resolving) to a date.
+   * The second argument is the resolved instant as a native `Date` (or `null`),
+   * so you can POST it to your backend without conversion.
+   */
+  onResolve?: (result: ParseResult | null, gregorian: Date | null) => void;
   locale?: Locale;
   /** Reference "now" used to resolve relative expressions. */
   reference?: DoranDate;
@@ -111,7 +115,7 @@ export function DoranNlpInput({
   defaultValue,
   onChange,
   onResolve,
-  locale = faIR,
+  locale = getDefaultLocale(),
   reference,
   placeholder = 'مثلاً: جمعه ساعت ۷ شب',
   format,
@@ -141,7 +145,7 @@ export function DoranNlpInput({
   useEffect(() => {
     if (result !== lastResolved.current) {
       lastResolved.current = result;
-      onResolve?.(result);
+      onResolve?.(result, result?.date.toGregorian() ?? null);
     }
   }, [result, onResolve]);
 

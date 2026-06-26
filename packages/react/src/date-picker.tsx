@@ -1,12 +1,13 @@
 'use client';
 
-import { type DoranDate, faIR, type Locale } from '@doranjs/core';
+import { type DoranDate, getDefaultLocale, type Locale } from '@doranjs/core';
 import { CalendarIcon, cn } from '@doranjs/ui';
 import {
   useEffect,
   useId,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
 import { DoranCalendar, type DoranCalendarProps } from './calendar';
@@ -24,7 +25,13 @@ export interface DoranDatePickerProps extends Pick<
 > {
   value?: DoranDate | null;
   defaultValue?: DoranDate | null;
-  onChange?: (date: DoranDate) => void;
+  /**
+   * Called when the user selects a date.
+   * The second argument carries the same instant as a native `Date` for
+   * backends that expect Gregorian — no extra conversion needed.
+   */
+  onChange?: (date: DoranDate, gregorian: Date) => void;
+  /** Formatting locale. Falls back to the global default set by `setDefaultLocale()`. */
   locale?: Locale;
   /** Format pattern for the input display. Defaults to `YYYY/MM/DD` (`+ HH:mm` with time). */
   format?: string;
@@ -33,6 +40,12 @@ export interface DoranDatePickerProps extends Pick<
   max?: DoranDate;
   disabled?: boolean;
   className?: string;
+  /** Inline styles forwarded to the root element. */
+  style?: CSSProperties;
+  /** `id` forwarded to the root element. */
+  id?: string;
+  /** Preset height — `sm` 32 px · `md` 40 px (default) · `lg` 48 px. */
+  size?: 'sm' | 'md' | 'lg';
 }
 
 /**
@@ -40,17 +53,26 @@ export interface DoranDatePickerProps extends Pick<
  * accessible, and closes on outside-click or `Escape`. Supports an optional time
  * picker via `withTime`.
  */
+const SIZE_HEIGHT: Record<'sm' | 'md' | 'lg', string> = {
+  sm: '32px',
+  md: '40px',
+  lg: '48px',
+};
+
 export function DoranDatePicker({
   value,
   defaultValue,
   onChange,
-  locale = faIR,
+  locale = getDefaultLocale(),
   format,
   placeholder = 'انتخاب تاریخ',
   min,
   max,
   disabled,
   className,
+  style,
+  id,
+  size,
   withTime,
   headerMode,
   minuteStep,
@@ -123,13 +145,23 @@ export function DoranDatePicker({
 
   function handleChange(date: DoranDate) {
     if (!isControlled) setInternal(date);
-    onChange?.(date);
+    onChange?.(date, date.toGregorian());
     // Keep the popover open while adjusting time; close on a plain date pick.
     if (!withTime) close(true);
   }
 
+  const sizeStyle = size
+    ? ({ '--doran-input-height': SIZE_HEIGHT[size] } as CSSProperties)
+    : undefined;
+
   return (
-    <div ref={rootRef} className={cn('doran-datepicker', className)} dir="rtl">
+    <div
+      ref={rootRef}
+      id={id}
+      className={cn('doran-datepicker', className)}
+      style={sizeStyle ? { ...sizeStyle, ...style } : style}
+      dir="rtl"
+    >
       <button
         ref={triggerRef}
         type="button"

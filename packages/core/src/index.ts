@@ -6,7 +6,7 @@
 
 export { DoranDate, type JalaliInput, type SettableUnit } from './doran-date';
 export { parseJalali } from './parse';
-export { humanizeRelative } from './relative';
+export { durationToHuman, humanizeRelative } from './relative';
 
 // Working-day (business-day) helpers — weekend-aware, optionally holiday-aware.
 export {

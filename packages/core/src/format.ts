@@ -10,7 +10,7 @@ export interface FormatContext extends DoranDateParts {
   offsetMs: number;
 }
 
-function formatOffset(offsetMs: number, withColon: boolean): string {
+export function formatOffset(offsetMs: number, withColon: boolean): string {
   const sign = offsetMs >= 0 ? '+' : '-';
   const totalMinutes = Math.round(Math.abs(offsetMs) / 60000);
   const hours = pad(Math.trunc(totalMinutes / 60));
@@ -22,7 +22,7 @@ function formatOffset(offsetMs: number, withColon: boolean): string {
  * The supported format tokens, longest-first so the matcher is greedy. Inspired by
  * the familiar `dayjs` / `moment` token vocabulary.
  */
-const TOKEN =
+export const TOKEN =
   /\[([^\]]*)]|YYYY|YY|MMMM|MMM|MM|M|DD|D|dddd|ddd|dd|d|Q|HH|H|hh|h|mm|m|ss|s|SSS|A|a|ZZ|Z/g;
 
 /**

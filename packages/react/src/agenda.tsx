@@ -1,6 +1,6 @@
 'use client';
 
-import { type DoranDate, faIR, type Locale } from '@doranjs/core';
+import { type DoranDate, getDefaultLocale, type Locale } from '@doranjs/core';
 import { cn } from '@doranjs/ui';
 import type { ReactNode } from 'react';
 
@@ -38,7 +38,7 @@ export function DoranAgenda({
   start,
   days = 7,
   events = [],
-  locale = faIR,
+  locale = getDefaultLocale(),
   onSelectDay,
   renderEvent,
   className,

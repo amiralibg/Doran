@@ -143,10 +143,21 @@ export interface DateRange {
   end: DoranDate | null;
 }
 
+/** The same range expressed as native `Date` objects — safe to send to backends. */
+export interface GregorianDateRange {
+  start: Date | null;
+  end: Date | null;
+}
+
 export interface UseDateRangeOptions extends DoranDateOptions {
   defaultValue?: DateRange;
   value?: DateRange;
-  onChange?: (range: DateRange) => void;
+  /**
+   * Called whenever the selection changes.
+   * The second argument carries the same range as native `Date` objects so you can
+   * post Gregorian ISO strings to your backend without extra conversion.
+   */
+  onChange?: (range: DateRange, gregorian: GregorianDateRange) => void;
 }
 
 export interface UseDateRangeReturn {
@@ -171,7 +182,10 @@ export function useDateRange(options: UseDateRangeOptions = {}): UseDateRangeRet
   const update = useCallback(
     (next: DateRange) => {
       if (!isControlled) setInternal(next);
-      onChange?.(next);
+      onChange?.(next, {
+        start: next.start?.toGregorian() ?? null,
+        end: next.end?.toGregorian() ?? null,
+      });
     },
     [isControlled, onChange],
   );
