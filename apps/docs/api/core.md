@@ -132,6 +132,36 @@ durationToHuman(3600, 'en-US'); // "an hour"
 durationToHuman(90 * 60, faIR); // "۲ ساعت"
 ```
 
+#### `Duration` — نوع مدت‌زمان تغییرناپذیر
+
+یک مدت‌زمان کوچک و immutable برای محاسبات، مقایسه و تبدیل واحد (پریتی با
+moment.duration / luxon Duration). tree-shakeable — فقط جایی که لازم است import کنید.
+
+```ts
+import { Duration } from '@doranjs/core';
+
+const d = new Duration({ hours: 1, minutes: 30 });
+d.as('minute'); // 90
+d.as('hour'); // 1.5
+d.add({ minutes: 30 }).as('hour'); // 2
+d.subtract({ minutes: 30 }).as('hour'); // 1
+d.humanize(); // "یک ساعت" / "an hour" (مقدار، بدون پسوند)
+
+Duration.fromMillis(90 * 60_000).toObject(); // { hours: 1, minutes: 30, ... }
+new Duration({ hours: 2 }) > new Duration({ hours: 1 }); // true (valueOf = کل میلی‌ثانیه)
+```
+
+`as` / `toMillis` برای واحدهای طول‌متغیر از میانگین ثابت استفاده می‌کنند — هر ماه ۳۰
+روز و هر سال ۳۶۵ روز، مطابق moment/luxon برای durationهای anchor‌نشده. برای deltaی
+تقویمی دقیق (طول واقعی ماه/سال) از محاسبات `DoranDate` و `diff` استفاده کنید.
+
+`diff` می‌تواند یک `Duration` تجزیه‌شده به فیلدها برگرداند:
+
+```ts
+b.diff(a, 'duration'); // Duration { days: 2, hours: 3, minutes: 30, ... }
+b.diff(a, 'day'); // 2  (عدد، مثل قبل)
+```
+
 ### تبدیل و قالب‌بندی
 
 ```ts

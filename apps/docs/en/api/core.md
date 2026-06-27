@@ -133,6 +133,37 @@ durationToHuman(3600, 'en-US'); // "an hour"
 durationToHuman(90 * 60, faIR); // "۲ ساعت"
 ```
 
+#### `Duration` — immutable duration type
+
+A small immutable duration for arithmetic, comparison, and unit conversion
+(moment.duration / luxon Duration parity). Tree-shakeable — import only where used.
+
+```ts
+import { Duration } from '@doranjs/core';
+
+const d = new Duration({ hours: 1, minutes: 30 });
+d.as('minute'); // 90
+d.as('hour'); // 1.5
+d.add({ minutes: 30 }).as('hour'); // 2
+d.subtract({ minutes: 30 }).as('hour'); // 1
+d.humanize(); // "an hour" / "یک ساعت" (magnitude, no suffix)
+
+Duration.fromMillis(90 * 60_000).toObject(); // { hours: 1, minutes: 30, ... }
+new Duration({ hours: 2 }) > new Duration({ hours: 1 }); // true (valueOf = total ms)
+```
+
+`as` / `toMillis` use fixed averages for the variable-length units — a month is
+30 days and a year is 365 days, matching moment/luxon for un-anchored durations.
+For exact calendar deltas (real month/year lengths), use `DoranDate` arithmetic
+and `diff` instead.
+
+`diff` can return a `Duration` broken into fields:
+
+```ts
+b.diff(a, 'duration'); // Duration { days: 2, hours: 3, minutes: 30, ... }
+b.diff(a, 'day'); // 2  (number, as before)
+```
+
 ### Conversion & formatting
 
 ```ts

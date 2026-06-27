@@ -14,6 +14,7 @@ export {
   type SettableUnit,
 } from './doran-date';
 export { parse, parseGregorian, parseJalali, type ParseOptions } from './parse';
+export { Duration, type DurationLike, type DurationUnit } from './duration';
 export { durationToHuman, humanizeRelative } from './relative';
 
 // Working-day (business-day) helpers — weekend-aware, optionally holiday-aware.

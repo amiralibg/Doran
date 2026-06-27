@@ -9,6 +9,7 @@ import {
   jalaliToJdn,
   jdnToJalali,
 } from './conversion';
+import { Duration } from './duration';
 import { formatParts, GREGORIAN_LOCALE, type DigitStyle, type FormatContext } from './format';
 import { resolveLocale } from './locale';
 import { humanizeRelative } from './relative';
@@ -758,9 +759,19 @@ export class DoranDate {
   /**
    * Difference between this date and `other`, expressed in `unit`. The result is
    * positive when this date is later. By default it is truncated to an integer;
-   * pass `float = true` for a fractional result.
+   * pass `float = true` for a fractional result. Pass `unit: 'duration'` to get a
+   * {@link Duration} broken down into years/months/…/milliseconds instead.
    */
-  diff(other: DoranDate, unit: DiffUnit = 'millisecond', float = false): number {
+  diff(other: DoranDate, unit: 'duration'): Duration;
+  diff(other: DoranDate, unit?: DiffUnit, float?: boolean): number;
+  diff(
+    other: DoranDate,
+    unit: DiffUnit | 'duration' = 'millisecond',
+    float = false,
+  ): number | Duration {
+    if (unit === 'duration') {
+      return Duration.fromMillis(this.#epochMs - other.#epochMs);
+    }
     if (unit === 'year' || unit === 'quarter' || unit === 'month') {
       const a = this.#computeParts();
       const b = other.#computeParts();
