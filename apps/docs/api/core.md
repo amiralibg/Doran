@@ -13,6 +13,7 @@ DoranDate.fromGregorian(date: Date, options?);
 DoranDate.fromJalali(year, month, day, options?);
 DoranDate.fromJalali({ year, month, day, hour?, minute?, second?, millisecond? }, options?);
 DoranDate.fromGregorianParts({ year, month, day, hour?, ... }, options?); // فیلدهای میلادی در timezone
+DoranDate.fromTemporal(instant | zonedDateTime | plainDateTime, options?); // پل TC39 Temporal
 
 // نسخه‌های بدون throw — به‌جای throw مقدار DoranDate | null برمی‌گردانند
 DoranDate.tryFromGregorian(date: Date, options?);
@@ -167,6 +168,7 @@ b.diff(a, 'day'); // 2  (عدد، مثل قبل)
 ```ts
 d.toGregorian(); // Date نیتیو (لحظهٔ زیرین)
 d.toDate(); // نام مستعار toGregorian()
+d.toTemporal(); // Temporal.ZonedDateTime (به runtime دارای Temporal نیاز دارد)
 d.toObject(); // فیلدهای جلالی: { year, month, day, hour, minute, second, millisecond }
 d.toGregorianParts(); // فیلدهای میلادی در timezone این نمونه
 
@@ -300,3 +302,27 @@ import { faIR, enUS, registerLocale, setDefaultLocale } from '@doranjs/core';
 ```ts
 import { toPersianDigits, toLatinDigits, normalizeDigits } from '@doranjs/core';
 ```
+
+## دوران و TC39 Temporal
+
+[TC39 Temporal](https://tc39.es/proposal-temporal/) API تاریخ‌وزمانِ در راهِ پلتفرم
+است. دوران از پیش همان مدل اصلی را دارد — یک مقدار **تغییرناپذیر** روی یک **لحظه +
+timezone** — پس این دو تمیز با هم کار می‌کنند. شعار: _به‌شکل Temporal، با Jalali
+درجه‌یک همین امروز._
+
+پل در هر دو جهت. متدها **ساختاری** (duck-typed) و پشت یک feature detect هستند، پس
+**هیچ وابستگی سختی** به `Temporal` وجود ندارد:
+
+```ts
+// از Temporal → دوران (حتی بدون runtime دارای Temporal کار می‌کند)
+DoranDate.fromTemporal(zdt); // Temporal.ZonedDateTime → لحظه و zone آن را می‌گیرد
+DoranDate.fromTemporal(instant, { timeZone: 'Asia/Tehran' });
+DoranDate.fromTemporal(plainDateTime, { timeZone: 'UTC' }); // wall-clock در zone
+
+// از دوران → Temporal (به Temporal در runtime نیاز دارد، وگرنه throw می‌کند)
+date.toTemporal(); // Temporal.ZonedDateTime (تقویم ISO) در همان لحظه
+```
+
+`toTemporal()` یک `ZonedDateTime` در تقویم ISO (میلادی) برای همان لحظه برمی‌گرداند —
+فیلدهای جلالی یک رندرِ سمتِ دوران هستند. تا وقتی Temporal در runtime شما بیاید، برای
+تبادل از `toISOString()` / `fromGregorian` استفاده کنید.

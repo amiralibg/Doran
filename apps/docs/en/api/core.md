@@ -13,6 +13,7 @@ DoranDate.fromGregorian(date: Date, options?);
 DoranDate.fromJalali(year, month, day, options?);
 DoranDate.fromJalali({ year, month, day, hour?, minute?, second?, millisecond? }, options?);
 DoranDate.fromGregorianParts({ year, month, day, hour?, ... }, options?); // Gregorian civil fields in tz
+DoranDate.fromTemporal(instant | zonedDateTime | plainDateTime, options?); // TC39 Temporal bridge
 
 // Non-throwing variants — return DoranDate | null instead of throwing
 DoranDate.tryFromGregorian(date: Date, options?);
@@ -169,6 +170,7 @@ b.diff(a, 'day'); // 2  (number, as before)
 ```ts
 d.toGregorian(); // native Date (the underlying instant)
 d.toDate(); // alias of toGregorian()
+d.toTemporal(); // Temporal.ZonedDateTime (requires a Temporal runtime)
 d.toObject(); // Jalali fields: { year, month, day, hour, minute, second, millisecond }
 d.toGregorianParts(); // Gregorian fields in this instance's time zone
 
@@ -302,3 +304,27 @@ import { faIR, enUS, registerLocale, setDefaultLocale } from '@doranjs/core';
 ```ts
 import { toPersianDigits, toLatinDigits, normalizeDigits } from '@doranjs/core';
 ```
+
+## Doran and TC39 Temporal
+
+[TC39 Temporal](https://tc39.es/proposal-temporal/) is the platform's coming
+date-time API. Doran already shares its core model — an **immutable** value over
+a single **instant + time zone** — so the two interoperate cleanly. The pitch:
+_Temporal-shaped, with first-class Jalali today._
+
+Bridge in both directions. The methods are **structural** (duck-typed) and behind
+a feature detect, so there is **no hard dependency** on `Temporal`:
+
+```ts
+// From Temporal → Doran (works even without a Temporal runtime)
+DoranDate.fromTemporal(zdt); // Temporal.ZonedDateTime  → adopts its instant + zone
+DoranDate.fromTemporal(instant, { timeZone: 'Asia/Tehran' });
+DoranDate.fromTemporal(plainDateTime, { timeZone: 'UTC' }); // wall-clock in the zone
+
+// From Doran → Temporal (needs Temporal in the runtime, else throws)
+date.toTemporal(); // Temporal.ZonedDateTime (ISO calendar) at the same instant
+```
+
+`toTemporal()` returns a `ZonedDateTime` in the ISO (Gregorian) calendar for the
+same instant — the Jalali fields are a Doran-side rendering. Until Temporal ships
+in your runtime, keep using `toISOString()` / `fromGregorian` for interchange.

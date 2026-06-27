@@ -55,6 +55,39 @@ export interface GregorianInput {
   millisecond?: number;
 }
 
+/**
+ * Minimal structural view of the TC39 Temporal types accepted by
+ * {@link DoranDate.fromTemporal} — a `Temporal.Instant`, `ZonedDateTime`, or
+ * `PlainDateTime`. Kept structural so there is no hard dependency on Temporal.
+ */
+export interface TemporalLike {
+  epochMilliseconds?: number;
+  timeZoneId?: string;
+  timeZone?: string | { id?: string };
+  year?: number;
+  month?: number;
+  day?: number;
+  hour?: number;
+  minute?: number;
+  second?: number;
+  millisecond?: number;
+}
+
+/** Minimal structural view of a `Temporal.ZonedDateTime`, returned by {@link DoranDate.toTemporal}. */
+export interface TemporalZonedDateTime {
+  epochMilliseconds: number;
+  timeZoneId: string;
+  toString(): string;
+}
+
+function temporalZoneId(input: TemporalLike): string | undefined {
+  if (typeof input.timeZoneId === 'string') return input.timeZoneId;
+  const tz = input.timeZone;
+  if (typeof tz === 'string') return tz;
+  if (tz && typeof tz === 'object' && typeof tz.id === 'string') return tz.id;
+  return undefined;
+}
+
 const MS_PER_SECOND = 1000;
 const MS_PER_MINUTE = 60 * MS_PER_SECOND;
 const MS_PER_HOUR = 60 * MS_PER_MINUTE;
@@ -299,6 +332,42 @@ export class DoranDate {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Builds a date from a TC39 Temporal value — `Temporal.Instant`,
+   * `ZonedDateTime`, or `PlainDateTime`. Structural (duck-typed), so it works
+   * even in runtimes without `Temporal`.
+   *
+   * - `Instant` / `ZonedDateTime` → uses `epochMilliseconds` (a `ZonedDateTime`
+   *   also adopts its own time zone unless `options.timeZone` overrides).
+   * - `PlainDateTime` (wall-clock, no instant) → interpreted in `options.timeZone`.
+   */
+  static fromTemporal(input: TemporalLike, options?: DoranDateOptions): DoranDate {
+    if (typeof input.epochMilliseconds === 'number') {
+      const timeZone = options?.timeZone ?? temporalZoneId(input);
+      return DoranDate.fromEpochMs(
+        input.epochMilliseconds,
+        timeZone ? { ...options, timeZone } : options,
+      );
+    }
+    if (input.year != null && input.month != null && input.day != null) {
+      return DoranDate.fromGregorianParts(
+        {
+          year: input.year,
+          month: input.month,
+          day: input.day,
+          hour: input.hour ?? 0,
+          minute: input.minute ?? 0,
+          second: input.second ?? 0,
+          millisecond: input.millisecond ?? 0,
+        },
+        options,
+      );
+    }
+    throw new TypeError(
+      'fromTemporal expects a Temporal.Instant, ZonedDateTime, or PlainDateTime-like value.',
+    );
   }
 
   /** Validates Gregorian civil fields: real calendar date plus finite time components. */
@@ -866,6 +935,31 @@ export class DoranDate {
   /** Alias of {@link DoranDate.toGregorian}. */
   toDate(): Date {
     return this.toGregorian();
+  }
+
+  /**
+   * Converts to a `Temporal.ZonedDateTime` (ISO/Gregorian calendar) at this
+   * instant in this date's time zone. Requires a runtime with `Temporal`;
+   * throws otherwise.
+   */
+  toTemporal(): TemporalZonedDateTime {
+    const T = (
+      globalThis as {
+        Temporal?: {
+          Instant: {
+            fromEpochMilliseconds(ms: number): {
+              toZonedDateTimeISO(tz: string): TemporalZonedDateTime;
+            };
+          };
+        };
+      }
+    ).Temporal;
+    if (!T) {
+      throw new Error(
+        'Temporal is not available in this runtime. Use a Temporal polyfill, or toISOString()/toGregorian() instead.',
+      );
+    }
+    return T.Instant.fromEpochMilliseconds(this.#epochMs).toZonedDateTimeISO(this.#timeZone);
   }
 
   /** The Jalali civil fields as a plain object. */

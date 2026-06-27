@@ -12,6 +12,8 @@ export {
   type NowInput,
   type NowSource,
   type SettableUnit,
+  type TemporalLike,
+  type TemporalZonedDateTime,
 } from './doran-date';
 export { parse, parseGregorian, parseJalali, type ParseOptions } from './parse';
 export { Duration, type DurationLike, type DurationUnit } from './duration';
