@@ -1,4 +1,8 @@
+import { toPersianDigits } from './digits';
 import type { DoranDateParts, Locale, Weekday } from './types';
+
+/** Digit style for a single format call, overriding the locale's own digit mapping. */
+export type DigitStyle = 'latin' | 'persian';
 
 function pad(value: number, length = 2): string {
   return String(Math.abs(value)).padStart(length, '0');
@@ -91,10 +95,21 @@ export const TOKEN =
  *
  * Wrap literal text in square brackets (e.g. `[ساعت] H`) to prevent substitution.
  */
-export function formatParts(ctx: FormatContext, pattern: string, locale: Locale): string {
+export function formatParts(
+  ctx: FormatContext,
+  pattern: string,
+  locale: Locale,
+  digits?: DigitStyle,
+): string {
   const hour12 = ctx.hour % 12 === 0 ? 12 : ctx.hour % 12;
   const meridiem = ctx.hour < 12 ? locale.meridiem[0] : locale.meridiem[1];
-  const num = locale.formatNumber;
+  // An explicit digit style overrides the locale's own digit mapping for this call only.
+  const num =
+    digits === 'latin'
+      ? (value: string) => value
+      : digits === 'persian'
+        ? toPersianDigits
+        : locale.formatNumber;
 
   return pattern.replace(TOKEN, (match, literal: string | undefined) => {
     if (literal !== undefined) return literal;

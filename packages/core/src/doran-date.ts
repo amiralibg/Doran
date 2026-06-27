@@ -9,7 +9,7 @@ import {
   jalaliToJdn,
   jdnToJalali,
 } from './conversion';
-import { formatParts, GREGORIAN_LOCALE, type FormatContext } from './format';
+import { formatParts, GREGORIAN_LOCALE, type DigitStyle, type FormatContext } from './format';
 import { resolveLocale } from './locale';
 import { humanizeRelative } from './relative';
 import {
@@ -938,15 +938,17 @@ export class DoranDate {
    * Formats the date using the token vocabulary documented on {@link formatParts}.
    * All tokens (`YYYY`, `MM`, `DD`, `dddd`, etc.) refer to **Jalali** fields.
    * @param pattern Token pattern, e.g. `"dddd D MMMM YYYY"`.
+   * @param options `{ digits: 'latin' | 'persian' }` overrides the locale's digit
+   *   style for this call only — month/weekday names still come from the locale.
    */
-  format(pattern: string): string {
+  format(pattern: string, options?: { digits?: DigitStyle }): string {
     const p = this.#computeParts();
     const ctx: FormatContext = {
       ...p,
       weekday: this.dayOfWeek,
       offsetMs: getTimeZoneOffsetMs(this.#epochMs, this.#timeZone),
     };
-    return formatParts(ctx, pattern, this.#locale);
+    return formatParts(ctx, pattern, this.#locale, options?.digits);
   }
 
   /**

@@ -151,6 +151,7 @@ d.toMillis(); // epoch milliseconds به‌عنوان method (پریتی با da
 
 // قالب‌بندی
 d.format(pattern); // فیلدهای جلالی، مثلاً "YYYY/MM/DD"
+d.format(pattern, { digits: 'latin' | 'persian' }); // override ارقام در همان فراخوانی
 d.formatGregorian(pattern); // فیلدهای میلادی، همان مجموعهٔ token
 d.withTimeZone(tz);
 d.withLocale(locale);
@@ -200,7 +201,9 @@ const restored = DoranDate.fromGregorian(new Date(date.toISOString()));
 | `A` `a`                 | قبل/بعد از ظهر             |
 | `Z` `ZZ`                | اختلاف از UTC              |
 
-متن literal را داخل `[brackets]` بگذارید.
+متن literal را داخل `[brackets]` بگذارید. برای override سبک ارقام در یک فراخوانی بدون
+عوض‌کردن locale، آرگومان دوم `{ digits: 'latin' | 'persian' }` را به `format` بدهید —
+[Locale و ارقام](/guide/locales) را ببینید.
 
 ## Parse کردن
 

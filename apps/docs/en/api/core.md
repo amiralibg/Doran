@@ -152,6 +152,7 @@ d.toMillis(); // epoch milliseconds as a method (dayjs parity)
 
 // Formatting
 d.format(pattern); // Jalali fields, e.g. "YYYY/MM/DD"
+d.format(pattern, { digits: 'latin' | 'persian' }); // per-call digit override
 d.formatGregorian(pattern); // Gregorian fields, same token set
 d.withTimeZone(tz);
 d.withLocale(locale);
@@ -201,7 +202,9 @@ const restored = DoranDate.fromGregorian(new Date(date.toISOString()));
 | `A` `a`                 | Meridiem             |
 | `Z` `ZZ`                | UTC offset           |
 
-Wrap literal text in `[brackets]`.
+Wrap literal text in `[brackets]`. Pass `{ digits: 'latin' | 'persian' }` as a
+second argument to `format` to override digit style for one call without swapping
+the locale — see [Locales & digits](/en/guide/locales).
 
 ## Parsing
 

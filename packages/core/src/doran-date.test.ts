@@ -193,6 +193,18 @@ describe('formatting', () => {
     expect(d.format('dddd D MMMM YYYY')).toBe('Doshanbe 11 Khordad 1405');
   });
 
+  it('forces Latin digits per-call without swapping the locale', () => {
+    const d = DoranDate.fromJalali(1400, 1, 1, UTC); // fa locale → Persian digits by default
+    expect(d.format('YYYY/MM/DD', { digits: 'latin' })).toBe('1400/01/01');
+    // Names still come from the (Persian) locale; only digits change.
+    expect(d.format('D MMMM', { digits: 'latin' })).toBe('1 فروردین');
+  });
+
+  it('forces Persian digits per-call under a Latin locale', () => {
+    const d = DoranDate.fromJalali(1405, 3, 11, UTC_EN);
+    expect(d.format('YYYY/MM/DD', { digits: 'persian' })).toBe('۱۴۰۵/۰۳/۱۱');
+  });
+
   it('formats month and weekday names in Persian', () => {
     const d = DoranDate.fromJalali(1400, 1, 1, UTC);
     expect(d.format('dddd')).toBe('یکشنبه');

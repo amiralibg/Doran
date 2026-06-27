@@ -45,7 +45,7 @@ export {
 } from './conversion';
 
 // Formatting.
-export { formatParts, type FormatContext } from './format';
+export { formatParts, type DigitStyle, type FormatContext } from './format';
 
 // Digit utilities.
 export { normalizeDigits, toLatinDigits, toPersianDigits } from './digits';
