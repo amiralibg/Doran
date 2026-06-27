@@ -46,6 +46,7 @@ export default defineConfig({
               text: 'مقدمه',
               items: [
                 { text: 'شروع به کار', link: '/guide/getting-started' },
+                { text: 'چرا دوران', link: '/guide/why-doran' },
                 { text: 'Backendها و سریال‌سازی', link: '/guide/backends' },
                 { text: 'Locale و ارقام', link: '/guide/locales' },
                 { text: 'تست با دوران', link: '/guide/testing' },
@@ -112,6 +113,7 @@ export default defineConfig({
               text: 'Introduction',
               items: [
                 { text: 'Getting Started', link: '/en/guide/getting-started' },
+                { text: 'Why Doran', link: '/en/guide/why-doran' },
                 { text: 'Backends & serialization', link: '/en/guide/backends' },
                 { text: 'Locales & digits', link: '/en/guide/locales' },
                 { text: 'Testing with Doran', link: '/en/guide/testing' },

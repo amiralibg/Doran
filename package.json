@@ -29,6 +29,8 @@
   },
   "scripts": {
     "build": "turbo run build",
+    "size": "node scripts/size-check.mjs",
+    "bench": "node packages/core/bench/index.mjs",
     "dev": "turbo run dev",
     "test": "turbo run test",
     "test:watch": "turbo run test:watch",
