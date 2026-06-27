@@ -1,6 +1,6 @@
-import { isValidJalaliDate } from './conversion';
 import { normalizeDigits } from './digits';
-import { DoranDate, type JalaliInput } from './doran-date';
+import { DoranDate, type GregorianInput, type JalaliInput } from './doran-date';
+import { GREGORIAN_LOCALE } from './format';
 import { resolveLocale } from './locale';
 import type { DoranDateOptions, Locale } from './types';
 
@@ -24,11 +24,24 @@ interface CompiledFormat {
   fields: Field[];
 }
 
+/** Parsed civil fields, shared shape between {@link JalaliInput} and {@link GregorianInput}. */
+type Parts = JalaliInput & GregorianInput;
+
+/** Options for the parse functions: time zone / locale plus an optional strict toggle. */
+export interface ParseOptions extends DoranDateOptions {
+  /**
+   * When `true`, fixed-width tokens (`YYYY`, `MM`, `DD`, `HH`, `SSS`, …) must
+   * match their exact digit count, and no fallback default formats are tried.
+   * Partial / loosely-shaped input returns `null`.
+   */
+  strict?: boolean;
+}
+
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function compileFormat(format: string, locale: Locale): CompiledFormat {
+function compileFormat(format: string, locale: Locale, strict: boolean): CompiledFormat {
   const fields: Field[] = [];
   let source = '^\\s*';
 
@@ -37,6 +50,9 @@ function compileFormat(format: string, locale: Locale): CompiledFormat {
   const meridiemAlternation = [...locale.meridiem, 'AM', 'PM', 'am', 'pm']
     .map(escapeRegex)
     .join('|');
+
+  // Strict mode pins double-letter tokens to an exact width; lenient stays 1–2.
+  const d2 = strict ? '(\\d{2})' : '(\\d{1,2})';
 
   for (const match of format.matchAll(PARSE_TOKEN)) {
     const token = match[0];
@@ -49,7 +65,7 @@ function compileFormat(format: string, locale: Locale): CompiledFormat {
 
     switch (token) {
       case 'YYYY':
-        source += '(\\d{1,4})';
+        source += strict ? '(\\d{4})' : '(\\d{1,4})';
         fields.push('year');
         break;
       case 'YY':
@@ -65,37 +81,55 @@ function compileFormat(format: string, locale: Locale): CompiledFormat {
         fields.push('monthName');
         break;
       case 'MM':
+        source += d2;
+        fields.push('month');
+        break;
       case 'M':
         source += '(\\d{1,2})';
         fields.push('month');
         break;
       case 'DD':
+        source += d2;
+        fields.push('day');
+        break;
       case 'D':
         source += '(\\d{1,2})';
         fields.push('day');
         break;
       case 'HH':
+        source += d2;
+        fields.push('hour');
+        break;
       case 'H':
         source += '(\\d{1,2})';
         fields.push('hour');
         break;
       case 'hh':
+        source += d2;
+        fields.push('hour12');
+        break;
       case 'h':
         source += '(\\d{1,2})';
         fields.push('hour12');
         break;
       case 'mm':
+        source += d2;
+        fields.push('minute');
+        break;
       case 'm':
         source += '(\\d{1,2})';
         fields.push('minute');
         break;
       case 'ss':
+        source += d2;
+        fields.push('second');
+        break;
       case 's':
         source += '(\\d{1,2})';
         fields.push('second');
         break;
       case 'SSS':
-        source += '(\\d{1,3})';
+        source += strict ? '(\\d{3})' : '(\\d{1,3})';
         fields.push('ms');
         break;
       case 'A':
@@ -117,8 +151,14 @@ function isPm(value: string, locale: Locale): boolean {
   return /pm/i.test(value);
 }
 
-function applyMatch(match: RegExpExecArray, fields: Field[], locale: Locale): JalaliInput | null {
-  const input: JalaliInput = { year: NaN, month: 1, day: 1 };
+/** Extracts civil fields from a match. `yearBase` expands 2-digit years (1400 Jalali / 2000 Gregorian). */
+function extractParts(
+  match: RegExpExecArray,
+  fields: Field[],
+  locale: Locale,
+  yearBase: number,
+): Parts {
+  const input: Parts = { year: NaN, month: 1, day: 1 };
   let hour12: number | undefined;
   let pm = false;
   let hasMeridiem = false;
@@ -128,7 +168,7 @@ function applyMatch(match: RegExpExecArray, fields: Field[], locale: Locale): Ja
     switch (field) {
       case 'year': {
         const value = Number(raw);
-        input.year = raw.length <= 2 ? 1400 + value : value;
+        input.year = raw.length <= 2 ? yearBase + value : value;
         break;
       }
       case 'month':
@@ -171,13 +211,10 @@ function applyMatch(match: RegExpExecArray, fields: Field[], locale: Locale): Ja
     input.hour = hour;
   }
 
-  if (Number.isNaN(input.year) || !isValidJalaliDate(input.year, input.month, input.day)) {
-    return null;
-  }
   return input;
 }
 
-const DEFAULT_FORMATS = [
+const DEFAULT_JALALI_FORMATS = [
   'YYYY/M/D H:m:s',
   'YYYY/M/D H:m',
   'YYYY/M/D',
@@ -186,6 +223,42 @@ const DEFAULT_FORMATS = [
   'YYYY-M-D',
 ] as const;
 
+const DEFAULT_GREGORIAN_FORMATS = [
+  'YYYY-M-DTH:m:s.SSS',
+  'YYYY-M-DTH:m:s',
+  'YYYY-M-D H:m:s',
+  'YYYY-M-DTH:m',
+  'YYYY-M-D H:m',
+  'YYYY-M-D',
+  'YYYY/M/D H:m:s',
+  'YYYY/M/D',
+] as const;
+
+/** Shared engine: tries each format in turn, constructing via `build` (which validates). */
+function parseWith(
+  input: string,
+  format: string | undefined,
+  defaults: readonly string[],
+  locale: Locale,
+  yearBase: number,
+  strict: boolean,
+  build: (parts: Parts) => DoranDate | null,
+): DoranDate | null {
+  const normalized = normalizeDigits(input).trim();
+  // Strict mode never falls back to the default format list — it needs an explicit shape.
+  const formats = format ? [format] : strict ? [] : defaults;
+
+  for (const fmt of formats) {
+    const compiled = compileFormat(fmt, locale, strict);
+    const match = compiled.regex.exec(normalized);
+    if (!match) continue;
+    const date = build(extractParts(match, compiled.fields, locale, yearBase));
+    if (date) return date;
+  }
+
+  return null;
+}
+
 /**
  * Parses a Jalali date string into a {@link DoranDate}, or returns `null` if it
  * cannot be parsed.
@@ -193,32 +266,84 @@ const DEFAULT_FORMATS = [
  * @param input  The string to parse. Persian/Arabic digits are normalized first.
  * @param format Optional explicit format pattern (same tokens as {@link DoranDate.format}).
  *               When omitted, a set of common numeric formats is tried in turn.
+ * @param options Time zone / locale, plus `strict` to require an exact token-width match.
  *
  * @example
  * ```ts
  * parseJalali('1405/03/11');
  * parseJalali('۱۴۰۵-۰۳-۱۱ ۰۷:۳۰');
  * parseJalali('11 خرداد 1405', 'D MMMM YYYY');
+ * parseJalali('1405/3/1', 'YYYY/MM/DD', { strict: true }); // → null (M is one digit)
  * ```
  */
 export function parseJalali(
   input: string,
   format?: string,
-  options?: DoranDateOptions,
+  options?: ParseOptions,
 ): DoranDate | null {
   const locale = resolveLocale(options?.locale);
-  const normalized = normalizeDigits(input).trim();
-  const formats = format ? [format] : DEFAULT_FORMATS;
+  return parseWith(
+    input,
+    format,
+    DEFAULT_JALALI_FORMATS,
+    locale,
+    1400,
+    options?.strict ?? false,
+    (parts) => DoranDate.tryFromJalali(parts, options),
+  );
+}
 
-  for (const fmt of formats) {
-    const compiled = compileFormat(fmt, locale);
-    const match = compiled.regex.exec(normalized);
-    if (!match) continue;
-    const parsed = applyMatch(match, compiled.fields, locale);
-    if (parsed) {
-      return DoranDate.fromJalali(parsed, options);
-    }
-  }
+/**
+ * Parses a Gregorian date string into a {@link DoranDate}, or returns `null` if
+ * it cannot be parsed. The Gregorian counterpart to {@link parseJalali} —
+ * consistent across engines, unlike `new Date(string)`.
+ *
+ * @param input  The string to parse. Persian/Arabic digits are normalized first.
+ * @param format Optional explicit format pattern. When omitted, common ISO-style
+ *               formats are tried in turn.
+ * @param options Time zone / locale, plus `strict` to require an exact token-width match.
+ *
+ * @example
+ * ```ts
+ * parseGregorian('2026-05-31');
+ * parseGregorian('2026-05-31 10:09:05');
+ * parseGregorian('31 May 2026', 'D MMMM YYYY');
+ * parseGregorian('2026-5-31', 'YYYY-MM-DD', { strict: true }); // → null
+ * ```
+ */
+export function parseGregorian(
+  input: string,
+  format?: string,
+  options?: ParseOptions,
+): DoranDate | null {
+  // Gregorian names are always English; ignore a Jalali locale for token matching.
+  return parseWith(
+    input,
+    format,
+    DEFAULT_GREGORIAN_FORMATS,
+    GREGORIAN_LOCALE,
+    2000,
+    options?.strict ?? false,
+    (parts) => DoranDate.tryFromGregorianParts(parts, options),
+  );
+}
 
-  return null;
+/**
+ * Unified parser with explicit calendar selection. Defaults to Jalali; pass
+ * `{ calendar: 'gregorian' }` to parse Gregorian input.
+ *
+ * @example
+ * ```ts
+ * parse('1405/03/11');
+ * parse('2026-05-31', undefined, { calendar: 'gregorian' });
+ * ```
+ */
+export function parse(
+  input: string,
+  format?: string,
+  options?: ParseOptions & { calendar?: 'jalali' | 'gregorian' },
+): DoranDate | null {
+  return options?.calendar === 'gregorian'
+    ? parseGregorian(input, format, options)
+    : parseJalali(input, format, options);
 }

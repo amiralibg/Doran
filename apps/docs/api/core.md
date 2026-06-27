@@ -12,9 +12,11 @@ DoranDate.fromEpochMs(ms, options?);
 DoranDate.fromGregorian(date: Date, options?);
 DoranDate.fromJalali(year, month, day, options?);
 DoranDate.fromJalali({ year, month, day, hour?, minute?, second?, millisecond? }, options?);
+DoranDate.fromGregorianParts({ year, month, day, hour?, ... }, options?); // فیلدهای میلادی در timezone
 
 // نسخه‌های بدون throw — به‌جای throw مقدار DoranDate | null برمی‌گردانند
 DoranDate.tryFromGregorian(date: Date, options?);
+DoranDate.tryFromGregorianParts({ year, month, day, ... }, options?);
 DoranDate.tryFromJalali(year, month, day, options?);
 
 DoranDate.min(...dates); // زودترین
@@ -202,13 +204,42 @@ const restored = DoranDate.fromGregorian(new Date(date.toISOString()));
 
 ## Parse کردن
 
-```ts
-import { parseJalali } from '@doranjs/core';
+تجزیهٔ strict و lenient برای **هر دو** تقویم، با همان مجموعهٔ token که `format`
+دارد. ارقام فارسی/عربی ابتدا نرمال می‌شوند. ورودی نامعتبر `null` برمی‌گرداند (هرگز
+`Invalid Date`).
 
+```ts
+import { parse, parseJalali, parseGregorian } from '@doranjs/core';
+
+// جلالی
 parseJalali('1405/03/11');
 parseJalali('۱۴۰۵-۰۳-۱۱ ۰۷:۳۰');
 parseJalali('11 خرداد 1405', 'D MMMM YYYY'); // format صریح
+
+// میلادی — برخلاف new Date(string) بین engineها سازگار است
+parseGregorian('2026-05-31');
+parseGregorian('2026-05-31 10:09:05');
+parseGregorian('31 May 2026', 'D MMMM YYYY');
+
+// یکپارچه، با انتخاب صریح تقویم (پیش‌فرض جلالی)
+parse('1405/03/11');
+parse('2026-05-31', undefined, { calendar: 'gregorian' });
 ```
+
+### حالت strict
+
+با `{ strict: true }` تطبیق دقیقِ عرض token الزامی می‌شود و sweepِ فرمت‌های پیش‌فرض
+انجام نمی‌شود. برای رد ورودی ناقص یا بدشکل به‌کار می‌رود.
+
+```ts
+parseGregorian('2026-5-31', 'YYYY-MM-DD'); // → DoranDate (lenient: ۱ تا ۲ رقم)
+parseGregorian('2026-5-31', 'YYYY-MM-DD', { strict: true }); // → null (MM به ۲ رقم نیاز دارد)
+parseJalali('1405/3/1', 'YYYY/MM/DD', { strict: true }); // → null
+```
+
+`options` برابر `{ timeZone?, locale?, strict? }` است؛ `parse` همچنین
+`calendar?: 'jalali' | 'gregorian'` را می‌پذیرد. فیلدها به‌عنوان wall-clock در
+`timeZone` تفسیر می‌شوند.
 
 ## Primitiveهای تبدیل
 
@@ -219,6 +250,9 @@ gregorianToJdn / jalaliToJdn / jdnToGregorian / jdnToJalali;
 isLeapJalaliYear(jy);
 jalaliMonthLength(jy, jm);
 isValidJalaliDate(jy, jm, jd);
+isLeapGregorianYear(gy);
+gregorianMonthLength(gy, gm);
+isValidGregorianDate(gy, gm, gd);
 gregorianWeekday(gy, gm, gd); // ۰ = شنبه
 ```
 

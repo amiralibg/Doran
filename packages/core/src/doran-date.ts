@@ -2,6 +2,7 @@ import {
   gregorianToJalali,
   gregorianWeekday,
   isLeapJalaliYear,
+  isValidGregorianDate,
   isValidJalaliDate,
   jalaliMonthLength,
   jalaliToGregorian,
@@ -33,6 +34,17 @@ export type SettableUnit = 'year' | 'month' | 'day' | 'hour' | 'minute' | 'secon
 
 /** Object form accepted by {@link DoranDate.fromJalali}. */
 export interface JalaliInput {
+  year: number;
+  month: number;
+  day: number;
+  hour?: number;
+  minute?: number;
+  second?: number;
+  millisecond?: number;
+}
+
+/** Object form accepted by {@link DoranDate.fromGregorianParts} (month is 1–12). */
+export interface GregorianInput {
   year: number;
   month: number;
   day: number;
@@ -245,6 +257,55 @@ export class DoranDate {
       (value) => value === undefined || Number.isFinite(value),
     );
     return timeFinite && isValidJalaliDate(input.year, input.month, input.day);
+  }
+
+  /**
+   * Builds a date from Gregorian civil fields (month 1–12), interpreted in the
+   * target time zone — the Gregorian counterpart to {@link fromJalali}. Throws
+   * `RangeError` on a non-existent date (e.g. Feb 30) or non-finite fields. Use
+   * {@link tryFromGregorianParts} for a non-throwing variant.
+   */
+  static fromGregorianParts(input: GregorianInput, options?: DoranDateOptions): DoranDate {
+    if (!DoranDate.#isValidGregorianInput(input)) {
+      throw new RangeError(
+        `Invalid Gregorian date: ${input.year}/${input.month}/${input.day}. ` +
+          `Use DoranDate.tryFromGregorianParts for a non-throwing variant.`,
+      );
+    }
+    const { timeZone, locale } = resolveConfig(options);
+    const epochMs = wallClockToInstant(
+      {
+        year: input.year,
+        month: input.month,
+        day: input.day,
+        hour: input.hour ?? 0,
+        minute: input.minute ?? 0,
+        second: input.second ?? 0,
+        millisecond: input.millisecond ?? 0,
+      },
+      timeZone,
+    );
+    return new DoranDate(epochMs, timeZone, locale);
+  }
+
+  /** Like {@link fromGregorianParts}, but returns `null` instead of throwing on an invalid date. */
+  static tryFromGregorianParts(
+    input: GregorianInput,
+    options?: DoranDateOptions,
+  ): DoranDate | null {
+    try {
+      return DoranDate.fromGregorianParts(input, options);
+    } catch {
+      return null;
+    }
+  }
+
+  /** Validates Gregorian civil fields: real calendar date plus finite time components. */
+  static #isValidGregorianInput(input: GregorianInput): boolean {
+    const timeFinite = [input.hour, input.minute, input.second, input.millisecond].every(
+      (value) => value === undefined || Number.isFinite(value),
+    );
+    return timeFinite && isValidGregorianDate(input.year, input.month, input.day);
   }
 
   /** The earliest of the given dates. Throws if none are provided. */
