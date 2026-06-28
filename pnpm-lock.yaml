@@ -61,6 +61,13 @@ importers:
         version: 3.2.4(@types/node@22.19.19)(jiti@2.6.1)(jsdom@29.1.1)(yaml@2.9.0)
 
   apps/docs:
+    dependencies:
+      '@doranjs/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@doranjs/wc':
+        specifier: workspace:*
+        version: link:../../packages/wc
     devDependencies:
       '@fontsource/vazirmatn':
         specifier: ^5.2.8
