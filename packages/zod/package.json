@@ -1,0 +1,64 @@
+{
+  "name": "@doranjs/zod",
+  "version": "0.0.1",
+  "description": "Framework-agnostic zod schema for DoranDate — accepts ISO / Date / epoch / DoranDate and coerces to a DoranDate, with min/max bounds.",
+  "license": "MIT",
+  "author": "Doran Contributors",
+  "homepage": "https://github.com/amiralibg/Doran/tree/main/packages/zod#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amiralibg/Doran.git",
+    "directory": "packages/zod"
+  },
+  "bugs": {
+    "url": "https://github.com/amiralibg/Doran/issues"
+  },
+  "keywords": [
+    "persian",
+    "jalali",
+    "zod",
+    "validation",
+    "schema",
+    "forms",
+    "typescript"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo coverage"
+  },
+  "dependencies": {
+    "@doranjs/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "zod": "^3.23.0 || ^4.0.0"
+  },
+  "devDependencies": {
+    "zod": "^3.23.0"
+  }
+}

@@ -222,6 +222,16 @@ importers:
         specifier: ^29.1.1
         version: 29.1.1
 
+  packages/zod:
+    dependencies:
+      '@doranjs/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      zod:
+        specifier: ^3.23.0
+        version: 3.25.76
+
   playground:
     dependencies:
       '@doranjs/core':
@@ -3537,6 +3547,9 @@ packages:
   yocto-queue@1.2.2:
     resolution: {integrity: sha512-4LCcse/U2MHZ63HAJVE+v71o7yOdIe4cZ70Wpf8D/IyjDKYQLV5GD46B+hSTjJsvV5PztjvHoU580EftxjDZFQ==}
     engines: {node: '>=12.20'}
+
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -6884,5 +6897,7 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   yocto-queue@1.2.2: {}
+
+  zod@3.25.76: {}
 
   zwitch@2.0.4: {}

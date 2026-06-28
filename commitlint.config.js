@@ -5,7 +5,7 @@ export default {
     'scope-enum': [
       2,
       'always',
-      ['core', 'nlp', 'holidays', 'react', 'ui', 'docs', 'playground', 'repo', 'deps', 'ci'],
+      ['core', 'nlp', 'holidays', 'react', 'ui', 'zod', 'docs', 'playground', 'repo', 'deps', 'ci'],
     ],
   },
 };
