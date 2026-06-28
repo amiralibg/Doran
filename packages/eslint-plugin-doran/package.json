@@ -1,0 +1,43 @@
+{
+  "name": "eslint-plugin-doran",
+  "version": "0.0.1",
+  "description": "ESLint rules for migrating to Doran — flags moment / moment-jalaali usage.",
+  "license": "MIT",
+  "author": "Doran Contributors",
+  "homepage": "https://github.com/amiralibg/Doran/tree/main/packages/eslint-plugin-doran#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amiralibg/Doran.git",
+    "directory": "packages/eslint-plugin-doran"
+  },
+  "bugs": {
+    "url": "https://github.com/amiralibg/Doran/issues"
+  },
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "eslint-plugin",
+    "moment",
+    "jalali",
+    "persian",
+    "migration"
+  ],
+  "type": "commonjs",
+  "main": "lib/index.js",
+  "files": [
+    "lib",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "eslint": ">=8"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint lib",
+    "clean": "rm -rf .turbo coverage"
+  }
+}
