@@ -9,6 +9,7 @@ export default tseslint.config(
       '**/build/**',
       '**/coverage/**',
       '**/.turbo/**',
+      '**/.svelte-kit/**',
       '**/node_modules/**',
       '**/.vitepress/cache/**',
       '**/.vitepress/dist/**',

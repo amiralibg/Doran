@@ -11,6 +11,7 @@ export default {
         'holidays',
         'react',
         'vue',
+        'svelte',
         'ui',
         'zod',
         'docs',

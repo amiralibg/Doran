@@ -8,6 +8,7 @@ build/
 *.tsbuildinfo
 .turbo/
 coverage/
+.svelte-kit/
 
 # VitePress
 apps/docs/.vitepress/dist/

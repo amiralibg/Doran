@@ -1,0 +1,68 @@
+{
+  "name": "@doranjs/svelte",
+  "version": "0.0.1",
+  "description": "Idiomatic Svelte bindings for Doran — bind:value components over the @doranjs/wc engine, plus a headless store.",
+  "license": "MIT",
+  "author": "Doran Contributors",
+  "homepage": "https://github.com/amiralibg/Doran/tree/main/packages/svelte#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amiralibg/Doran.git",
+    "directory": "packages/svelte"
+  },
+  "bugs": {
+    "url": "https://github.com/amiralibg/Doran/issues"
+  },
+  "keywords": [
+    "svelte",
+    "sveltekit",
+    "persian",
+    "jalali",
+    "datepicker",
+    "calendar",
+    "typescript"
+  ],
+  "type": "module",
+  "svelte": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "svelte": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "svelte-package -i src/lib -o dist",
+    "dev": "svelte-package -i src/lib -o dist -w",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json",
+    "lint": "eslint src",
+    "clean": "rm -rf dist .turbo coverage"
+  },
+  "dependencies": {
+    "@doranjs/core": "workspace:*",
+    "@doranjs/wc": "workspace:*"
+  },
+  "peerDependencies": {
+    "svelte": "^4.0.0 || ^5.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/package": "^2.5.0",
+    "jsdom": "^29.1.1",
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0"
+  }
+}
