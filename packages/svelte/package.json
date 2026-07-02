@@ -1,6 +1,6 @@
 {
   "name": "@doranjs/svelte",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Idiomatic Svelte bindings for Doran — bind:value components over the @doranjs/wc engine, plus a headless store.",
   "license": "MIT",
   "author": "Doran Contributors",
