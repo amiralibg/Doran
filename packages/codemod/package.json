@@ -1,6 +1,6 @@
 {
   "name": "@doranjs/codemod",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "jscodeshift codemod that rewrites moment / moment-jalaali to @doranjs/core.",
   "license": "MIT",
   "author": "Doran Contributors",
