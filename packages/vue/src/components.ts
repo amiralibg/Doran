@@ -1,5 +1,6 @@
 import { type DoranDate } from '@doranjs/core';
 import { defineComponent, h, onMounted, type PropType, shallowRef, watch } from 'vue';
+import { type DoranDefaults, injectDoranDefaults } from './provider';
 
 /** Range value shared by the range picker — mirrors `@doranjs/react`'s shape. */
 export interface DoranDateRange {
@@ -36,6 +37,15 @@ function detail<T>(e: Event): T {
   return (e as CustomEvent<T>).detail;
 }
 
+// Merge provider defaults under the element's own attrs, so an explicit `locale`
+// attribute always wins over the provider's.
+function mergeDefaults(
+  defaults: DoranDefaults,
+  attrs: Record<string, unknown>,
+): Record<string, unknown> {
+  return defaults.locale != null ? { locale: defaults.locale, ...attrs } : attrs;
+}
+
 /** `<doran-datepicker>` — `v-model` is a `DoranDate | null`; `change` also emits the Gregorian `Date`. */
 export const DoranDatePicker = defineComponent({
   name: 'DoranDatePicker',
@@ -47,12 +57,13 @@ export const DoranDatePicker = defineComponent({
   },
   setup(props, { attrs, emit }) {
     const el = useElement<HTMLElement & { value: DoranDate | null }>(() => props.modelValue);
+    const defaults = injectDoranDefaults();
     const onChange = (e: Event) => {
       const date = detail<{ date: DoranDate | null }>(e).date;
       emit('update:modelValue', date);
       emit('change', date, date ? date.toGregorian() : null);
     };
-    return () => h('doran-datepicker', { ref: el, ...attrs, onChange });
+    return () => h('doran-datepicker', { ref: el, ...mergeDefaults(defaults, attrs), onChange });
   },
 });
 
@@ -67,12 +78,13 @@ export const DoranCalendar = defineComponent({
   },
   setup(props, { attrs, emit }) {
     const el = useElement<HTMLElement & { value: DoranDate | null }>(() => props.modelValue);
+    const defaults = injectDoranDefaults();
     const onChange = (e: Event) => {
       const date = detail<{ date: DoranDate }>(e).date;
       emit('update:modelValue', date);
       emit('change', date, date ? date.toGregorian() : null);
     };
-    return () => h('doran-calendar', { ref: el, ...attrs, onChange });
+    return () => h('doran-calendar', { ref: el, ...mergeDefaults(defaults, attrs), onChange });
   },
 });
 
@@ -92,6 +104,7 @@ export const DoranRangePicker = defineComponent({
   },
   setup(props, { attrs, emit }) {
     const el = useElement<HTMLElement & { value: DoranDateRange }>(() => props.modelValue);
+    const defaults = injectDoranDefaults();
     const onChange = (e: Event) => {
       const range = detail<DoranDateRange>(e);
       emit('update:modelValue', range);
@@ -100,7 +113,7 @@ export const DoranRangePicker = defineComponent({
         end: range.end ? range.end.toGregorian() : null,
       });
     };
-    return () => h('doran-rangepicker', { ref: el, ...attrs, onChange });
+    return () => h('doran-rangepicker', { ref: el, ...mergeDefaults(defaults, attrs), onChange });
   },
 });
 
@@ -116,10 +129,18 @@ export const DoranNlpInput = defineComponent({
   },
   setup(props, { attrs, emit }) {
     const el = useElement<HTMLElement & { value: string }>(() => props.modelValue);
+    const defaults = injectDoranDefaults();
     const onInput = (e: Event) => emit('update:modelValue', detail<{ value: string }>(e).value);
     const onResolve = (e: Event) => emit('resolve', detail<{ result: unknown }>(e).result);
     const onChange = (e: Event) => emit('change', detail<{ result: unknown }>(e).result);
-    return () => h('doran-nlp-input', { ref: el, ...attrs, onInput, onResolve, onChange });
+    return () =>
+      h('doran-nlp-input', {
+        ref: el,
+        ...mergeDefaults(defaults, attrs),
+        onInput,
+        onResolve,
+        onChange,
+      });
   },
 });
 
@@ -130,7 +151,8 @@ export const DoranAgenda = defineComponent({
   emits: { selectday: (_d: DoranDate) => true },
   setup(_props, { attrs, emit }) {
     onMounted(() => ensureElements());
+    const defaults = injectDoranDefaults();
     const onSelectday = (e: Event) => emit('selectday', detail<{ date: DoranDate }>(e).date);
-    return () => h('doran-agenda', { ...attrs, onSelectday });
+    return () => h('doran-agenda', { ...mergeDefaults(defaults, attrs), onSelectday });
   },
 });

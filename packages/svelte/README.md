@@ -63,7 +63,19 @@ For fully custom markup, the store reuses the shared `buildMonthGrid` / `navigat
 
 ## SSR (SvelteKit)
 
-The custom elements load client-side on mount (`@doranjs/wc` is SSR-guarded), so server rendering emits the inert tag and hydration upgrades it.
+The custom elements load client-side on mount (`@doranjs/wc` is SSR-guarded), so server rendering emits the inert tag and hydration upgrades it. To keep digits/tz deterministic, wrap your app (e.g. in `+layout.svelte`) in `DoranProvider` — it sets `locale`/`timeZone` for the subtree via Svelte context, request-scoped (no mutable global):
+
+```svelte
+<script lang="ts">
+  import { DoranProvider, DoranDatePicker } from '@doranjs/svelte';
+</script>
+
+<DoranProvider locale="fa" timeZone="Asia/Tehran">
+  <DoranDatePicker />
+</DoranProvider>
+```
+
+Components resolve locale as **explicit attr → provider**. See the [SSR guide](https://github.com/amiralibg/Doran/blob/main/apps/docs/en/guide/ssr.md).
 
 ---
 

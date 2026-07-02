@@ -1,6 +1,7 @@
 'use client';
 
-import { type DoranDate, getDefaultLocale, type Locale } from '@doranjs/core';
+import { type DoranDate, type Locale } from '@doranjs/core';
+import { useResolvedLocale } from './provider';
 import { CalendarIcon, cn } from '@doranjs/ui';
 import {
   useEffect,
@@ -63,7 +64,7 @@ export function DoranDatePicker({
   value,
   defaultValue,
   onChange,
-  locale = getDefaultLocale(),
+  locale: localeProp,
   format,
   placeholder = 'انتخاب تاریخ',
   min,
@@ -82,6 +83,7 @@ export function DoranDatePicker({
   arrows,
   showOutsideDays,
 }: DoranDatePickerProps) {
+  const locale = useResolvedLocale(localeProp);
   const isControlled = value !== undefined;
   const [internal, setInternal] = useState<DoranDate | null>(defaultValue ?? null);
   const selected = isControlled ? (value ?? null) : internal;

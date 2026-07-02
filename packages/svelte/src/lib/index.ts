@@ -17,3 +17,5 @@ export { default as DoranNlpInput } from './DoranNlpInput.svelte';
 export { default as DoranAgenda } from './DoranAgenda.svelte';
 export type { DoranDateRange, GregorianDateRange } from './DoranRangePicker.svelte';
 export { createCalendarGrid, type CalendarGrid } from './use-calendar-grid';
+export { default as DoranProvider } from './DoranProvider.svelte';
+export { getDoranDefaults, setDoranDefaults, type DoranDefaults } from './provider';

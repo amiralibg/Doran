@@ -10,6 +10,7 @@ import {
   DoranRangePicker,
 } from './components';
 import { useCalendarGrid } from './use-calendar-grid';
+import { DoranProvider } from './provider';
 
 describe('useCalendarGrid', () => {
   it('builds a Saturday-first grid for the cursor month', () => {
@@ -55,5 +56,27 @@ describe('components render the right custom element (SSR)', () => {
   it.each(cases)('%s → <%s>', async (_name, component, tag) => {
     const html = await renderToString(createSSRApp({ render: () => h(component) }));
     expect(html).toContain(`<${tag}`);
+  });
+});
+
+describe('DoranProvider', () => {
+  it('injects the locale attribute into a subtree component (SSR)', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () => h(DoranProvider, { locale: 'en' }, () => h(DoranDatePicker)),
+      }),
+    );
+    expect(html).toContain('locale="en"');
+  });
+
+  it('lets an explicit attr override the provider', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(DoranProvider, { locale: 'en' }, () => h(DoranDatePicker, { locale: 'fa' })),
+      }),
+    );
+    expect(html).toContain('locale="fa"');
+    expect(html).not.toContain('locale="en"');
   });
 });

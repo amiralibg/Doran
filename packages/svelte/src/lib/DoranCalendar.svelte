@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
+  import { getDoranDefaults } from './provider';
   import type { DoranDate } from '@doranjs/core';
 
   /** `bind:value` — the selected date, a `DoranDate` (or `null`). */
@@ -10,6 +11,8 @@
   const dispatch = createEventDispatcher<{
     change: { value: DoranDate | null; gregorian: Date | null };
   }>();
+  const defaults = getDoranDefaults();
+  $: attrs = defaults.locale != null ? { locale: defaults.locale, ...$$restProps } : $$restProps;
 
   onMount(async () => {
     await import('@doranjs/wc');
@@ -25,4 +28,4 @@
   }
 </script>
 
-<doran-calendar bind:this={el} on:change={onChange} {...$$restProps}></doran-calendar>
+<doran-calendar bind:this={el} on:change={onChange} {...attrs}></doran-calendar>

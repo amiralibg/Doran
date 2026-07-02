@@ -5,6 +5,7 @@ import {
   type ElementRef,
   EventEmitter,
   forwardRef,
+  inject,
   Input,
   type OnChanges,
   Output,
@@ -12,7 +13,18 @@ import {
 } from '@angular/core';
 import { type ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { type DoranDate } from '@doranjs/core';
+import { DORAN_DEFAULTS, type DoranDefaults } from './provider';
 import { detail, ensureElements } from './wc';
+
+/** Apply the resolved locale (explicit input → provider) to a custom element. */
+function applyLocale(
+  el: HTMLElement,
+  explicit: string | undefined,
+  defaults: DoranDefaults | null,
+): void {
+  const locale = explicit ?? defaults?.locale;
+  if (locale) el.setAttribute('locale', locale);
+}
 
 /** Range value shared by the range picker — mirrors `@doranjs/react`'s shape. */
 export interface DoranDateRange {
@@ -51,8 +63,12 @@ export class DoranDatePicker implements ControlValueAccessor, AfterViewInit {
   constructor() {
     ensureElements();
   }
+  @Input() locale?: string;
+  private defaults = inject(DORAN_DEFAULTS, { optional: true });
+
   ngAfterViewInit(): void {
     this.el.nativeElement.value = this.value;
+    applyLocale(this.el.nativeElement, this.locale, this.defaults);
   }
 
   writeValue(v: DoranDate | null): void {
@@ -102,8 +118,12 @@ export class DoranCalendar implements ControlValueAccessor, AfterViewInit {
   constructor() {
     ensureElements();
   }
+  @Input() locale?: string;
+  private defaults = inject(DORAN_DEFAULTS, { optional: true });
+
   ngAfterViewInit(): void {
     this.el.nativeElement.value = this.value;
+    applyLocale(this.el.nativeElement, this.locale, this.defaults);
   }
 
   writeValue(v: DoranDate | null): void {
@@ -154,8 +174,12 @@ export class DoranRangePicker implements ControlValueAccessor, AfterViewInit {
   constructor() {
     ensureElements();
   }
+  @Input() locale?: string;
+  private defaults = inject(DORAN_DEFAULTS, { optional: true });
+
   ngAfterViewInit(): void {
     this.el.nativeElement.value = this.value;
+    applyLocale(this.el.nativeElement, this.locale, this.defaults);
   }
 
   writeValue(v: DoranDateRange | null): void {
@@ -218,8 +242,12 @@ export class DoranNlpInput implements ControlValueAccessor, AfterViewInit {
   constructor() {
     ensureElements();
   }
+  @Input() locale?: string;
+  private defaults = inject(DORAN_DEFAULTS, { optional: true });
+
   ngAfterViewInit(): void {
     this.el.nativeElement.value = this.value;
+    applyLocale(this.el.nativeElement, this.locale, this.defaults);
   }
 
   writeValue(v: string | null): void {
@@ -262,13 +290,16 @@ export class DoranNlpInput implements ControlValueAccessor, AfterViewInit {
 export class DoranAgenda implements AfterViewInit, OnChanges {
   @ViewChild('el') el!: ElementRef<HTMLElement & { events: unknown }>;
   @Input() events: unknown = [];
+  @Input() locale?: string;
   @Output() selectday = new EventEmitter<DoranDate>();
+  private defaults = inject(DORAN_DEFAULTS, { optional: true });
 
   constructor() {
     ensureElements();
   }
   ngAfterViewInit(): void {
     this.el.nativeElement.events = this.events;
+    applyLocale(this.el.nativeElement, this.locale, this.defaults);
   }
   ngOnChanges(): void {
     if (this.el) this.el.nativeElement.events = this.events;

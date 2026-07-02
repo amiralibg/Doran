@@ -30,6 +30,15 @@ export {
   type YearMonth,
 } from './hooks';
 
+// SSR-safe subtree defaults.
+export {
+  DoranProvider,
+  useDoranContext,
+  useResolvedLocale,
+  type DoranDefaults,
+  type DoranProviderProps,
+} from './provider';
+
 // Components.
 export { DoranMonthView, type DoranMonthViewProps } from './month-view';
 export { DoranCalendar, type DoranCalendarProps } from './calendar';

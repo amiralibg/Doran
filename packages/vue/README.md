@@ -58,7 +58,21 @@ const { cursor, grid, next, prev, move } = useCalendarGrid();
 
 ## SSR
 
-The custom elements are loaded client-side on mount (`@doranjs/wc` is SSR-guarded), so server rendering emits the inert tag and hydration upgrades it. See the [SSR guide](https://github.com/amiralibg/Doran/blob/main/apps/docs/en/guide/migration.md) for locale/timezone determinism.
+The custom elements are loaded client-side on mount (`@doranjs/wc` is SSR-guarded), so server rendering emits the inert tag and hydration upgrades it. To keep digits/tz deterministic, wrap your app in `DoranProvider` — it sets `locale`/`timeZone` for the subtree via `provide`/`inject`, request-scoped (no mutable global):
+
+```vue
+<script setup lang="ts">
+import { DoranProvider, DoranDatePicker } from '@doranjs/vue';
+</script>
+
+<template>
+  <DoranProvider locale="fa" timeZone="Asia/Tehran">
+    <DoranDatePicker />
+  </DoranProvider>
+</template>
+```
+
+Components resolve locale as **explicit attr → provider**. See the [SSR guide](https://github.com/amiralibg/Doran/blob/main/apps/docs/en/guide/ssr.md) for locale/timezone determinism.
 
 ---
 

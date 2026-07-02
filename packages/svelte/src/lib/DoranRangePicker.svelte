@@ -13,6 +13,7 @@
 
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
+  import { getDoranDefaults } from './provider';
 
   /** `bind:value` — `{ start, end }` of `DoranDate`. */
   export let value: DoranDateRange = { start: null, end: null };
@@ -22,6 +23,8 @@
   const dispatch = createEventDispatcher<{
     change: { value: DoranDateRange; gregorian: GregorianDateRange };
   }>();
+  const defaults = getDoranDefaults();
+  $: attrs = defaults.locale != null ? { locale: defaults.locale, ...$$restProps } : $$restProps;
 
   onMount(async () => {
     await import('@doranjs/wc');
@@ -43,4 +46,4 @@
   }
 </script>
 
-<doran-rangepicker bind:this={el} on:change={onChange} {...$$restProps}></doran-rangepicker>
+<doran-rangepicker bind:this={el} on:change={onChange} {...attrs}></doran-rangepicker>

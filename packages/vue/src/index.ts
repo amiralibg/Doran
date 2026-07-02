@@ -20,3 +20,4 @@ export {
   type GregorianDateRange,
 } from './components';
 export { useCalendarGrid, type UseCalendarGrid } from './use-calendar-grid';
+export { DoranProvider, injectDoranDefaults, type DoranDefaults } from './provider';

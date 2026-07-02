@@ -52,6 +52,21 @@ const { grid, goToNextMonth, select, isSelected } = useCalendar();
 const grid = buildMonthGrid(1405, 3);
 ```
 
+## SSR (Next.js)
+
+Locale (Persian vs Latin digits) and time zone can differ between server and client, causing hydration mismatches. Wrap your app in `DoranProvider` to set subtree defaults **request-scoped** — unlike the mutable global `setDefaultLocale()`, it's SSR-safe:
+
+```tsx
+import { DoranProvider, DoranDatePicker } from '@doranjs/react';
+import { faIR } from '@doranjs/core';
+
+<DoranProvider locale={faIR} timeZone="Asia/Tehran">
+  <DoranDatePicker />
+</DoranProvider>;
+```
+
+Components resolve locale as **explicit prop → provider → global default**. See the [SSR guide](https://github.com/amiralibg/Doran/blob/main/apps/docs/en/guide/ssr.md).
+
 ## Design goals
 
 - **RTL-first** — weeks start on Saturday, layout flows right-to-left.

@@ -85,7 +85,15 @@ export class MiniCalComponent {
 
 ## SSR (Angular Universal)
 
-The custom elements load client-side on init (`@doranjs/wc` is SSR-guarded), so server rendering emits the inert tag and hydration upgrades it.
+The custom elements load client-side on init (`@doranjs/wc` is SSR-guarded), so server rendering emits the inert tag and hydration upgrades it. To keep digits/tz deterministic across the two passes, wrap your app in `DoranProvider` (`dr-provider`) — it sets `locale`/`timeZone` for the subtree via DI, request-scoped (no mutable global):
+
+```ts
+import { DoranProvider, DoranDatePicker } from '@doranjs/angular';
+// imports: [DoranProvider, DoranDatePicker]
+// template: `<dr-provider locale="fa" timeZone="Asia/Tehran"><dr-date-picker /></dr-provider>`
+```
+
+Components resolve locale as **explicit input → provider**. See the [SSR guide](https://github.com/amiralibg/Doran/blob/main/apps/docs/en/guide/ssr.md).
 
 ---
 

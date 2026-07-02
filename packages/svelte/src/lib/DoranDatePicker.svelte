@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
+  import { getDoranDefaults } from './provider';
   import type { DoranDate } from '@doranjs/core';
 
   /** `bind:value` — the selected date, a `DoranDate` (or `null`). */
@@ -10,6 +11,8 @@
   const dispatch = createEventDispatcher<{
     change: { value: DoranDate | null; gregorian: Date | null };
   }>();
+  const defaults = getDoranDefaults();
+  $: attrs = defaults.locale != null ? { locale: defaults.locale, ...$$restProps } : $$restProps;
 
   onMount(async () => {
     // @doranjs/wc auto-registers the custom elements (SSR-guarded).
@@ -27,4 +30,4 @@
   }
 </script>
 
-<doran-datepicker bind:this={el} on:change={onChange} {...$$restProps}></doran-datepicker>
+<doran-datepicker bind:this={el} on:change={onChange} {...attrs}></doran-datepicker>

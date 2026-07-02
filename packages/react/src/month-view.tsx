@@ -1,6 +1,7 @@
 'use client';
 
-import { type DoranDate, getDefaultLocale, type Locale } from '@doranjs/core';
+import { type DoranDate, type Locale } from '@doranjs/core';
+import { useResolvedLocale } from './provider';
 import { cn } from '@doranjs/ui';
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { navigateFocus, type GridNav, type MonthGrid } from './grid';
@@ -62,7 +63,7 @@ function defaultFocusDate(grid: MonthGrid, isSelected?: (day: DoranDate) => bool
  */
 export function DoranMonthView({
   grid,
-  locale = getDefaultLocale(),
+  locale: localeProp,
   onSelect,
   onMonthChange,
   isSelected,
@@ -76,6 +77,7 @@ export function DoranMonthView({
   multiselectable,
   className,
 }: DoranMonthViewProps) {
+  const locale = useResolvedLocale(localeProp);
   const gridRef = useRef<HTMLDivElement>(null);
   const [focusDate, setFocusDate] = useState<DoranDate | null>(null);
   const [isFocusWithin, setIsFocusWithin] = useState(false);

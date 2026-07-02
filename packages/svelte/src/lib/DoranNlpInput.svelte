@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
+  import { getDoranDefaults } from './provider';
 
   /** `bind:value` — the raw text the user typed. */
   export let value = '';
@@ -7,6 +8,8 @@
   let el: (HTMLElement & { value: string }) | undefined;
   let ready = false;
   const dispatch = createEventDispatcher<{ resolve: unknown; change: unknown }>();
+  const defaults = getDoranDefaults();
+  $: attrs = defaults.locale != null ? { locale: defaults.locale, ...$$restProps } : $$restProps;
 
   onMount(async () => {
     await import('@doranjs/wc');
@@ -32,5 +35,5 @@
   on:input={onInput}
   on:resolve={onResolve}
   on:change={onChange}
-  {...$$restProps}
+  {...attrs}
 ></doran-nlp-input>

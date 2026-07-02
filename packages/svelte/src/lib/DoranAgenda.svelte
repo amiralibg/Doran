@@ -1,8 +1,11 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
+  import { getDoranDefaults } from './provider';
   import type { DoranDate } from '@doranjs/core';
 
   const dispatch = createEventDispatcher<{ selectday: DoranDate }>();
+  const defaults = getDoranDefaults();
+  $: attrs = defaults.locale != null ? { locale: defaults.locale, ...$$restProps } : $$restProps;
 
   onMount(() => {
     import('@doranjs/wc');
@@ -13,4 +16,4 @@
   }
 </script>
 
-<doran-agenda on:selectday={onSelectday} {...$$restProps}></doran-agenda>
+<doran-agenda on:selectday={onSelectday} {...attrs}></doran-agenda>

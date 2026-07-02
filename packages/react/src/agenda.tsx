@@ -1,6 +1,7 @@
 'use client';
 
-import { type DoranDate, getDefaultLocale, type Locale } from '@doranjs/core';
+import { type DoranDate, type Locale } from '@doranjs/core';
+import { useResolvedLocale } from './provider';
 import { cn } from '@doranjs/ui';
 import type { ReactNode } from 'react';
 
@@ -38,11 +39,12 @@ export function DoranAgenda({
   start,
   days = 7,
   events = [],
-  locale = getDefaultLocale(),
+  locale: localeProp,
   onSelectDay,
   renderEvent,
   className,
 }: DoranAgendaProps) {
+  const locale = useResolvedLocale(localeProp);
   const startOfRange = start.startOf('day');
   const dayList = Array.from({ length: days }, (_, i) => startOfRange.addDays(i));
 
