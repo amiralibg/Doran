@@ -1,0 +1,87 @@
+# @doranjs/svelte
+
+بایندینگ‌های اصطلاحیِ **Svelte** برای دوران. با Svelte 4 و 5 کار می‌کند، از جمله SSRِ SvelteKit.
+کامپوننت‌ها wrapperهای نازکِ `bind:value` روی custom elementهای [`@doranjs/wc`](/api/wc) (موتور
+مشترک) هستند، پس منطقِ تقویم/گرید per-framework بازنویسی نمی‌شود. قرارداد تغییر با
+[`@doranjs/react`](/api/react) یکسان است: `bind:value` یک `DoranDate` حمل می‌کند و رویدادِ
+`change` **علاوه بر آن** `Date`ِ میلادی را هم گزارش می‌کند.
+
+```bash
+pnpm add @doranjs/svelte @doranjs/core svelte
+```
+
+```ts
+// استایل‌ها را یک بار بارگذاری کنید (مثلاً در layoutِ ریشه)
+import '@doranjs/wc/styles.css';
+```
+
+## کامپوننت‌ها
+
+| کامپوننت           | `bind:value`                    | detailِ `change`                         |
+| ------------------ | ------------------------------- | ---------------------------------------- |
+| `DoranDatePicker`  | `DoranDate \| null`             | `{ value, gregorian: Date \| null }`     |
+| `DoranCalendar`    | `DoranDate \| null`             | `{ value, gregorian: Date \| null }`     |
+| `DoranRangePicker` | `{ start, end }` از `DoranDate` | `{ value, gregorian: { start, end } }`   |
+| `DoranNlpInput`    | `string`                        | `resolve` / `change` با نتیجهٔ parse شده |
+| `DoranAgenda`      | —                               | `selectday` → `DoranDate`                |
+
+```svelte
+<script lang="ts">
+  import { DoranDatePicker } from '@doranjs/svelte';
+  import type { DoranDate } from '@doranjs/core';
+
+  let value: DoranDate | null = null;
+
+  function onChange(e: CustomEvent<{ value: DoranDate | null; gregorian: Date | null }>) {
+    // میلادیِ ISO را مستقیم به backend بفرستید.
+    if (e.detail.gregorian) {
+      fetch('/api/save', { body: JSON.stringify({ at: e.detail.gregorian.toISOString() }) });
+    }
+  }
+</script>
+
+<DoranDatePicker bind:value locale="fa" on:change={onChange} />
+{#if value}<p>{value.format('dddd D MMMM YYYY')}</p>{/if}
+```
+
+هر attribute‌ای که عنصرِ زیرین پشتیبانی می‌کند (`locale`، `placeholder`، `format`، `with-time`،
+`min`، `max`، …) از طریقِ `$$restProps` pass می‌شود — فهرست کامل در [`@doranjs/wc`](/api/wc).
+
+## headless — `createCalendarGrid`
+
+برای markupِ کاملاً دلخواه، این store همان `buildMonthGrid` / `navigateFocus`ِ مشترکِ
+`@doranjs/wc` را دوباره استفاده می‌کند — بدون منطقِ گریدِ per-framework:
+
+```svelte
+<script lang="ts">
+  import { createCalendarGrid } from '@doranjs/svelte';
+  const { cursor, grid, next, prev } = createCalendarGrid();
+</script>
+
+<button on:click={prev}>‹</button>
+{#each $grid.weeks as week}
+  {#each week as day}<span class:dim={!day.inCurrentMonth}>{day.day}</span>{/each}
+{/each}
+<button on:click={next}>›</button>
+```
+
+## SSR (SvelteKit)
+
+custom elementها سمتِ کلاینت هنگام mount بارگذاری می‌شوند (`@doranjs/wc` نسبت به SSR گارد شده)،
+پس رندرِ سرور تگِ inert را emit می‌کند و hydration آن را upgrade می‌کند. برای اینکه ارقام/تایم‌زون
+قطعی بمانند، برنامه را (مثلاً در `+layout.svelte`) در `DoranProvider` بپیچید — این کامپوننت
+`locale`/`timeZone` را برای subtree از طریقِ contextِ Svelte تنظیم می‌کند، request-scoped (بدون
+globalِ mutable):
+
+```svelte
+<script lang="ts">
+  import { DoranProvider, DoranDatePicker } from '@doranjs/svelte';
+</script>
+
+<DoranProvider locale="fa" timeZone="Asia/Tehran">
+  <DoranDatePicker />
+</DoranProvider>
+```
+
+کامپوننت‌ها locale را به‌ترتیبِ **attrِ صریح → provider** resolve می‌کنند. راهنمای
+[SSR](/guide/ssr) را ببینید.
