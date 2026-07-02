@@ -9,6 +9,10 @@
     "preview": "vitepress preview",
     "clean": "rm -rf .vitepress/dist .vitepress/cache .turbo"
   },
+  "dependencies": {
+    "@doranjs/core": "workspace:*",
+    "@doranjs/wc": "workspace:*"
+  },
   "devDependencies": {
     "@fontsource/vazirmatn": "^5.2.8",
     "vitepress": "^1.5.0"

@@ -9,6 +9,7 @@ export default tseslint.config(
       '**/build/**',
       '**/coverage/**',
       '**/.turbo/**',
+      '**/.svelte-kit/**',
       '**/node_modules/**',
       '**/.vitepress/cache/**',
       '**/.vitepress/dist/**',
@@ -33,6 +34,26 @@ export default tseslint.config(
     files: ['**/*.test.ts', '**/*.test.tsx', '**/*.bench.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  // CommonJS tooling (codemod transforms, ESLint plugin) — Node globals, allow require().
+  {
+    files: ['**/*.cjs', 'packages/codemod/**/*.js', 'packages/eslint-plugin-doran/**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        module: 'writable',
+        require: 'readonly',
+        process: 'readonly',
+        console: 'readonly',
+        __dirname: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
 );

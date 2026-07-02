@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { DoranDate } from './doran-date';
+import { afterEach, describe, expect, it } from 'vitest';
+import { DoranDate, freeze } from './doran-date';
 import { enUS } from './locale';
 import type { DoranDateOptions } from './types';
 
@@ -34,6 +34,37 @@ describe('DoranDate factories', () => {
     const a = DoranDate.fromJalali(1402, 8, 15, UTC);
     const b = DoranDate.fromEpochMs(a.epochMs, UTC);
     expect(b.isSame(a)).toBe(true);
+  });
+});
+
+describe('invalid-date policy', () => {
+  it('fromJalali throws on a non-existent date instead of rolling over', () => {
+    // 1404 is not a leap year, so Esfand (month 12) has only 29 days.
+    expect(() => DoranDate.fromJalali(1404, 12, 31, UTC)).toThrow(RangeError);
+    expect(() => DoranDate.fromJalali(1400, 13, 1, UTC)).toThrow(RangeError);
+    expect(() => DoranDate.fromJalali(1400, 1, 0, UTC)).toThrow(RangeError);
+  });
+
+  it('fromJalali throws on NaN / non-finite fields', () => {
+    expect(() => DoranDate.fromJalali(NaN, 1, 1, UTC)).toThrow(RangeError);
+    expect(() => DoranDate.fromJalali({ year: 1400, month: 1, day: 1, hour: NaN }, UTC)).toThrow(
+      RangeError,
+    );
+  });
+
+  it('fromEpochMs throws on NaN', () => {
+    expect(() => DoranDate.fromEpochMs(NaN, UTC)).toThrow(RangeError);
+  });
+
+  it('tryFromJalali returns null instead of throwing', () => {
+    expect(DoranDate.tryFromJalali(1404, 12, 31, UTC)).toBeNull();
+    expect(DoranDate.tryFromJalali({ year: 1400, month: 13, day: 1 }, UTC)).toBeNull();
+    expect(DoranDate.tryFromJalali(1404, 12, 29, UTC)?.day).toBe(29);
+  });
+
+  it('tryFromGregorian returns null on an invalid Date', () => {
+    expect(DoranDate.tryFromGregorian(new Date('nonsense'))).toBeNull();
+    expect(DoranDate.tryFromGregorian(new Date('2021-03-21T00:00:00Z'), UTC)?.year).toBe(1400);
   });
 });
 
@@ -160,6 +191,18 @@ describe('formatting', () => {
     const d = DoranDate.fromJalali(1405, 3, 11, UTC_EN);
     expect(d.format('YYYY/MM/DD')).toBe('1405/03/11');
     expect(d.format('dddd D MMMM YYYY')).toBe('Doshanbe 11 Khordad 1405');
+  });
+
+  it('forces Latin digits per-call without swapping the locale', () => {
+    const d = DoranDate.fromJalali(1400, 1, 1, UTC); // fa locale → Persian digits by default
+    expect(d.format('YYYY/MM/DD', { digits: 'latin' })).toBe('1400/01/01');
+    // Names still come from the (Persian) locale; only digits change.
+    expect(d.format('D MMMM', { digits: 'latin' })).toBe('1 فروردین');
+  });
+
+  it('forces Persian digits per-call under a Latin locale', () => {
+    const d = DoranDate.fromJalali(1405, 3, 11, UTC_EN);
+    expect(d.format('YYYY/MM/DD', { digits: 'persian' })).toBe('۱۴۰۵/۰۳/۱۱');
   });
 
   it('formats month and weekday names in Persian', () => {
@@ -316,6 +359,58 @@ describe('quarter token', () => {
   });
 });
 
+describe('freezable clock', () => {
+  afterEach(() => DoranDate.resetNow());
+
+  const fixed = DoranDate.fromGregorian(new Date('2021-03-21T00:00:00Z'), UTC);
+
+  it('setNow with a fixed instant freezes now() and today-dependent APIs', () => {
+    DoranDate.setNow(fixed);
+    expect(DoranDate.now(UTC).toObject()).toMatchObject({ year: 1400, month: 1, day: 1 });
+    expect(fixed.isToday()).toBe(true);
+    expect(fixed.addDays(1).isTomorrow()).toBe(true);
+    expect(fixed.addDays(-1).isYesterday()).toBe(true);
+  });
+
+  it('accepts number, Date and a function source', () => {
+    DoranDate.setNow(fixed.epochMs);
+    expect(DoranDate.now(UTC).year).toBe(1400);
+    DoranDate.setNow(new Date('2021-03-21T00:00:00Z'));
+    expect(DoranDate.now(UTC).year).toBe(1400);
+    DoranDate.setNow(() => fixed.epochMs);
+    expect(DoranDate.now(UTC).year).toBe(1400);
+  });
+
+  it('resetNow restores the real clock', () => {
+    DoranDate.setNow(fixed);
+    DoranDate.resetNow();
+    expect(DoranDate.now().year).toBeGreaterThan(1400);
+  });
+
+  it('freeze fixes now() only inside the callback and restores after', () => {
+    const before = DoranDate.now().year;
+    const result = freeze(fixed, () => DoranDate.now(UTC).year);
+    expect(result).toBe(1400);
+    expect(DoranDate.now().year).toBe(before);
+  });
+
+  it('freeze restores the clock even when the callback throws', () => {
+    expect(() =>
+      freeze(fixed, () => {
+        throw new Error('boom');
+      }),
+    ).toThrow('boom');
+    expect(DoranDate.now().year).toBeGreaterThan(1400);
+  });
+
+  it('freeze restores after an async callback settles', async () => {
+    await freeze(fixed, async () => {
+      expect(DoranDate.now(UTC).year).toBe(1400);
+    });
+    expect(DoranDate.now().year).toBeGreaterThan(1400);
+  });
+});
+
 describe('toISOString / toJSON / toGregorianISO', () => {
   // 1400/01/01 in Jalali = 2021-03-21 in Gregorian
   const d = DoranDate.fromGregorian(new Date('2021-03-21T10:30:00.000Z'), UTC);
@@ -360,6 +455,18 @@ describe('Gregorian output helpers', () => {
   it('formatGregorian formats numeric tokens', () => {
     expect(d.formatGregorian('YYYY-MM-DD')).toBe('2026-06-01');
     expect(d.formatGregorian('YYYY/MM/DD HH:mm:ss')).toBe('2026/06/01 08:00:00');
+  });
+
+  it('formatGregorian renders English name tokens with ASCII digits', () => {
+    expect(d.formatGregorian('DD MMM YYYY')).toBe('01 Jun 2026');
+    expect(d.formatGregorian('dddd D MMMM YYYY')).toBe('Monday 1 June 2026');
+    expect(d.formatGregorian('ddd dd')).toBe('Mon Mo');
+    expect(d.formatGregorian('Q')).toBe('2');
+    expect(d.formatGregorian('h:mm A')).toBe('8:00 AM');
+  });
+
+  it('formatGregorian honours escaped literals', () => {
+    expect(d.formatGregorian('[Today is] dddd')).toBe('Today is Monday');
   });
 
   it('unix returns epoch seconds', () => {

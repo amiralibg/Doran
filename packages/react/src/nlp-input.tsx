@@ -1,6 +1,7 @@
 'use client';
 
-import { DoranDate, getDefaultLocale, type Locale } from '@doranjs/core';
+import { DoranDate, type Locale } from '@doranjs/core';
+import { useResolvedLocale } from './provider';
 import {
   parse,
   suggest,
@@ -115,7 +116,7 @@ export function DoranNlpInput({
   defaultValue,
   onChange,
   onResolve,
-  locale = getDefaultLocale(),
+  locale: localeProp,
   reference,
   placeholder = 'مثلاً: جمعه ساعت ۷ شب',
   format,
@@ -125,6 +126,7 @@ export function DoranNlpInput({
   disabled,
   className,
 }: DoranNlpInputProps) {
+  const locale = useResolvedLocale(localeProp);
   const isControlled = value !== undefined;
   const [internal, setInternal] = useState(defaultValue ?? '');
   const text = isControlled ? value : internal;

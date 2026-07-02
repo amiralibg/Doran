@@ -1,0 +1,72 @@
+{
+  "name": "@doranjs/angular",
+  "version": "0.0.1",
+  "description": "Idiomatic Angular bindings for Doran — standalone components with ControlValueAccessor over the @doranjs/wc engine, plus a headless signal grid.",
+  "license": "MIT",
+  "author": "Doran Contributors",
+  "homepage": "https://github.com/amiralibg/Doran/tree/main/packages/angular#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amiralibg/Doran.git",
+    "directory": "packages/angular"
+  },
+  "bugs": {
+    "url": "https://github.com/amiralibg/Doran/issues"
+  },
+  "keywords": [
+    "angular",
+    "persian",
+    "jalali",
+    "datepicker",
+    "calendar",
+    "reactive-forms",
+    "typescript"
+  ],
+  "type": "module",
+  "module": "./dist/public-api.js",
+  "types": "./dist/public-api.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/public-api.d.ts",
+      "default": "./dist/public-api.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "ngc -p tsconfig.lib.json",
+    "dev": "ngc -p tsconfig.lib.json -w",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "ngc -p tsconfig.lib.json --noEmit",
+    "lint": "eslint src",
+    "clean": "rm -rf dist .turbo coverage"
+  },
+  "dependencies": {
+    "@doranjs/core": "workspace:*",
+    "@doranjs/wc": "workspace:*"
+  },
+  "peerDependencies": {
+    "@angular/common": "^19.0.0 || ^20.0.0",
+    "@angular/core": "^19.0.0 || ^20.0.0",
+    "@angular/forms": "^19.0.0 || ^20.0.0"
+  },
+  "devDependencies": {
+    "@angular/common": "^20.1.0",
+    "@angular/compiler": "^20.1.0",
+    "@angular/compiler-cli": "^20.1.0",
+    "@angular/core": "^20.1.0",
+    "@angular/forms": "^20.1.0",
+    "@angular/platform-browser": "^20.1.0",
+    "jsdom": "^29.1.1",
+    "rxjs": "^7.8.0",
+    "zone.js": "^0.15.0"
+  }
+}

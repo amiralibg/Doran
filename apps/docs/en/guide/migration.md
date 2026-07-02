@@ -35,6 +35,35 @@ Moving to Doran from another Persian-date library is usually a small, mechanical
 > **Months are 1-based in Doran.** `d.month === 1` is Farvardin.
 > In `moment-jalaali`, `jMonth()` is 0-based — add 1 when migrating.
 
+## Automated migration
+
+Most of the table above can run automatically.
+
+### Codemod — `@doranjs/codemod`
+
+A jscodeshift codemod that rewrites `moment` / `moment-jalaali` to `@doranjs/core`. Anything it can't safely convert is **reported**, never silently changed:
+
+```bash
+npx @doranjs/codemod "src/**/*.{ts,tsx}"
+npx @doranjs/codemod src --dry --print   # preview without writing
+```
+
+Handles: the import, `moment()` → `DoranDate.now()`, `moment(x)` → `DoranDate.fromGregorian(new Date(x))`, `.format('jYYYY/jMM/jDD')` → `.format('YYYY/MM/DD')`, Gregorian patterns → `.formatGregorian(...)`, `.utc().format()` → `.toISOString()`, and drops `moment.loadPersian()`. The 1:1 methods (`fromNow` / `diff` / `isBefore` / …) keep working on the rewritten value. A calendar parse (`moment(value, format)`) is flagged for manual review.
+
+### ESLint rule — `eslint-plugin-doran`
+
+Keep `moment` from creeping back after the migration:
+
+```js
+// eslint.config.js
+import doran from 'eslint-plugin-doran';
+
+export default [doran.configs.recommended];
+// or manually: { plugins: { doran }, rules: { 'doran/no-moment': 'error' } }
+```
+
+The `no-moment` rule flags every `moment`/`moment-jalaali` import and `moment(...)` / `momentj(...)` call with a suggested Doran equivalent.
+
 ## From `moment-jalaali`
 
 ```ts

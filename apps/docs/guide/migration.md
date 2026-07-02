@@ -33,6 +33,41 @@
 > **ماه‌ها در دوران ۱-based هستند.** `d.month === 1` یعنی فروردین.
 > در `moment-jalaali`، `jMonth()` صفر-based است — هنگام مهاجرت یک واحد اضافه کنید.
 
+## مهاجرت خودکار
+
+بیشتر این جدول را می‌توان خودکار اجرا کرد.
+
+### codemod — `@doranjs/codemod`
+
+یک codemod مبتنی بر jscodeshift که `moment` / `moment-jalaali` را به `@doranjs/core`
+بازنویسی می‌کند. هرچه را نتواند با اطمینان تبدیل کند، گزارش می‌دهد (بی‌صدا چیزی را تغییر نمی‌دهد):
+
+```bash
+npx @doranjs/codemod "src/**/*.{ts,tsx}"
+npx @doranjs/codemod src --dry --print   # پیش‌نمایش بدون نوشتن
+```
+
+تبدیل‌ها: import، `moment()` → `DoranDate.now()`، `moment(x)` → `DoranDate.fromGregorian(new Date(x))`،
+`.format('jYYYY/jMM/jDD')` → `.format('YYYY/MM/DD')`، format میلادی → `.formatGregorian(...)`،
+`.utc().format()` → `.toISOString()`، و حذف `moment.loadPersian()`. متدهای ۱-به-۱
+(`fromNow` / `diff` / `isBefore` / …) روی نتیجه به‌درستی کار می‌کنند. parseِ تقویمی
+(`moment(value, format)`) برای بازبینی دستی علامت‌گذاری می‌شود.
+
+### قانون ESLint — `eslint-plugin-doran`
+
+برای جلوگیری از بازگشت `moment` پس از مهاجرت:
+
+```js
+// eslint.config.js
+import doran from 'eslint-plugin-doran';
+
+export default [doran.configs.recommended];
+// یا دستی: { plugins: { doran }, rules: { 'doran/no-moment': 'error' } }
+```
+
+قانون `no-moment` هر import یا فراخوانی `moment(...)` / `momentj(...)` را با معادل
+پیشنهادی دوران علامت‌گذاری می‌کند.
+
 ## از `moment-jalaali`
 
 ```ts

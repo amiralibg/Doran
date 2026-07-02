@@ -2,13 +2,15 @@ import {
   gregorianToJalali,
   gregorianWeekday,
   isLeapJalaliYear,
+  isValidGregorianDate,
   isValidJalaliDate,
   jalaliMonthLength,
   jalaliToGregorian,
   jalaliToJdn,
   jdnToJalali,
 } from './conversion';
-import { formatOffset, formatParts, TOKEN, type FormatContext } from './format';
+import { Duration } from './duration';
+import { formatParts, GREGORIAN_LOCALE, type DigitStyle, type FormatContext } from './format';
 import { resolveLocale } from './locale';
 import { humanizeRelative } from './relative';
 import {
@@ -42,6 +44,50 @@ export interface JalaliInput {
   millisecond?: number;
 }
 
+/** Object form accepted by {@link DoranDate.fromGregorianParts} (month is 1–12). */
+export interface GregorianInput {
+  year: number;
+  month: number;
+  day: number;
+  hour?: number;
+  minute?: number;
+  second?: number;
+  millisecond?: number;
+}
+
+/**
+ * Minimal structural view of the TC39 Temporal types accepted by
+ * {@link DoranDate.fromTemporal} — a `Temporal.Instant`, `ZonedDateTime`, or
+ * `PlainDateTime`. Kept structural so there is no hard dependency on Temporal.
+ */
+export interface TemporalLike {
+  epochMilliseconds?: number;
+  timeZoneId?: string;
+  timeZone?: string | { id?: string };
+  year?: number;
+  month?: number;
+  day?: number;
+  hour?: number;
+  minute?: number;
+  second?: number;
+  millisecond?: number;
+}
+
+/** Minimal structural view of a `Temporal.ZonedDateTime`, returned by {@link DoranDate.toTemporal}. */
+export interface TemporalZonedDateTime {
+  epochMilliseconds: number;
+  timeZoneId: string;
+  toString(): string;
+}
+
+function temporalZoneId(input: TemporalLike): string | undefined {
+  if (typeof input.timeZoneId === 'string') return input.timeZoneId;
+  const tz = input.timeZone;
+  if (typeof tz === 'string') return tz;
+  if (tz && typeof tz === 'object' && typeof tz.id === 'string') return tz.id;
+  return undefined;
+}
+
 const MS_PER_SECOND = 1000;
 const MS_PER_MINUTE = 60 * MS_PER_SECOND;
 const MS_PER_HOUR = 60 * MS_PER_MINUTE;
@@ -57,6 +103,25 @@ function resolveConfig(options?: DoranDateOptions): ResolvedConfig {
     timeZone: options?.timeZone ?? getSystemTimeZone(),
     locale: resolveLocale(options?.locale),
   };
+}
+
+/** A fixed instant accepted by {@link DoranDate.setNow} / {@link freeze}. */
+export type NowInput = number | Date | DoranDate;
+/** A clock source: a fixed instant, or a function re-evaluated on every `now` read. */
+export type NowSource = NowInput | (() => NowInput);
+
+/** The injected clock, or `null` to use the real `Date.now()`. Module-private. */
+let nowSource: NowSource | null = null;
+
+function nowInputToMs(value: NowInput): number {
+  if (typeof value === 'number') return value;
+  if (value instanceof Date) return value.getTime();
+  return value.epochMs; // DoranDate
+}
+
+function currentEpochMs(): number {
+  if (nowSource === null) return Date.now();
+  return nowInputToMs(typeof nowSource === 'function' ? nowSource() : nowSource);
 }
 
 /**
@@ -91,19 +156,47 @@ export class DoranDate {
   // Factories
   // ---------------------------------------------------------------------------
 
-  /** The current instant. */
+  /**
+   * The current instant. Reads the injected clock when one is set via
+   * {@link setNow} / {@link freeze}, otherwise the real `Date.now()`. Every
+   * `now`-dependent API (`today`, `isToday`, `fromNow`, …) routes through here.
+   */
   static now(options?: DoranDateOptions): DoranDate {
     const { timeZone, locale } = resolveConfig(options);
-    return new DoranDate(Date.now(), timeZone, locale);
+    return new DoranDate(currentEpochMs(), timeZone, locale);
   }
 
-  /** Builds a date from epoch milliseconds (UTC). */
+  /**
+   * Overrides what {@link now} returns — for deterministic tests, without
+   * monkey-patching the global `Date`. Pass a fixed instant to freeze the clock,
+   * or a function (re-evaluated each read) for a controllable clock.
+   *
+   * @example
+   * ```ts
+   * DoranDate.setNow(DoranDate.fromJalali(1405, 1, 1)); // frozen
+   * DoranDate.setNow(() => Date.now() + 3600_000);      // always +1h
+   * DoranDate.resetNow();                                // back to real time
+   * ```
+   */
+  static setNow(source: NowSource): void {
+    nowSource = source;
+  }
+
+  /** Restores {@link now} to the real `Date.now()`. */
+  static resetNow(): void {
+    nowSource = null;
+  }
+
+  /** Builds a date from epoch milliseconds (UTC). Throws `RangeError` on `NaN`/non-finite input. */
   static fromEpochMs(epochMs: number, options?: DoranDateOptions): DoranDate {
+    if (!Number.isFinite(epochMs)) {
+      throw new RangeError(`Cannot construct a DoranDate from a non-finite epoch: ${epochMs}.`);
+    }
     const { timeZone, locale } = resolveConfig(options);
     return new DoranDate(epochMs, timeZone, locale);
   }
 
-  /** Builds a date from a native JavaScript `Date` (interpreted as an instant). */
+  /** Builds a date from a native JavaScript `Date` (interpreted as an instant). Throws on an invalid `Date`. */
   static fromGregorian(date: Date, options?: DoranDateOptions): DoranDate {
     const ms = date.getTime();
     if (Number.isNaN(ms)) {
@@ -113,7 +206,18 @@ export class DoranDate {
     return new DoranDate(ms, timeZone, locale);
   }
 
-  /** Builds a date from Jalali civil fields, interpreted in the target time zone. */
+  /** Like {@link fromGregorian}, but returns `null` instead of throwing on an invalid `Date`. */
+  static tryFromGregorian(date: Date, options?: DoranDateOptions): DoranDate | null {
+    return Number.isNaN(date.getTime()) ? null : DoranDate.fromGregorian(date, options);
+  }
+
+  /**
+   * Builds a date from Jalali civil fields, interpreted in the target time zone.
+   *
+   * Throws `RangeError` on a non-existent date (e.g. Esfand 31 in a non-leap year)
+   * or non-finite fields — it never silently rolls over into the next month. Use
+   * {@link tryFromJalali} for a non-throwing variant.
+   */
   static fromJalali(
     year: number,
     month: number,
@@ -142,9 +246,136 @@ export class DoranDate {
       options = optionsArg;
     }
 
+    if (!DoranDate.#isValidInput(input)) {
+      throw new RangeError(
+        `Invalid Jalali date: ${input.year}/${input.month}/${input.day}. ` +
+          `Use DoranDate.tryFromJalali for a non-throwing variant.`,
+      );
+    }
+
     const { timeZone, locale } = resolveConfig(options);
     const epochMs = DoranDate.#jalaliToInstant(input, timeZone);
     return new DoranDate(epochMs, timeZone, locale);
+  }
+
+  /** Like {@link fromJalali}, but returns `null` instead of throwing on an invalid date. */
+  static tryFromJalali(
+    year: number,
+    month: number,
+    day: number,
+    options?: DoranDateOptions,
+  ): DoranDate | null;
+  static tryFromJalali(input: JalaliInput, options?: DoranDateOptions): DoranDate | null;
+  static tryFromJalali(
+    yearOrInput: number | JalaliInput,
+    monthOrOptions?: number | DoranDateOptions,
+    dayArg?: number,
+    optionsArg?: DoranDateOptions,
+  ): DoranDate | null {
+    try {
+      // Forward the same overloaded arguments unchanged.
+      return DoranDate.fromJalali(
+        yearOrInput as number,
+        monthOrOptions as number,
+        dayArg as number,
+        optionsArg,
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  /** Validates Jalali civil fields: real calendar date plus finite time components. */
+  static #isValidInput(input: JalaliInput): boolean {
+    const timeFinite = [input.hour, input.minute, input.second, input.millisecond].every(
+      (value) => value === undefined || Number.isFinite(value),
+    );
+    return timeFinite && isValidJalaliDate(input.year, input.month, input.day);
+  }
+
+  /**
+   * Builds a date from Gregorian civil fields (month 1–12), interpreted in the
+   * target time zone — the Gregorian counterpart to {@link fromJalali}. Throws
+   * `RangeError` on a non-existent date (e.g. Feb 30) or non-finite fields. Use
+   * {@link tryFromGregorianParts} for a non-throwing variant.
+   */
+  static fromGregorianParts(input: GregorianInput, options?: DoranDateOptions): DoranDate {
+    if (!DoranDate.#isValidGregorianInput(input)) {
+      throw new RangeError(
+        `Invalid Gregorian date: ${input.year}/${input.month}/${input.day}. ` +
+          `Use DoranDate.tryFromGregorianParts for a non-throwing variant.`,
+      );
+    }
+    const { timeZone, locale } = resolveConfig(options);
+    const epochMs = wallClockToInstant(
+      {
+        year: input.year,
+        month: input.month,
+        day: input.day,
+        hour: input.hour ?? 0,
+        minute: input.minute ?? 0,
+        second: input.second ?? 0,
+        millisecond: input.millisecond ?? 0,
+      },
+      timeZone,
+    );
+    return new DoranDate(epochMs, timeZone, locale);
+  }
+
+  /** Like {@link fromGregorianParts}, but returns `null` instead of throwing on an invalid date. */
+  static tryFromGregorianParts(
+    input: GregorianInput,
+    options?: DoranDateOptions,
+  ): DoranDate | null {
+    try {
+      return DoranDate.fromGregorianParts(input, options);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Builds a date from a TC39 Temporal value — `Temporal.Instant`,
+   * `ZonedDateTime`, or `PlainDateTime`. Structural (duck-typed), so it works
+   * even in runtimes without `Temporal`.
+   *
+   * - `Instant` / `ZonedDateTime` → uses `epochMilliseconds` (a `ZonedDateTime`
+   *   also adopts its own time zone unless `options.timeZone` overrides).
+   * - `PlainDateTime` (wall-clock, no instant) → interpreted in `options.timeZone`.
+   */
+  static fromTemporal(input: TemporalLike, options?: DoranDateOptions): DoranDate {
+    if (typeof input.epochMilliseconds === 'number') {
+      const timeZone = options?.timeZone ?? temporalZoneId(input);
+      return DoranDate.fromEpochMs(
+        input.epochMilliseconds,
+        timeZone ? { ...options, timeZone } : options,
+      );
+    }
+    if (input.year != null && input.month != null && input.day != null) {
+      return DoranDate.fromGregorianParts(
+        {
+          year: input.year,
+          month: input.month,
+          day: input.day,
+          hour: input.hour ?? 0,
+          minute: input.minute ?? 0,
+          second: input.second ?? 0,
+          millisecond: input.millisecond ?? 0,
+        },
+        options,
+      );
+    }
+    throw new TypeError(
+      'fromTemporal expects a Temporal.Instant, ZonedDateTime, or PlainDateTime-like value.',
+    );
+  }
+
+  /** Validates Gregorian civil fields: real calendar date plus finite time components. */
+  static #isValidGregorianInput(input: GregorianInput): boolean {
+    const timeFinite = [input.hour, input.minute, input.second, input.millisecond].every(
+      (value) => value === undefined || Number.isFinite(value),
+    );
+    return timeFinite && isValidGregorianDate(input.year, input.month, input.day);
   }
 
   /** The earliest of the given dates. Throws if none are provided. */
@@ -597,9 +828,19 @@ export class DoranDate {
   /**
    * Difference between this date and `other`, expressed in `unit`. The result is
    * positive when this date is later. By default it is truncated to an integer;
-   * pass `float = true` for a fractional result.
+   * pass `float = true` for a fractional result. Pass `unit: 'duration'` to get a
+   * {@link Duration} broken down into years/months/…/milliseconds instead.
    */
-  diff(other: DoranDate, unit: DiffUnit = 'millisecond', float = false): number {
+  diff(other: DoranDate, unit: 'duration'): Duration;
+  diff(other: DoranDate, unit?: DiffUnit, float?: boolean): number;
+  diff(
+    other: DoranDate,
+    unit: DiffUnit | 'duration' = 'millisecond',
+    float = false,
+  ): number | Duration {
+    if (unit === 'duration') {
+      return Duration.fromMillis(this.#epochMs - other.#epochMs);
+    }
     if (unit === 'year' || unit === 'quarter' || unit === 'month') {
       const a = this.#computeParts();
       const b = other.#computeParts();
@@ -696,6 +937,31 @@ export class DoranDate {
     return this.toGregorian();
   }
 
+  /**
+   * Converts to a `Temporal.ZonedDateTime` (ISO/Gregorian calendar) at this
+   * instant in this date's time zone. Requires a runtime with `Temporal`;
+   * throws otherwise.
+   */
+  toTemporal(): TemporalZonedDateTime {
+    const T = (
+      globalThis as {
+        Temporal?: {
+          Instant: {
+            fromEpochMilliseconds(ms: number): {
+              toZonedDateTimeISO(tz: string): TemporalZonedDateTime;
+            };
+          };
+        };
+      }
+    ).Temporal;
+    if (!T) {
+      throw new Error(
+        'Temporal is not available in this runtime. Use a Temporal polyfill, or toISOString()/toGregorian() instead.',
+      );
+    }
+    return T.Instant.fromEpochMilliseconds(this.#epochMs).toZonedDateTimeISO(this.#timeZone);
+  }
+
   /** The Jalali civil fields as a plain object. */
   toObject(): DoranDateParts {
     return { ...this.#computeParts() };
@@ -777,70 +1043,68 @@ export class DoranDate {
    * Formats the date using the token vocabulary documented on {@link formatParts}.
    * All tokens (`YYYY`, `MM`, `DD`, `dddd`, etc.) refer to **Jalali** fields.
    * @param pattern Token pattern, e.g. `"dddd D MMMM YYYY"`.
+   * @param options `{ digits: 'latin' | 'persian' }` overrides the locale's digit
+   *   style for this call only — month/weekday names still come from the locale.
    */
-  format(pattern: string): string {
+  format(pattern: string, options?: { digits?: DigitStyle }): string {
     const p = this.#computeParts();
     const ctx: FormatContext = {
       ...p,
       weekday: this.dayOfWeek,
       offsetMs: getTimeZoneOffsetMs(this.#epochMs, this.#timeZone),
     };
-    return formatParts(ctx, pattern, this.#locale);
+    return formatParts(ctx, pattern, this.#locale, options?.digits);
   }
 
   /**
    * Formats the date using **Gregorian** calendar fields with the same token
-   * vocabulary as {@link format}.
-   *
-   * Numeric tokens (`YYYY`, `MM`, `DD`, `HH`, `mm`, `ss`, `SSS`, `Z`, `ZZ`) work
-   * as expected. Name tokens (`MMMM`, `dddd`, etc.) are not supported — use
-   * `Intl.DateTimeFormat` on `toGregorian()` for Gregorian month/weekday names.
+   * vocabulary as {@link format}. Names render in English and digits stay Latin
+   * (ASCII), so the output is safe to send to a backend.
    *
    * @example
    * ```ts
    * date.formatGregorian('YYYY-MM-DD HH:mm') // "2026-05-31 10:09"
+   * date.formatGregorian('DD MMM YYYY')      // "31 May 2026"
    * ```
    */
   formatGregorian(pattern: string): string {
     const g = instantToWallClock(this.#epochMs, this.#timeZone);
-    const offsetMs = getTimeZoneOffsetMs(this.#epochMs, this.#timeZone);
-    const pad = (n: number, len = 2) => String(n).padStart(len, '0');
-    return pattern.replace(new RegExp(TOKEN.source, 'g'), (match, literal: string | undefined) => {
-      if (literal !== undefined) return literal;
-      switch (match) {
-        case 'YYYY':
-          return pad(g.year, 4);
-        case 'YY':
-          return pad(g.year % 100);
-        case 'MM':
-          return pad(g.month);
-        case 'M':
-          return String(g.month);
-        case 'DD':
-          return pad(g.day);
-        case 'D':
-          return String(g.day);
-        case 'HH':
-          return pad(g.hour);
-        case 'H':
-          return String(g.hour);
-        case 'mm':
-          return pad(g.minute);
-        case 'm':
-          return String(g.minute);
-        case 'ss':
-          return pad(g.second);
-        case 's':
-          return String(g.second);
-        case 'SSS':
-          return pad(g.millisecond, 3);
-        case 'Z':
-          return formatOffset(offsetMs, true);
-        case 'ZZ':
-          return formatOffset(offsetMs, false);
-        default:
-          return match;
-      }
-    });
+    const ctx: FormatContext = {
+      ...g,
+      weekday: this.dayOfWeek,
+      offsetMs: getTimeZoneOffsetMs(this.#epochMs, this.#timeZone),
+    };
+    return formatParts(ctx, pattern, GREGORIAN_LOCALE);
   }
+}
+
+/**
+ * Runs `fn` with {@link DoranDate.now} frozen at `instant`, then restores the
+ * previous clock — even if `fn` throws. If `fn` returns a promise, the clock is
+ * restored when it settles, so `await freeze(...)` works too. Nests safely.
+ *
+ * @example
+ * ```ts
+ * freeze(DoranDate.fromJalali(1405, 1, 1), () => {
+ *   expect(DoranDate.now().format('YYYY/MM/DD')).toBe('۱۴۰۵/۰۱/۰۱');
+ * });
+ * ```
+ */
+export function freeze<T>(instant: NowInput, fn: () => T): T {
+  const previous = nowSource;
+  nowSource = instant;
+  let result: T;
+  try {
+    result = fn();
+  } catch (error) {
+    nowSource = previous;
+    throw error;
+  }
+  if (result != null && typeof (result as { then?: unknown }).then === 'function') {
+    return (result as unknown as Promise<unknown>).finally(() => {
+      nowSource = previous;
+    }) as unknown as T;
+  }
+  nowSource = previous;
+  return result;
 }

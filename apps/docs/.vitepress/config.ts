@@ -8,6 +8,15 @@ export default defineConfig({
   lastUpdated: true,
   cleanUrls: true,
 
+  // The playground embeds Doran's web components (<doran-datepicker> …).
+  vue: {
+    template: {
+      compilerOptions: {
+        isCustomElement: (tag) => tag.startsWith('doran-'),
+      },
+    },
+  },
+
   // Farsi is the default (root) locale; English lives under /en/.
   locales: {
     root: {
@@ -20,6 +29,7 @@ export default defineConfig({
         nav: [
           { text: 'راهنما', link: '/guide/getting-started' },
           { text: 'API', link: '/api/core' },
+          { text: 'پلی‌گراند', link: '/playground' },
           { text: 'نمونه‌ها', link: '/examples' },
           {
             text: 'دموها',
@@ -46,7 +56,12 @@ export default defineConfig({
               text: 'مقدمه',
               items: [
                 { text: 'شروع به کار', link: '/guide/getting-started' },
+                { text: 'چرا دوران', link: '/guide/why-doran' },
+                { text: 'Backendها و سریال‌سازی', link: '/guide/backends' },
+                { text: 'Locale و ارقام', link: '/guide/locales' },
+                { text: 'تست با دوران', link: '/guide/testing' },
                 { text: 'معماری', link: '/guide/architecture' },
+                { text: 'دوران با SSR', link: '/guide/ssr' },
                 { text: 'راهنمای مهاجرت', link: '/guide/migration' },
               ],
             },
@@ -83,6 +98,7 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/en/guide/getting-started' },
           { text: 'API', link: '/en/api/core' },
+          { text: 'Playground', link: '/en/playground' },
           { text: 'Examples', link: '/en/examples' },
           {
             text: 'Demos',
@@ -109,7 +125,12 @@ export default defineConfig({
               text: 'Introduction',
               items: [
                 { text: 'Getting Started', link: '/en/guide/getting-started' },
+                { text: 'Why Doran', link: '/en/guide/why-doran' },
+                { text: 'Backends & serialization', link: '/en/guide/backends' },
+                { text: 'Locales & digits', link: '/en/guide/locales' },
+                { text: 'Testing with Doran', link: '/en/guide/testing' },
                 { text: 'Architecture', link: '/en/guide/architecture' },
+                { text: 'Doran with SSR', link: '/en/guide/ssr' },
                 { text: 'Migration Guide', link: '/en/guide/migration' },
               ],
             },

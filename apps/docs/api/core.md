@@ -12,13 +12,49 @@ DoranDate.fromEpochMs(ms, options?);
 DoranDate.fromGregorian(date: Date, options?);
 DoranDate.fromJalali(year, month, day, options?);
 DoranDate.fromJalali({ year, month, day, hour?, minute?, second?, millisecond? }, options?);
+DoranDate.fromGregorianParts({ year, month, day, hour?, ... }, options?); // فیلدهای میلادی در timezone
+DoranDate.fromTemporal(instant | zonedDateTime | plainDateTime, options?); // پل TC39 Temporal
+
+// نسخه‌های بدون throw — به‌جای throw مقدار DoranDate | null برمی‌گردانند
+DoranDate.tryFromGregorian(date: Date, options?);
+DoranDate.tryFromGregorianParts({ year, month, day, ... }, options?);
+DoranDate.tryFromJalali(year, month, day, options?);
 
 DoranDate.min(...dates); // زودترین
 DoranDate.max(...dates); // دیرترین
 DoranDate.isValid(year, month, day); // boolean
+
+// کلاک قابل‌فریز برای تست‌های قطعی (بدون دستکاری Date سراسری)
+DoranDate.setNow(source); // number | Date | DoranDate | (() => اینها)
+DoranDate.resetNow();
+freeze(instant, fn); // هِلپر مستقل — درون fn مقدار now() را فریز و سپس بازمی‌گرداند
 ```
 
-`options` برابر `{ timeZone?: string; locale?: string | Locale }` است.
+`options` برابر `{ timeZone?: string; locale?: string | Locale }` است. برای دستور کلاک
+قابل‌فریز [تست با دوران](/guide/testing) را ببینید.
+
+### مدیریت تاریخ‌های نامعتبر
+
+دوران هرگز `Invalid Date` خاموش تولید نمی‌کند. سیاست بر اساس منشأ ورودی تقسیم می‌شود:
+
+- **سازنده‌ها (constructors) `RangeError` پرتاب می‌کنند** روی ورودی نامعتبر — این فیلدها را شما
+  کنترل می‌کنید، پس مقدار بد یک باگ است که باید فوراً دیده شود. `fromJalali` تاریخ تقویمی را
+  اعتبارسنجی می‌کند و **هرگز سرریز نمی‌شود**: ۳۱ اسفند در سال غیرکبیسه throw می‌کند، نه اینکه به
+  ۱ فروردین تبدیل شود.
+- **سازنده‌های `try*` مقدار `null` برمی‌گردانند** وقتی می‌خواهید به‌جای catch شاخه بزنید:
+  `tryFromJalali`، `tryFromGregorian`.
+- **`parseJalali` مقدار `null` برمی‌گرداند** برای رشته‌های غیرقابل‌تجزیه یا خارج از بازه — تجزیهٔ
+  متن نامطمئن طبیعتاً گاهی شکست می‌خورد.
+
+```ts
+DoranDate.fromJalali(1404, 12, 31); // ❌ RangeError پرتاب می‌کند (۱۴۰۴ کبیسه نیست)
+DoranDate.tryFromJalali(1404, 12, 31); // ← null
+DoranDate.fromGregorian(new Date('nope')); // ❌ RangeError پرتاب می‌کند
+DoranDate.tryFromGregorian(new Date('nope')); // ← null
+parseJalali('not a date'); // ← null
+
+DoranDate.isValid(1404, 12, 31); // ← false (پیش از ساختن بررسی کنید)
+```
 
 ### Accessorها
 
@@ -97,11 +133,42 @@ durationToHuman(3600, 'en-US'); // "an hour"
 durationToHuman(90 * 60, faIR); // "۲ ساعت"
 ```
 
+#### `Duration` — نوع مدت‌زمان تغییرناپذیر
+
+یک مدت‌زمان کوچک و immutable برای محاسبات، مقایسه و تبدیل واحد (پریتی با
+moment.duration / luxon Duration). tree-shakeable — فقط جایی که لازم است import کنید.
+
+```ts
+import { Duration } from '@doranjs/core';
+
+const d = new Duration({ hours: 1, minutes: 30 });
+d.as('minute'); // 90
+d.as('hour'); // 1.5
+d.add({ minutes: 30 }).as('hour'); // 2
+d.subtract({ minutes: 30 }).as('hour'); // 1
+d.humanize(); // "یک ساعت" / "an hour" (مقدار، بدون پسوند)
+
+Duration.fromMillis(90 * 60_000).toObject(); // { hours: 1, minutes: 30, ... }
+new Duration({ hours: 2 }) > new Duration({ hours: 1 }); // true (valueOf = کل میلی‌ثانیه)
+```
+
+`as` / `toMillis` برای واحدهای طول‌متغیر از میانگین ثابت استفاده می‌کنند — هر ماه ۳۰
+روز و هر سال ۳۶۵ روز، مطابق moment/luxon برای durationهای anchor‌نشده. برای deltaی
+تقویمی دقیق (طول واقعی ماه/سال) از محاسبات `DoranDate` و `diff` استفاده کنید.
+
+`diff` می‌تواند یک `Duration` تجزیه‌شده به فیلدها برگرداند:
+
+```ts
+b.diff(a, 'duration'); // Duration { days: 2, hours: 3, minutes: 30, ... }
+b.diff(a, 'day'); // 2  (عدد، مثل قبل)
+```
+
 ### تبدیل و قالب‌بندی
 
 ```ts
 d.toGregorian(); // Date نیتیو (لحظهٔ زیرین)
 d.toDate(); // نام مستعار toGregorian()
+d.toTemporal(); // Temporal.ZonedDateTime (به runtime دارای Temporal نیاز دارد)
 d.toObject(); // فیلدهای جلالی: { year, month, day, hour, minute, second, millisecond }
 d.toGregorianParts(); // فیلدهای میلادی در timezone این نمونه
 
@@ -116,6 +183,7 @@ d.toMillis(); // epoch milliseconds به‌عنوان method (پریتی با da
 
 // قالب‌بندی
 d.format(pattern); // فیلدهای جلالی، مثلاً "YYYY/MM/DD"
+d.format(pattern, { digits: 'latin' | 'persian' }); // override ارقام در همان فراخوانی
 d.formatGregorian(pattern); // فیلدهای میلادی، همان مجموعهٔ token
 d.withTimeZone(tz);
 d.withLocale(locale);
@@ -127,11 +195,12 @@ d.clone();
 ```ts
 date.formatGregorian('YYYY-MM-DD'); // "2026-05-31"
 date.formatGregorian('YYYY-MM-DD HH:mm:ss'); // "2026-05-31 10:09:05"
-date.formatGregorian('YYYY/MM/DD HH:mm'); // "2026/05/31 10:09"
+date.formatGregorian('DD MMM YYYY'); // "31 May 2026"
+date.formatGregorian('dddd D MMMM YYYY'); // "Sunday 31 May 2026"
 ```
 
-tokenهای عددی (`YYYY`, `MM`, `DD`, `HH`, `mm`, `ss`, `SSS`, `Z`, `ZZ`) کار می‌کنند.
-برای نام ماه/روز هفتهٔ میلادی از `Intl.DateTimeFormat` روی `toGregorian()` استفاده کنید.
+**همان مجموعهٔ token** که `format` دارد پشتیبانی می‌شود (جدول پایین). نام‌ها به انگلیسی و
+ارقام لاتین (ASCII) رندر می‌شوند، پس خروجی برای ارسال به backend امن است.
 
 #### ارسال تاریخ به backend
 
@@ -164,17 +233,48 @@ const restored = DoranDate.fromGregorian(new Date(date.toISOString()));
 | `A` `a`                 | قبل/بعد از ظهر             |
 | `Z` `ZZ`                | اختلاف از UTC              |
 
-متن literal را داخل `[brackets]` بگذارید.
+متن literal را داخل `[brackets]` بگذارید. برای override سبک ارقام در یک فراخوانی بدون
+عوض‌کردن locale، آرگومان دوم `{ digits: 'latin' | 'persian' }` را به `format` بدهید —
+[Locale و ارقام](/guide/locales) را ببینید.
 
 ## Parse کردن
 
-```ts
-import { parseJalali } from '@doranjs/core';
+تجزیهٔ strict و lenient برای **هر دو** تقویم، با همان مجموعهٔ token که `format`
+دارد. ارقام فارسی/عربی ابتدا نرمال می‌شوند. ورودی نامعتبر `null` برمی‌گرداند (هرگز
+`Invalid Date`).
 
+```ts
+import { parse, parseJalali, parseGregorian } from '@doranjs/core';
+
+// جلالی
 parseJalali('1405/03/11');
 parseJalali('۱۴۰۵-۰۳-۱۱ ۰۷:۳۰');
 parseJalali('11 خرداد 1405', 'D MMMM YYYY'); // format صریح
+
+// میلادی — برخلاف new Date(string) بین engineها سازگار است
+parseGregorian('2026-05-31');
+parseGregorian('2026-05-31 10:09:05');
+parseGregorian('31 May 2026', 'D MMMM YYYY');
+
+// یکپارچه، با انتخاب صریح تقویم (پیش‌فرض جلالی)
+parse('1405/03/11');
+parse('2026-05-31', undefined, { calendar: 'gregorian' });
 ```
+
+### حالت strict
+
+با `{ strict: true }` تطبیق دقیقِ عرض token الزامی می‌شود و sweepِ فرمت‌های پیش‌فرض
+انجام نمی‌شود. برای رد ورودی ناقص یا بدشکل به‌کار می‌رود.
+
+```ts
+parseGregorian('2026-5-31', 'YYYY-MM-DD'); // → DoranDate (lenient: ۱ تا ۲ رقم)
+parseGregorian('2026-5-31', 'YYYY-MM-DD', { strict: true }); // → null (MM به ۲ رقم نیاز دارد)
+parseJalali('1405/3/1', 'YYYY/MM/DD', { strict: true }); // → null
+```
+
+`options` برابر `{ timeZone?, locale?, strict? }` است؛ `parse` همچنین
+`calendar?: 'jalali' | 'gregorian'` را می‌پذیرد. فیلدها به‌عنوان wall-clock در
+`timeZone` تفسیر می‌شوند.
 
 ## Primitiveهای تبدیل
 
@@ -185,6 +285,9 @@ gregorianToJdn / jalaliToJdn / jdnToGregorian / jdnToJalali;
 isLeapJalaliYear(jy);
 jalaliMonthLength(jy, jm);
 isValidJalaliDate(jy, jm, jd);
+isLeapGregorianYear(gy);
+gregorianMonthLength(gy, gm);
+isValidGregorianDate(gy, gm, gd);
 gregorianWeekday(gy, gm, gd); // ۰ = شنبه
 ```
 
@@ -199,3 +302,27 @@ import { faIR, enUS, registerLocale, setDefaultLocale } from '@doranjs/core';
 ```ts
 import { toPersianDigits, toLatinDigits, normalizeDigits } from '@doranjs/core';
 ```
+
+## دوران و TC39 Temporal
+
+[TC39 Temporal](https://tc39.es/proposal-temporal/) API تاریخ‌وزمانِ در راهِ پلتفرم
+است. دوران از پیش همان مدل اصلی را دارد — یک مقدار **تغییرناپذیر** روی یک **لحظه +
+timezone** — پس این دو تمیز با هم کار می‌کنند. شعار: _به‌شکل Temporal، با Jalali
+درجه‌یک همین امروز._
+
+پل در هر دو جهت. متدها **ساختاری** (duck-typed) و پشت یک feature detect هستند، پس
+**هیچ وابستگی سختی** به `Temporal` وجود ندارد:
+
+```ts
+// از Temporal → دوران (حتی بدون runtime دارای Temporal کار می‌کند)
+DoranDate.fromTemporal(zdt); // Temporal.ZonedDateTime → لحظه و zone آن را می‌گیرد
+DoranDate.fromTemporal(instant, { timeZone: 'Asia/Tehran' });
+DoranDate.fromTemporal(plainDateTime, { timeZone: 'UTC' }); // wall-clock در zone
+
+// از دوران → Temporal (به Temporal در runtime نیاز دارد، وگرنه throw می‌کند)
+date.toTemporal(); // Temporal.ZonedDateTime (تقویم ISO) در همان لحظه
+```
+
+`toTemporal()` یک `ZonedDateTime` در تقویم ISO (میلادی) برای همان لحظه برمی‌گرداند —
+فیلدهای جلالی یک رندرِ سمتِ دوران هستند. تا وقتی Temporal در runtime شما بیاید، برای
+تبادل از `toISOString()` / `fromGregorian` استفاده کنید.

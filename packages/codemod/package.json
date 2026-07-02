@@ -1,0 +1,49 @@
+{
+  "name": "@doranjs/codemod",
+  "version": "0.0.1",
+  "description": "jscodeshift codemod that rewrites moment / moment-jalaali to @doranjs/core.",
+  "license": "MIT",
+  "author": "Doran Contributors",
+  "homepage": "https://github.com/amiralibg/Doran/tree/main/packages/codemod#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amiralibg/Doran.git",
+    "directory": "packages/codemod"
+  },
+  "bugs": {
+    "url": "https://github.com/amiralibg/Doran/issues"
+  },
+  "keywords": [
+    "moment",
+    "moment-jalaali",
+    "codemod",
+    "jscodeshift",
+    "migration",
+    "jalali",
+    "persian"
+  ],
+  "type": "commonjs",
+  "bin": {
+    "doran-codemod": "bin/cli.js"
+  },
+  "files": [
+    "bin",
+    "transforms",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint transforms bin",
+    "clean": "rm -rf .turbo coverage"
+  },
+  "dependencies": {
+    "jscodeshift": "^17.0.0"
+  },
+  "devDependencies": {
+    "@types/jscodeshift": "^17.0.0"
+  }
+}

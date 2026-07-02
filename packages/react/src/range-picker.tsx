@@ -1,6 +1,7 @@
 'use client';
 
-import { type DoranDate, getDefaultLocale, type Locale } from '@doranjs/core';
+import { type DoranDate, type Locale } from '@doranjs/core';
+import { useResolvedLocale } from './provider';
 import { Button, ChevronLeftIcon, ChevronRightIcon, cn } from '@doranjs/ui';
 import { useState } from 'react';
 import {
@@ -47,7 +48,7 @@ function addMonths({ year, month }: YearMonth, delta: number): YearMonth {
  * side-by-side multi-month view via `numberOfMonths`.
  */
 export function DoranRangePicker({
-  locale = getDefaultLocale(),
+  locale: localeProp,
   headerMode = 'dropdown',
   isHoliday,
   weekends,
@@ -58,6 +59,7 @@ export function DoranRangePicker({
   className,
   ...rangeOptions
 }: DoranRangePickerProps) {
+  const locale = useResolvedLocale(localeProp);
   const range = useDateRange(rangeOptions);
   const calendar = useCalendar({ timeZone: rangeOptions.timeZone });
   const [panel, setPanel] = useState<CalendarPanel>('days');

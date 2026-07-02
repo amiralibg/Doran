@@ -202,3 +202,24 @@ export function isValidJalaliDate(jy: number, jm: number, jd: number): boolean {
     return false;
   }
 }
+
+export function isLeapGregorianYear(gy: number): boolean {
+  return (gy % 4 === 0 && gy % 100 !== 0) || gy % 400 === 0;
+}
+
+const GREGORIAN_MONTH_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+/** Returns the number of days in the given Gregorian month (February is 29 in a leap year). */
+export function gregorianMonthLength(gy: number, gm: number): number {
+  if (gm < 1 || gm > 12) {
+    throw new RangeError(`Gregorian month must be between 1 and 12, received ${gm}.`);
+  }
+  if (gm === 2 && isLeapGregorianYear(gy)) return 29;
+  return GREGORIAN_MONTH_LENGTHS[gm - 1] as number;
+}
+
+/** Returns `true` if the given Gregorian date is a real calendar date. */
+export function isValidGregorianDate(gy: number, gm: number, gd: number): boolean {
+  if (!Number.isInteger(gy) || gm < 1 || gm > 12 || gd < 1) return false;
+  return gd <= gregorianMonthLength(gy, gm);
+}

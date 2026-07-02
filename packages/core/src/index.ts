@@ -4,8 +4,19 @@
  * @packageDocumentation
  */
 
-export { DoranDate, type JalaliInput, type SettableUnit } from './doran-date';
-export { parseJalali } from './parse';
+export {
+  DoranDate,
+  freeze,
+  type GregorianInput,
+  type JalaliInput,
+  type NowInput,
+  type NowSource,
+  type SettableUnit,
+  type TemporalLike,
+  type TemporalZonedDateTime,
+} from './doran-date';
+export { parse, parseGregorian, parseJalali, type ParseOptions } from './parse';
+export { Duration, type DurationLike, type DurationUnit } from './duration';
 export { durationToHuman, humanizeRelative } from './relative';
 
 // Working-day (business-day) helpers — weekend-aware, optionally holiday-aware.
@@ -21,10 +32,13 @@ export {
 
 // Conversion primitives (useful for advanced/low-level work).
 export {
+  gregorianMonthLength,
   gregorianToJalali,
   gregorianToJdn,
   gregorianWeekday,
+  isLeapGregorianYear,
   isLeapJalaliYear,
+  isValidGregorianDate,
   isValidJalaliDate,
   jalaliMonthLength,
   jalaliToGregorian,
@@ -34,7 +48,7 @@ export {
 } from './conversion';
 
 // Formatting.
-export { formatParts, type FormatContext } from './format';
+export { formatParts, type DigitStyle, type FormatContext } from './format';
 
 // Digit utilities.
 export { normalizeDigits, toLatinDigits, toPersianDigits } from './digits';

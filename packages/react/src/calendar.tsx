@@ -1,6 +1,7 @@
 'use client';
 
-import { type DoranDate, getDefaultLocale, type Locale } from '@doranjs/core';
+import { type DoranDate, type Locale } from '@doranjs/core';
+import { useResolvedLocale } from './provider';
 import { Button, cn } from '@doranjs/ui';
 import { useState } from 'react';
 import {
@@ -53,7 +54,7 @@ function combineDayAndTime(day: DoranDate, time: TimeValue): DoranDate {
  * control over state, compose {@link useCalendar} and {@link DoranMonthView} yourself.
  */
 export function DoranCalendar({
-  locale = getDefaultLocale(),
+  locale: localeProp,
   showOutsideDays,
   headerMode = 'dropdown',
   withTime = false,
@@ -70,6 +71,7 @@ export function DoranCalendar({
   onChange,
   ...options
 }: DoranCalendarProps) {
+  const locale = useResolvedLocale(localeProp);
   const isControlled = value !== undefined;
   const [internal, setInternal] = useState<DoranDate | null>(defaultValue ?? null);
   const selected = isControlled ? (value ?? null) : internal;

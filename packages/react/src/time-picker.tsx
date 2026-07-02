@@ -1,6 +1,7 @@
 'use client';
 
-import { getDefaultLocale, type Locale } from '@doranjs/core';
+import { type Locale } from '@doranjs/core';
+import { useResolvedLocale } from './provider';
 import { ChevronDownIcon, ChevronUpIcon } from '@doranjs/ui';
 
 /** A time-of-day value, 24-hour. */
@@ -35,9 +36,10 @@ export function DoranTimePicker({
   value,
   onChange,
   minuteStep = 1,
-  locale = getDefaultLocale(),
+  locale: localeProp,
   className,
 }: DoranTimePickerProps) {
+  const locale = useResolvedLocale(localeProp);
   const num = (n: number) => locale.formatNumber(pad(n));
 
   const setHour = (delta: number) =>
