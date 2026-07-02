@@ -12,6 +12,7 @@ export default {
         'react',
         'vue',
         'svelte',
+        'angular',
         'ui',
         'zod',
         'docs',
