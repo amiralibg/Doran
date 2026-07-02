@@ -49,8 +49,15 @@ The other packages build on the core:
 ```bash
 pnpm add @doranjs/nlp @doranjs/holidays              # logic
 pnpm add @doranjs/react @doranjs/ui react react-dom  # React UI
+pnpm add @doranjs/vue                                # Vue 3
+pnpm add @doranjs/svelte                             # Svelte 4/5
+pnpm add @doranjs/angular @angular/forms             # Angular (standalone)
 pnpm add @doranjs/wc                                 # Web Components (any framework / plain HTML)
+pnpm add @doranjs/zod zod                            # form validation
 ```
+
+All four framework bindings ride the same shared engine and share one convention — see
+[Framework bindings](/en/guide/frameworks) for a side-by-side comparison.
 
 ## Your first date
 

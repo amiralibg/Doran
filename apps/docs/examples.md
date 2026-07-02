@@ -80,3 +80,21 @@ import { getHolidays } from '@doranjs/holidays';
 
 const official = getHolidays(1405).filter((h) => h.official);
 ```
+
+## اعتبارسنجی فرم با zod
+
+`zDoranDate()` هر ورودیِ تاریخ (رشتهٔ ISO، `Date`، epoch یا `DoranDate`) را به یک `DoranDate`
+coerce می‌کند و داخلِ هر stackِ فرمِ مبتنی بر zod می‌افتد. جزئیات در [`@doranjs/zod`](/api/zod).
+
+```ts
+import { z } from 'zod';
+import { zDoranDate } from '@doranjs/zod';
+
+const Booking = z.object({
+  checkIn: zDoranDate({ min: '2024-01-01' }),
+  checkOut: zDoranDate(),
+});
+
+const { checkIn } = Booking.parse({ checkIn: '2024-06-28', checkOut: new Date() });
+checkIn.toISOString(); // میلادیِ ISO برای backend
+```

@@ -49,8 +49,15 @@ yarn add @doranjs/core
 ```bash
 pnpm add @doranjs/nlp @doranjs/holidays              # منطق
 pnpm add @doranjs/react @doranjs/ui react react-dom  # React UI
+pnpm add @doranjs/vue                                # Vue 3
+pnpm add @doranjs/svelte                             # Svelte 4/5
+pnpm add @doranjs/angular @angular/forms             # Angular (standalone)
 pnpm add @doranjs/wc                                 # Web Components (هر framework / HTML ساده)
+pnpm add @doranjs/zod zod                            # اعتبارسنجی فرم‌ها
 ```
+
+هر چهار بایندینگِ فریم‌ورک روی همان موتورِ مشترک سوارند و قرارداد یکسانی دارند —
+[بایندینگ‌های فریم‌ورک](/guide/frameworks) را برای مقایسهٔ کنار هم ببینید.
 
 ## نخستین تاریخ شما
 
