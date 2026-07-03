@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { type ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { type DoranDate } from '@doranjs/core';
+import { type AgendaEvent } from '@doranjs/wc';
 import { DORAN_DEFAULTS, type DoranDefaults } from './provider';
 import { detail, ensureElements } from './wc';
 
@@ -24,6 +25,23 @@ function applyLocale(
 ): void {
   const locale = explicit ?? defaults?.locale;
   if (locale) el.setAttribute('locale', locale);
+}
+
+/** Set/remove a string or numeric attribute (empty/nullish clears it). */
+function setAttr(el: HTMLElement, name: string, value: string | number | undefined | null): void {
+  if (value == null || value === '') el.removeAttribute(name);
+  else el.setAttribute(name, String(value));
+}
+
+/** Toggle a boolean attribute (present when `true`). */
+function setBool(el: HTMLElement, name: string, value: boolean | undefined): void {
+  el.toggleAttribute(name, value === true);
+}
+
+/** Normalize the `weekends` input (`[5, 6]` or `"5,6"`) into the attribute form. */
+function weekendsAttr(value: number[] | string | undefined): string | undefined {
+  if (value == null) return undefined;
+  return Array.isArray(value) ? value.join(',') : value;
 }
 
 /** Range value shared by the range picker — mirrors `@doranjs/react`'s shape. */
@@ -52,28 +70,49 @@ type Noop = () => void;
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DoranDatePicker), multi: true },
   ],
 })
-export class DoranDatePicker implements ControlValueAccessor, AfterViewInit {
+export class DoranDatePicker implements ControlValueAccessor, AfterViewInit, OnChanges {
   @ViewChild('el') el!: ElementRef<HTMLElement & { value: DoranDate | null }>;
   @Output() change = new EventEmitter<{ value: DoranDate | null; gregorian: Date | null }>();
 
+  @Input() locale?: string;
+  @Input() placeholder?: string;
+  @Input() format?: string;
+  @Input() withTime?: boolean;
+
   private value: DoranDate | null = null;
+  // Element properties (`value`) must be set *after* the lazy `@doranjs/wc` import
+  // upgrades the element — a pre-upgrade assignment creates an expando that shadows
+  // the element's setter and never renders. `ready` gates every property write.
+  private ready = false;
   private cbChange: (v: DoranDate | null) => void = () => {};
   private cbTouched: Noop = () => {};
+  private defaults = inject(DORAN_DEFAULTS, { optional: true });
 
   constructor() {
     ensureElements();
   }
-  @Input() locale?: string;
-  private defaults = inject(DORAN_DEFAULTS, { optional: true });
 
   ngAfterViewInit(): void {
-    this.el.nativeElement.value = this.value;
-    applyLocale(this.el.nativeElement, this.locale, this.defaults);
+    ensureElements().then(() => {
+      this.ready = true;
+      this.syncEl();
+    });
+  }
+  ngOnChanges(): void {
+    if (this.ready) this.syncEl();
+  }
+  private syncEl(): void {
+    const el = this.el.nativeElement;
+    applyLocale(el, this.locale, this.defaults);
+    setAttr(el, 'placeholder', this.placeholder);
+    setAttr(el, 'format', this.format);
+    setBool(el, 'with-time', this.withTime);
+    el.value = this.value;
   }
 
   writeValue(v: DoranDate | null): void {
     this.value = v;
-    if (this.el) this.el.nativeElement.value = v;
+    if (this.ready) this.el.nativeElement.value = v;
   }
   registerOnChange(fn: (v: DoranDate | null) => void): void {
     this.cbChange = fn;
@@ -107,28 +146,52 @@ export class DoranDatePicker implements ControlValueAccessor, AfterViewInit {
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DoranCalendar), multi: true },
   ],
 })
-export class DoranCalendar implements ControlValueAccessor, AfterViewInit {
+export class DoranCalendar implements ControlValueAccessor, AfterViewInit, OnChanges {
   @ViewChild('el') el!: ElementRef<HTMLElement & { value: DoranDate | null }>;
   @Output() change = new EventEmitter<{ value: DoranDate | null; gregorian: Date | null }>();
 
+  @Input() locale?: string;
+  @Input() headerMode?: 'dropdown' | 'separate';
+  @Input() withTime?: boolean;
+  @Input() showHolidays?: boolean;
+  @Input() weekends?: number[] | string;
+  @Input() hideFooter?: boolean;
+  @Input() yearSpan?: number;
+
   private value: DoranDate | null = null;
+  private ready = false;
   private cbChange: (v: DoranDate | null) => void = () => {};
   private cbTouched: Noop = () => {};
+  private defaults = inject(DORAN_DEFAULTS, { optional: true });
 
   constructor() {
     ensureElements();
   }
-  @Input() locale?: string;
-  private defaults = inject(DORAN_DEFAULTS, { optional: true });
 
   ngAfterViewInit(): void {
-    this.el.nativeElement.value = this.value;
-    applyLocale(this.el.nativeElement, this.locale, this.defaults);
+    ensureElements().then(() => {
+      this.ready = true;
+      this.syncEl();
+    });
+  }
+  ngOnChanges(): void {
+    if (this.ready) this.syncEl();
+  }
+  private syncEl(): void {
+    const el = this.el.nativeElement;
+    applyLocale(el, this.locale, this.defaults);
+    setAttr(el, 'header-mode', this.headerMode);
+    setBool(el, 'with-time', this.withTime);
+    setBool(el, 'show-holidays', this.showHolidays);
+    setAttr(el, 'weekends', weekendsAttr(this.weekends));
+    setBool(el, 'hide-footer', this.hideFooter);
+    setAttr(el, 'year-span', this.yearSpan);
+    el.value = this.value;
   }
 
   writeValue(v: DoranDate | null): void {
     this.value = v;
-    if (this.el) this.el.nativeElement.value = v;
+    if (this.ready) this.el.nativeElement.value = v;
   }
   registerOnChange(fn: (v: DoranDate | null) => void): void {
     this.cbChange = fn;
@@ -163,28 +226,52 @@ export class DoranCalendar implements ControlValueAccessor, AfterViewInit {
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DoranRangePicker), multi: true },
   ],
 })
-export class DoranRangePicker implements ControlValueAccessor, AfterViewInit {
+export class DoranRangePicker implements ControlValueAccessor, AfterViewInit, OnChanges {
   @ViewChild('el') el!: ElementRef<HTMLElement & { value: DoranDateRange }>;
   @Output() change = new EventEmitter<{ value: DoranDateRange; gregorian: GregorianDateRange }>();
 
+  @Input() locale?: string;
+  @Input() headerMode?: 'dropdown' | 'separate';
+  @Input() showHolidays?: boolean;
+  @Input() weekends?: number[] | string;
+  @Input() presets?: boolean;
+  @Input() months?: number;
+  @Input() yearSpan?: number;
+
   private value: DoranDateRange = { start: null, end: null };
+  private ready = false;
   private cbChange: (v: DoranDateRange) => void = () => {};
   private cbTouched: Noop = () => {};
+  private defaults = inject(DORAN_DEFAULTS, { optional: true });
 
   constructor() {
     ensureElements();
   }
-  @Input() locale?: string;
-  private defaults = inject(DORAN_DEFAULTS, { optional: true });
 
   ngAfterViewInit(): void {
-    this.el.nativeElement.value = this.value;
-    applyLocale(this.el.nativeElement, this.locale, this.defaults);
+    ensureElements().then(() => {
+      this.ready = true;
+      this.syncEl();
+    });
+  }
+  ngOnChanges(): void {
+    if (this.ready) this.syncEl();
+  }
+  private syncEl(): void {
+    const el = this.el.nativeElement;
+    applyLocale(el, this.locale, this.defaults);
+    setAttr(el, 'header-mode', this.headerMode);
+    setBool(el, 'show-holidays', this.showHolidays);
+    setAttr(el, 'weekends', weekendsAttr(this.weekends));
+    setBool(el, 'presets', this.presets);
+    setAttr(el, 'months', this.months);
+    setAttr(el, 'year-span', this.yearSpan);
+    el.value = this.value;
   }
 
   writeValue(v: DoranDateRange | null): void {
     this.value = v ?? { start: null, end: null };
-    if (this.el) this.el.nativeElement.value = this.value;
+    if (this.ready) this.el.nativeElement.value = this.value;
   }
   registerOnChange(fn: (v: DoranDateRange) => void): void {
     this.cbChange = fn;
@@ -230,29 +317,43 @@ export class DoranRangePicker implements ControlValueAccessor, AfterViewInit {
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DoranNlpInput), multi: true },
   ],
 })
-export class DoranNlpInput implements ControlValueAccessor, AfterViewInit {
+export class DoranNlpInput implements ControlValueAccessor, AfterViewInit, OnChanges {
   @ViewChild('el') el!: ElementRef<HTMLElement & { value: string }>;
   @Output() resolve = new EventEmitter<unknown>();
   @Output() change = new EventEmitter<unknown>();
 
+  @Input() locale?: string;
+  @Input() placeholder?: string;
+
   private value = '';
+  private ready = false;
   private cbChange: (v: string) => void = () => {};
   private cbTouched: Noop = () => {};
+  private defaults = inject(DORAN_DEFAULTS, { optional: true });
 
   constructor() {
     ensureElements();
   }
-  @Input() locale?: string;
-  private defaults = inject(DORAN_DEFAULTS, { optional: true });
 
   ngAfterViewInit(): void {
-    this.el.nativeElement.value = this.value;
-    applyLocale(this.el.nativeElement, this.locale, this.defaults);
+    ensureElements().then(() => {
+      this.ready = true;
+      this.syncEl();
+    });
+  }
+  ngOnChanges(): void {
+    if (this.ready) this.syncEl();
+  }
+  private syncEl(): void {
+    const el = this.el.nativeElement;
+    applyLocale(el, this.locale, this.defaults);
+    setAttr(el, 'placeholder', this.placeholder);
+    el.value = this.value;
   }
 
   writeValue(v: string | null): void {
     this.value = v ?? '';
-    if (this.el) this.el.nativeElement.value = this.value;
+    if (this.ready) this.el.nativeElement.value = this.value;
   }
   registerOnChange(fn: (v: string) => void): void {
     this.cbChange = fn;
@@ -277,9 +378,18 @@ export class DoranNlpInput implements ControlValueAccessor, AfterViewInit {
   }
 }
 
+/** Element shape for the agenda's property-based inputs. */
+type AgendaEl = HTMLElement & {
+  start: DoranDate | null;
+  events: AgendaEvent[];
+  renderEvent: ((event: AgendaEvent) => string) | null;
+};
+
 /**
- * `<doran-agenda>` — month agenda. Not a form control: pass `[events]` and listen
- * to `(selectday)`, which emits the tapped `DoranDate`.
+ * `<doran-agenda>` — vertical agenda. Not a form control: pass `[start]`,
+ * `[events]`, `[days]`, `[renderEvent]` and listen to `(selectday)`, which emits
+ * the tapped `DoranDate`. `start`/`events`/`renderEvent` are element properties,
+ * so they're applied after the element upgrades.
  */
 @Component({
   selector: 'dr-agenda',
@@ -288,21 +398,35 @@ export class DoranNlpInput implements ControlValueAccessor, AfterViewInit {
   template: `<doran-agenda #el (selectday)="onSelectday($event)"></doran-agenda>`,
 })
 export class DoranAgenda implements AfterViewInit, OnChanges {
-  @ViewChild('el') el!: ElementRef<HTMLElement & { events: unknown }>;
-  @Input() events: unknown = [];
+  @ViewChild('el') el!: ElementRef<AgendaEl>;
+  @Input() start: DoranDate | null = null;
+  @Input() events: AgendaEvent[] = [];
+  @Input() days?: number;
+  @Input() renderEvent?: (event: AgendaEvent) => string;
   @Input() locale?: string;
   @Output() selectday = new EventEmitter<DoranDate>();
   private defaults = inject(DORAN_DEFAULTS, { optional: true });
+  private ready = false;
 
   constructor() {
     ensureElements();
   }
   ngAfterViewInit(): void {
-    this.el.nativeElement.events = this.events;
-    applyLocale(this.el.nativeElement, this.locale, this.defaults);
+    ensureElements().then(() => {
+      this.ready = true;
+      this.syncEl();
+    });
   }
   ngOnChanges(): void {
-    if (this.el) this.el.nativeElement.events = this.events;
+    if (this.ready) this.syncEl();
+  }
+  private syncEl(): void {
+    const el = this.el.nativeElement;
+    applyLocale(el, this.locale, this.defaults);
+    setAttr(el, 'days', this.days);
+    if (this.start) el.start = this.start;
+    el.events = this.events;
+    el.renderEvent = this.renderEvent ?? null;
   }
 
   onSelectday(e: Event): void {
