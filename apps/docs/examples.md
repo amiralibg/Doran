@@ -5,6 +5,9 @@
 کامپوننت‌ها را همین‌جا در مرورگرتان امتحان کنید — این‌ها در کنار همین مستندات deploy می‌شوند:
 
 - **[دموی React ←](https://amiralibg.github.io/Doran/examples/react/)** — همهٔ کامپوننت‌ها، theming، pickerها و NLP input.
+- **[دموی Vue ←](https://amiralibg.github.io/Doran/examples/vue/)** — همان کاتالوگ با `@doranjs/vue` (‏`v-model`).
+- **[دموی Svelte ←](https://amiralibg.github.io/Doran/examples/svelte/)** — همان کاتالوگ با `@doranjs/svelte` (‏`bind:value`).
+- **[دموی Angular ←](https://amiralibg.github.io/Doran/examples/angular/)** — همان کاتالوگ با `@doranjs/angular` (‏`ControlValueAccessor`).
 - **[دموی Vanilla / Web Components ←](https://amiralibg.github.io/Doran/examples/vanilla/)** — همان UI در HTML ساده، بدون framework.
 
 ## کد منبع

@@ -36,10 +36,14 @@ jobs:
       - name: Assemble Pages site (docs + demos)
         run: |
           rm -rf site
-          mkdir -p site/examples/react site/examples/vanilla
+          mkdir -p site/examples/react site/examples/vanilla \
+                   site/examples/vue site/examples/svelte site/examples/angular
           cp -r apps/docs/.vitepress/dist/. site/
           cp -r examples/react/dist/. site/examples/react/
           cp -r examples/vanilla/dist/. site/examples/vanilla/
+          cp -r examples/vue/dist/. site/examples/vue/
+          cp -r examples/svelte/dist/. site/examples/svelte/
+          cp -r examples/angular/dist/. site/examples/angular/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

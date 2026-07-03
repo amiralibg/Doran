@@ -35,6 +35,9 @@ export default defineConfig({
             text: 'دموها',
             items: [
               { text: 'دموی ری‌اکت', link: 'https://amiralibg.github.io/Doran/examples/react/' },
+              { text: 'دموی وی‌یو', link: 'https://amiralibg.github.io/Doran/examples/vue/' },
+              { text: 'دموی سوِلت', link: 'https://amiralibg.github.io/Doran/examples/svelte/' },
+              { text: 'دموی انگولار', link: 'https://amiralibg.github.io/Doran/examples/angular/' },
               { text: 'دموی وانیلا', link: 'https://amiralibg.github.io/Doran/examples/vanilla/' },
             ],
           },
@@ -113,6 +116,9 @@ export default defineConfig({
             text: 'Demos',
             items: [
               { text: 'React demo', link: 'https://amiralibg.github.io/Doran/examples/react/' },
+              { text: 'Vue demo', link: 'https://amiralibg.github.io/Doran/examples/vue/' },
+              { text: 'Svelte demo', link: 'https://amiralibg.github.io/Doran/examples/svelte/' },
+              { text: 'Angular demo', link: 'https://amiralibg.github.io/Doran/examples/angular/' },
               { text: 'Vanilla demo', link: 'https://amiralibg.github.io/Doran/examples/vanilla/' },
             ],
           },
