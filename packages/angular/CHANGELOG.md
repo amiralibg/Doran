@@ -1,5 +1,36 @@
 # @doranjs/angular
 
+## 0.2.0
+
+### Minor Changes
+
+- [#37](https://github.com/amiralibg/Doran/pull/37) [`c51a742`](https://github.com/amiralibg/Doran/commit/c51a742d375dcf6638da01f34f5c01c962dcb048) Thanks [@amiralibg](https://github.com/amiralibg)! - Make the Angular components work client-side and reach feature parity with the
+  other bindings.
+  - **Fix:** element properties (`value`, agenda `events`) were assigned in
+    `ngAfterViewInit` — before the lazy `@doranjs/wc` import upgrades the element —
+    so the assignment created an expando that shadowed the element's setter and
+    never rendered. Every component now applies its value after the element upgrades
+    (`ensureElements().then(...)`), gated by a `ready` flag.
+  - **Fix:** `locale` now re-applies on change (via `ngOnChanges`), so switching
+    locale at runtime updates the calendar.
+  - **New inputs** forwarding the underlying element's options:
+    `dr-calendar` — `headerMode`, `withTime`, `showHolidays`, `weekends`,
+    `hideFooter`, `yearSpan`; `dr-date-picker` — `placeholder`, `format`,
+    `withTime`; `dr-range-picker` — `headerMode`, `showHolidays`, `weekends`,
+    `presets`, `months`, `yearSpan`; `dr-nlp-input` — `placeholder`; `dr-agenda` —
+    `start`, `days`, `renderEvent` (previously only `events`/`locale`).
+
+### Patch Changes
+
+- [#37](https://github.com/amiralibg/Doran/pull/37) [`3ffaa11`](https://github.com/amiralibg/Doran/commit/3ffaa113a1d75a271bf2d6acaae2acd6c0f6b10a) Thanks [@amiralibg](https://github.com/amiralibg)! - Build in full Ivy compilation mode instead of partial. Partial (`ngDeclare`)
+  output needs the Angular linker at build time; bundlers that don't run it (e.g.
+  Vite via `@analogjs/vite-plugin-angular`, which skips `node_modules`) left the
+  components unlinked, so consuming apps died at runtime with "JIT compiler
+  unavailable". The peer dependency is pinned to a single Angular major, where
+  full-compiled output is stable.
+- Updated dependencies [[`415466c`](https://github.com/amiralibg/Doran/commit/415466cd17649fcc31d7fe3ced0bebc29e1231d8)]:
+  - @doranjs/wc@0.0.10
+
 ## 0.1.0
 
 ### Minor Changes
