@@ -1,5 +1,17 @@
 # @doranjs/vue
 
+## 0.1.1
+
+### Patch Changes
+
+- [#37](https://github.com/amiralibg/Doran/pull/37) [`88841da`](https://github.com/amiralibg/Doran/commit/88841da65c07e29cd3b34e5009d1811305cfd24e) Thanks [@amiralibg](https://github.com/amiralibg)! - Fix `DoranAgenda` dropping `start`, `events`, and `renderEvent`. These are element
+  properties (not attributes), so the binding now assigns them after the lazy
+  `@doranjs/wc` import upgrades the custom element — the same post-upgrade sync the
+  other components use for `value`. Previously they were spread through `attrs` and
+  lost, so the agenda rendered today's week with no events.
+- Updated dependencies [[`415466c`](https://github.com/amiralibg/Doran/commit/415466cd17649fcc31d7fe3ced0bebc29e1231d8)]:
+  - @doranjs/wc@0.0.10
+
 ## 0.1.0
 
 ### Minor Changes
