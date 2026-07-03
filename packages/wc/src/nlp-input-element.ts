@@ -117,7 +117,7 @@ export class DoranNlpInputElement extends HTMLElement {
       this.#open = true;
       this.#active = -1;
       this.dispatchEvent(
-        new CustomEvent('input', { bubbles: true, detail: { value: this.#text } }),
+        new CustomEvent('input', { bubbles: false, detail: { value: this.#text } }),
       );
       this.#update();
     });
@@ -174,7 +174,7 @@ export class DoranNlpInputElement extends HTMLElement {
     this.#open = false;
     this.#active = -1;
     this.#input?.focus();
-    this.dispatchEvent(new CustomEvent('input', { bubbles: true, detail: { value: this.#text } }));
+    this.dispatchEvent(new CustomEvent('input', { bubbles: false, detail: { value: this.#text } }));
     this.#update();
   }
 
@@ -203,8 +203,8 @@ export class DoranNlpInputElement extends HTMLElement {
       }
     }
 
-    this.dispatchEvent(new CustomEvent('resolve', { bubbles: true, detail: { result } }));
-    this.dispatchEvent(new CustomEvent('change', { bubbles: true, detail: { result } }));
+    this.dispatchEvent(new CustomEvent('resolve', { bubbles: false, detail: { result } }));
+    this.dispatchEvent(new CustomEvent('change', { bubbles: false, detail: { result } }));
     this.#renderList();
   }
 

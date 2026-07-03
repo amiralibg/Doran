@@ -124,7 +124,7 @@ export class DoranCalendarElement extends HTMLElement {
   #emit(date: DoranDate): void {
     this.dispatchEvent(
       new CustomEvent('change', {
-        bubbles: true,
+        bubbles: false,
         detail: {
           date,
           iso: date.toISOString(),
