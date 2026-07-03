@@ -5,6 +5,9 @@
 Try the components right in your browser — these deploy alongside these docs:
 
 - **[React demo →](https://amiralibg.github.io/Doran/examples/react/)** — every component, theming, pickers, and NLP input.
+- **[Vue demo →](https://amiralibg.github.io/Doran/examples/vue/)** — the same catalog with `@doranjs/vue` (`v-model`).
+- **[Svelte demo →](https://amiralibg.github.io/Doran/examples/svelte/)** — the same catalog with `@doranjs/svelte` (`bind:value`).
+- **[Angular demo →](https://amiralibg.github.io/Doran/examples/angular/)** — the same catalog with `@doranjs/angular` (`ControlValueAccessor`).
 - **[Vanilla / Web Components demo →](https://amiralibg.github.io/Doran/examples/vanilla/)** — the same UI in plain HTML, no framework.
 
 ## Source
@@ -79,4 +82,22 @@ if (result && result.confidence > 0.8) {
 import { getHolidays } from '@doranjs/holidays';
 
 const official = getHolidays(1405).filter((h) => h.official);
+```
+
+## Form validation with zod
+
+`zDoranDate()` coerces any date input (ISO string, `Date`, epoch, or `DoranDate`) into a
+`DoranDate` and drops into any zod-based form stack. See [`@doranjs/zod`](/en/api/zod) for details.
+
+```ts
+import { z } from 'zod';
+import { zDoranDate } from '@doranjs/zod';
+
+const Booking = z.object({
+  checkIn: zDoranDate({ min: '2024-01-01' }),
+  checkOut: zDoranDate(),
+});
+
+const { checkIn } = Booking.parse({ checkIn: '2024-06-28', checkOut: new Date() });
+checkIn.toISOString(); // Gregorian ISO for your backend
 ```

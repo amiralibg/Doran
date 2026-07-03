@@ -156,7 +156,7 @@ export class DoranDatePickerElement extends HTMLElement {
           this.#focusTriggerOnRender = true;
         }
         this.#render();
-        this.dispatchEvent(new CustomEvent('change', { bubbles: true, detail }));
+        this.dispatchEvent(new CustomEvent('change', { bubbles: false, detail }));
         e.stopPropagation();
       });
       popover.appendChild(calendar);

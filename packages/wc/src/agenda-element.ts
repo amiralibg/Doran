@@ -91,7 +91,7 @@ export class DoranAgendaElement extends HTMLElement {
     const offset = Number(btn.dataset.offset);
     if (!Number.isInteger(offset)) return;
     const day = this.#resolvedStart().addDays(offset);
-    this.dispatchEvent(new CustomEvent('selectday', { bubbles: true, detail: { date: day } }));
+    this.dispatchEvent(new CustomEvent('selectday', { bubbles: false, detail: { date: day } }));
   };
 
   #render(): void {

@@ -1,0 +1,466 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--doran-font-sans);
+  background: var(--doran-bg);
+  color: var(--doran-text);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.page__title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.page__subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--doran-text-muted);
+}
+
+.card {
+  background: var(--doran-surface);
+  border: 1px solid var(--doran-border);
+  border-radius: var(--doran-radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--doran-shadow-sm);
+}
+
+.card__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.card__hint {
+  margin: 0 0 1.25rem;
+  font-size: 0.85rem;
+  color: var(--doran-text-muted);
+}
+
+.card__hint kbd {
+  font-family: var(--doran-font-mono, ui-monospace, monospace);
+  font-size: 0.78em;
+  padding: 0.1em 0.4em;
+  border: 1px solid var(--doran-border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--doran-surface-muted);
+  color: var(--doran-text);
+  white-space: nowrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--doran-text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.result {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--doran-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.chip {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--doran-radius-full);
+  background: var(--doran-surface-muted);
+  color: var(--doran-text-muted);
+}
+
+/* A bespoke "rose" theme applied to a single calendar instance, showing how every
+   part can be restyled with CSS variables alone — no component overrides. */
+.theme-rose {
+  --doran-calendar-bg: #fff7f9;
+  --doran-calendar-border-color: #f5d0da;
+  --doran-calendar-radius: 22px;
+  --doran-calendar-shadow: 0 18px 40px rgba(225, 29, 72, 0.18);
+  --doran-calendar-heading-color: #9f1239;
+  --doran-calendar-arrow-color: #e11d48;
+  --doran-calendar-arrow-hover-bg: #fde7ec;
+  --doran-day-selected-bg: #e11d48;
+  --doran-day-selected-hover-bg: #be123c;
+  --doran-day-today-ring: #fb7185;
+  --doran-day-today-color: #e11d48;
+  --doran-day-hover-bg: #fde7ec;
+  --doran-day-holiday-color: #be123c;
+  --doran-focus-ring: rgba(225, 29, 72, 0.35);
+  --doran-day-radius: 10px;
+  font-family: 'Vazirmatn', sans-serif;
+}
+
+/* ===================================================================
+   Catalog layout: a sticky side nav + the main demo column.
+   =================================================================== */
+
+.app {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 2rem;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  align-items: start;
+}
+
+.app__nav {
+  position: sticky;
+  top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.app__brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.app__logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.app__brand-sub {
+  font-size: 0.8rem;
+  color: var(--doran-text-muted);
+}
+
+.app__nav nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.app__nav-link {
+  display: block;
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--doran-radius-md);
+  /* transparent on all links so the active indicator adds no layout shift */
+  border-inline-start: 2px solid transparent;
+  font-size: 0.9rem;
+  color: var(--doran-text);
+  text-decoration: none;
+}
+
+.app__nav-link:hover {
+  background: var(--doran-surface-muted);
+}
+
+.app__nav-link--active {
+  background: var(--doran-surface-muted);
+  border-inline-start-color: var(--doran-primary);
+  color: var(--doran-primary);
+  font-weight: 600;
+}
+
+.app__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  min-width: 0;
+}
+
+.app__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.app__title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.app__subtitle {
+  margin: 0.35rem 0 0;
+  max-width: 46ch;
+  font-size: 0.9rem;
+  color: var(--doran-text-muted);
+}
+
+.app__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.app__btn {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--doran-radius-md);
+  border: 1px solid var(--doran-border);
+  background: var(--doran-surface);
+  color: var(--doran-text);
+  cursor: pointer;
+}
+
+.app__btn:hover {
+  background: var(--doran-surface-muted);
+}
+
+/* ===================================================================
+   A component section and its responsive grid of demo cards.
+   =================================================================== */
+
+.section {
+  scroll-margin-top: 1.5rem;
+}
+
+.section__head {
+  margin-bottom: 1.25rem;
+}
+
+.section__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: var(--doran-font-mono, ui-monospace, monospace);
+}
+
+.section__intro {
+  margin: 0.4rem 0 0;
+  max-width: 70ch;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--doran-text-muted);
+}
+
+.section__intro kbd {
+  font-family: var(--doran-font-mono, ui-monospace, monospace);
+  font-size: 0.78em;
+  padding: 0.1em 0.4em;
+  border: 1px solid var(--doran-border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--doran-surface-muted);
+  white-space: nowrap;
+}
+
+.section__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* ===================================================================
+   A single demo card: header (title + show-code toggle), live preview,
+   and an optional code panel.
+   =================================================================== */
+
+.demo {
+  display: flex;
+  flex-direction: column;
+  background: var(--doran-surface);
+  border: 1px solid var(--doran-border);
+  border-radius: var(--doran-radius-lg);
+  /* visible so absolutely-positioned popovers (e.g. the date picker) aren't clipped */
+  overflow: visible;
+}
+
+/* Wide demos (multi-month range, presets, agenda) span the whole row. */
+.demo--wide {
+  grid-column: 1 / -1;
+}
+
+.demo__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--doran-border);
+}
+
+.demo__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.demo__desc {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--doran-text-muted);
+}
+
+.demo__toggle {
+  flex: none;
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--doran-radius-md);
+  border: 1px solid var(--doran-border);
+  background: var(--doran-surface-muted);
+  color: var(--doran-text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.demo__toggle:hover {
+  background: var(--doran-border);
+}
+
+.demo__preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  min-height: 120px;
+  /* visible (default) so the date-picker popover can escape the card */
+}
+
+/* Wide cards never hold a popover, so they can scroll horizontally if their
+   content (e.g. a two-month range) is wider than the row. */
+.demo--wide .demo__preview {
+  overflow-x: auto;
+  align-items: flex-start;
+}
+
+.demo__preview > .result {
+  align-self: stretch;
+  text-align: center;
+}
+
+/* The agenda is a full-width list, not a fixed-width widget — let it fill. */
+.demo__preview > .doran-agenda {
+  align-self: stretch;
+  width: 100%;
+}
+
+.demo__preview .doran-rangepicker__summary {
+  white-space: normal;
+}
+
+/* ===================================================================
+   The code panel revealed by "show code". Always LTR.
+   =================================================================== */
+
+.code-panel {
+  border-top: 1px solid var(--doran-border);
+  /* the card no longer clips, so round our own bottom corners */
+  border-radius: 0 0 var(--doran-radius-lg) var(--doran-radius-lg);
+  overflow: hidden;
+}
+
+.code-panel__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.75rem;
+  background: var(--doran-surface-muted);
+  border-bottom: 1px solid var(--doran-border);
+}
+
+.code-panel__lang {
+  font-family: var(--doran-font-mono, ui-monospace, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--doran-text-muted);
+}
+
+.code-panel__copy {
+  font: inherit;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--doran-border);
+  background: var(--doran-surface);
+  color: var(--doran-text);
+  cursor: pointer;
+}
+
+.code-panel__copy:hover {
+  background: var(--doran-surface-muted);
+}
+
+/* Shiki emits its own <pre class="shiki"> with a theme background; we just give
+   it padding and horizontal scroll. The raw-text fallback matches. */
+.code-panel__shiki .shiki,
+.code-panel__pre {
+  margin: 0;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: var(--doran-font-mono, ui-monospace, monospace);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+.code-panel__pre {
+  background: var(--doran-surface-muted);
+  color: var(--doran-text);
+}
+
+@media (max-width: 760px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .app__nav {
+    position: static;
+  }
+}

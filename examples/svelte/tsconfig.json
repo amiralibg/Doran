@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "svelte"],
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "noUnusedLocals": false,
+    "isolatedModules": true
+  },
+  "include": ["src", "vite.config.ts"]
+}

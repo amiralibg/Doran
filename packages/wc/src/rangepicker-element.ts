@@ -61,10 +61,25 @@ export class DoranRangePickerElement extends HTMLElement {
     return { start: this.#start, end: this.#end };
   }
 
+  set value(range: { start: DoranDate | null; end: DoranDate | null } | null) {
+    this.#start = range?.start ?? null;
+    this.#end = range?.end ?? null;
+    // Frameworks may set properties before the element connects (view state not
+    // yet initialized); connectedCallback renders once it is.
+    if (this.#initialized) this.#render();
+  }
+
   /** Custom quick-pick presets. Setting this also implies presets are shown. */
-  set presets(presets: RangePreset[] | null) {
-    this.#customPresets = presets;
-    this.#render();
+  set presets(presets: RangePreset[] | boolean | null) {
+    // A bare `presets` attribute bound as a property arrives as a boolean; treat
+    // that as "show the defaults" rather than a custom list.
+    if (Array.isArray(presets)) {
+      this.#customPresets = presets;
+    } else {
+      this.#customPresets = null;
+      this.toggleAttribute('presets', !!presets);
+    }
+    if (this.#initialized) this.#render();
   }
 
   get #locale(): Locale {
@@ -110,7 +125,7 @@ export class DoranRangePickerElement extends HTMLElement {
     }
     this.#render();
     this.dispatchEvent(
-      new CustomEvent('change', { bubbles: true, detail: { start: this.#start, end: this.#end } }),
+      new CustomEvent('change', { bubbles: false, detail: { start: this.#start, end: this.#end } }),
     );
   }
 
@@ -163,7 +178,7 @@ export class DoranRangePickerElement extends HTMLElement {
     this.#scrollToMonth(this.#start);
     this.#render();
     this.dispatchEvent(
-      new CustomEvent('change', { bubbles: true, detail: { start: this.#start, end: this.#end } }),
+      new CustomEvent('change', { bubbles: false, detail: { start: this.#start, end: this.#end } }),
     );
   }
 
@@ -172,7 +187,7 @@ export class DoranRangePickerElement extends HTMLElement {
     this.#end = null;
     this.#render();
     this.dispatchEvent(
-      new CustomEvent('change', { bubbles: true, detail: { start: null, end: null } }),
+      new CustomEvent('change', { bubbles: false, detail: { start: null, end: null } }),
     );
   }
 

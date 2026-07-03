@@ -1,4 +1,5 @@
 import { type DoranDate } from '@doranjs/core';
+import { type AgendaEvent } from '@doranjs/wc';
 import { defineComponent, h, onMounted, type PropType, shallowRef, watch } from 'vue';
 import { type DoranDefaults, injectDoranDefaults } from './provider';
 
@@ -144,15 +145,42 @@ export const DoranNlpInput = defineComponent({
   },
 });
 
-/** `<doran-agenda>` — month agenda. Emits `selectday(DoranDate)`; pass `events` through attrs. */
+// `start`, `events`, and `renderEvent` are element *properties* (a DoranDate, an
+// array, a function) — not attributes — so they must be assigned after the element
+// upgrades, exactly like `value` on the other components. `days`/`locale` stay in
+// attrs (real string attributes).
+type AgendaEl = HTMLElement & {
+  start: DoranDate | null;
+  events: AgendaEvent[];
+  renderEvent: ((event: AgendaEvent) => string) | null;
+};
+
+/** `<doran-agenda>` — vertical agenda. `start`/`events`/`renderEvent` are props; emits `selectday(DoranDate)`. */
 export const DoranAgenda = defineComponent({
   name: 'DoranAgenda',
   inheritAttrs: false,
+  props: {
+    start: { type: Object as PropType<DoranDate | null>, default: null },
+    events: { type: Array as PropType<AgendaEvent[]>, default: () => [] },
+    renderEvent: {
+      type: Function as PropType<(event: AgendaEvent) => string>,
+      default: undefined,
+    },
+  },
   emits: { selectday: (_d: DoranDate) => true },
-  setup(_props, { attrs, emit }) {
-    onMounted(() => ensureElements());
+  setup(props, { attrs, emit }) {
+    const el = shallowRef<AgendaEl | null>(null);
     const defaults = injectDoranDefaults();
+    const sync = () => {
+      const node = el.value;
+      if (!node) return;
+      if (props.start) node.start = props.start;
+      node.events = props.events;
+      node.renderEvent = props.renderEvent ?? null;
+    };
+    onMounted(() => ensureElements().then(sync));
+    watch(() => [props.start, props.events, props.renderEvent], sync);
     const onSelectday = (e: Event) => emit('selectday', detail<{ date: DoranDate }>(e).date);
-    return () => h('doran-agenda', { ...mergeDefaults(defaults, attrs), onSelectday });
+    return () => h('doran-agenda', { ref: el, ...mergeDefaults(defaults, attrs), onSelectday });
   },
 });

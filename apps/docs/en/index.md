@@ -27,8 +27,8 @@ features:
     title: Holidays included
     details: Iranian national, religious, and cultural holidays — with custom holiday registration.
   - icon: ⚛️
-    title: RTL-first React
-    details: Accessible, keyboard-navigable, dark-mode-aware calendar components, built on headless primitives.
+    title: Bindings for every framework
+    details: Accessible, dark-mode-aware calendar components for React, Vue, Svelte, and Angular — all on one shared engine, plus @doranjs/zod for form validation.
   - icon: 🌐
     title: Works anywhere
     details: Framework-agnostic Web Components drop into plain HTML, Vue, Svelte, or any framework — no build step required.

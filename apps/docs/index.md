@@ -27,8 +27,8 @@ features:
     title: تعطیلات از پیش آماده
     details: تعطیلات ملی، مذهبی و فرهنگی ایران — همراه با امکان ثبت تعطیلات سفارشی.
   - icon: ⚛️
-    title: React با پشتیبانی RTL
-    details: کامپوننت‌های تقویمِ accessible، قابل پیمایش با کیبورد و سازگار با dark mode، ساخته‌شده بر پایهٔ headless primitiveها.
+    title: بایندینگ برای هر فریم‌ورک
+    details: کامپوننت‌های تقویمِ accessible و سازگار با dark mode برای React، Vue، Svelte و Angular — همه روی یک موتور مشترک، به‌علاوهٔ @doranjs/zod برای اعتبارسنجی فرم‌ها.
   - icon: 🌐
     title: همه‌جا کار می‌کند
     details: Web Componentهای مستقل از framework که در HTML ساده، Vue، Svelte یا هر frameworkی جا می‌گیرند — بدون نیاز به build.

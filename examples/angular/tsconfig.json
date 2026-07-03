@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "target": "ES2022",
+    "useDefineForClassFields": false,
+    "experimentalDecorators": false,
+    "verbatimModuleSyntax": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "angularCompilerOptions": {
+    "strictTemplates": false
+  },
+  "include": ["src", "vite.config.ts"]
+}

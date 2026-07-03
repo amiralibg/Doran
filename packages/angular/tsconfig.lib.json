@@ -10,7 +10,11 @@
     "emitDecoratorMetadata": false
   },
   "angularCompilerOptions": {
-    "compilationMode": "partial",
+    // Full Ivy, not partial: the demo builds with @analogjs/vite-plugin-angular,
+    // which skips node_modules and never runs the Angular linker, so partial
+    // (ngDeclare) output would need the JIT compiler at runtime and fail. peerDep
+    // is pinned to a single Angular major, where full-compiled output is stable.
+    "compilationMode": "full",
     "strictTemplates": true
   },
   "include": ["src/**/*.ts"],
