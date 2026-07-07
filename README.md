@@ -11,6 +11,9 @@
 **[📖 Documentation](https://amiralibg.github.io/Doran/)** ·
 **[🧭 Examples](https://amiralibg.github.io/Doran/examples)** ·
 **[⚛️ React demo](https://amiralibg.github.io/Doran/examples/react/)** ·
+**[💚 Vue demo](https://amiralibg.github.io/Doran/examples/vue/)** ·
+**[🧡 Svelte demo](https://amiralibg.github.io/Doran/examples/svelte/)** ·
+**[🅰️ Angular demo](https://amiralibg.github.io/Doran/examples/angular/)** ·
 **[🌐 Vanilla demo](https://amiralibg.github.io/Doran/examples/vanilla/)**
 
 </div>
@@ -19,19 +22,24 @@
 > (Persian / Jalali) calendar.
 
 Doran is a TypeScript monorepo that provides everything you need to work with the Persian
-calendar: a rock-solid date engine, natural-language parsing, holiday datasets, React
-components, and a design system — all tree-shakeable, strongly typed, and immutable.
+calendar: a rock-solid date engine, natural-language parsing, holiday datasets, calendar
+components for React/Vue/Svelte/Angular, and a design system — all tree-shakeable, strongly
+typed, and immutable.
 
 ## Packages
 
-| Package                                    | Description                                            | Status |
-| ------------------------------------------ | ------------------------------------------------------ | ------ |
-| [`@doranjs/core`](./packages/core)         | Immutable `DoranDate`, conversions, arithmetic, format | ✅     |
-| [`@doranjs/nlp`](./packages/nlp)           | Persian natural-language date parsing                  | ✅     |
-| [`@doranjs/holidays`](./packages/holidays) | Iranian official & religious holidays                  | ✅     |
-| [`@doranjs/react`](./packages/react)       | RTL-first, accessible React calendar components        | ✅     |
-| [`@doranjs/wc`](./packages/wc)             | Framework-agnostic Web Components for plain HTML       | ✅     |
-| [`@doranjs/ui`](./packages/ui)             | Minimal, themeable design system                       | ✅     |
+| Package                                    | Description                                             | Status |
+| ------------------------------------------ | ------------------------------------------------------- | ------ |
+| [`@doranjs/core`](./packages/core)         | Immutable `DoranDate`, conversions, arithmetic, format  | ✅     |
+| [`@doranjs/nlp`](./packages/nlp)           | Persian natural-language date parsing                   | ✅     |
+| [`@doranjs/holidays`](./packages/holidays) | Iranian official & religious holidays                   | ✅     |
+| [`@doranjs/react`](./packages/react)       | RTL-first, accessible React calendar components         | ✅     |
+| [`@doranjs/vue`](./packages/vue)           | `v-model` calendar components + headless composables    | ✅     |
+| [`@doranjs/svelte`](./packages/svelte)     | `bind:value` calendar components + headless stores      | ✅     |
+| [`@doranjs/angular`](./packages/angular)   | Standalone components + `ControlValueAccessor` bindings | ✅     |
+| [`@doranjs/wc`](./packages/wc)             | Framework-agnostic Web Components for plain HTML        | ✅     |
+| [`@doranjs/zod`](./packages/zod)           | Zod schema factory for Persian date validation          | ✅     |
+| [`@doranjs/ui`](./packages/ui)             | Minimal, themeable design system                        | ✅     |
 
 ## Quick start
 
@@ -71,7 +79,10 @@ parse('tvnh'); // keyboard left in English → فردا
   **[Architecture](https://amiralibg.github.io/Doran/en/guide/architecture)** ·
   **[API reference](https://amiralibg.github.io/Doran/en/api/core)**
 - **[Examples & live demos](https://amiralibg.github.io/Doran/examples)** — runnable
-  [React](https://amiralibg.github.io/Doran/examples/react/) and
+  [React](https://amiralibg.github.io/Doran/examples/react/),
+  [Vue](https://amiralibg.github.io/Doran/examples/vue/),
+  [Svelte](https://amiralibg.github.io/Doran/examples/svelte/),
+  [Angular](https://amiralibg.github.io/Doran/examples/angular/), and
   [Vanilla / Web Component](https://amiralibg.github.io/Doran/examples/vanilla/) playgrounds.
 
 ## Development
