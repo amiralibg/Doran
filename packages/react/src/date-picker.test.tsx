@@ -52,4 +52,44 @@ describe('DoranDatePicker', () => {
     fireEvent.click(screen.getByRole('button', { name: 'انتخاب تاریخ' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+
+  it('portals the popover to <body> so overflow ancestors cannot clip it', () => {
+    const { container } = render(
+      <div style={{ overflow: 'hidden' }}>
+        <DoranDatePicker defaultValue={value} />
+      </div>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /۱۴۰۵/ }));
+    const dialog = screen.getByRole('dialog', { name: 'تقویم' });
+    // Rendered outside the component tree, directly under <body>.
+    expect(container.contains(dialog)).toBe(false);
+    expect(dialog.parentElement).toBe(document.body);
+  });
+
+  it('keeps the popover open when clicking inside the portaled dialog', () => {
+    render(<DoranDatePicker defaultValue={value} withTime />);
+    fireEvent.click(screen.getByRole('button', { name: /۱۴۰۵/ }));
+    const dialog = screen.getByRole('dialog', { name: 'تقویم' });
+    fireEvent.pointerDown(dialog);
+    expect(screen.getByRole('dialog', { name: 'تقویم' })).toBeInTheDocument();
+    // …and an outside pointerdown still closes it.
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('renders the default calendar icon', () => {
+    render(<DoranDatePicker placeholder="یک تاریخ" />);
+    expect(document.querySelector('.doran-datepicker__icon svg')).toBeInTheDocument();
+  });
+
+  it('hides the icon when icon={null}', () => {
+    render(<DoranDatePicker placeholder="یک تاریخ" icon={null} />);
+    expect(document.querySelector('.doran-datepicker__icon')).not.toBeInTheDocument();
+  });
+
+  it('renders a custom icon', () => {
+    render(<DoranDatePicker placeholder="یک تاریخ" icon={<span data-testid="my-icon">★</span>} />);
+    expect(screen.getByTestId('my-icon')).toBeInTheDocument();
+    expect(document.querySelector('.doran-datepicker__icon svg')).not.toBeInTheDocument();
+  });
 });

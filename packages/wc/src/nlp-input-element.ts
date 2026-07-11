@@ -1,5 +1,6 @@
 import { DoranDate, type Locale } from '@doranjs/core';
 import { parse, suggest, type Suggestion } from '@doranjs/nlp';
+import { trackPopoverPosition } from './popover-position';
 import { esc, resolveLocaleAttr } from './util';
 
 /**
@@ -21,7 +22,10 @@ export class DoranNlpInputElement extends HTMLElement {
   #suggestions: Suggestion[] = [];
   #input: HTMLInputElement | null = null;
   #hint: HTMLSpanElement | null = null;
+  /** The suggestions listbox — body-portaled so overflow ancestors can't clip it. */
   #list: HTMLUListElement | null = null;
+  /** Stops the list's position tracking (scroll/resize/size listeners). */
+  #stopTracking: (() => void) | null = null;
   #initialized = false;
 
   connectedCallback(): void {
@@ -35,6 +39,10 @@ export class DoranNlpInputElement extends HTMLElement {
 
   disconnectedCallback(): void {
     document.removeEventListener('pointerdown', this.#onDocPointer);
+    this.#stopTracking?.();
+    this.#stopTracking = null;
+    this.#list?.remove();
+    this.#list = null;
   }
 
   attributeChangedCallback(name: string, _old: string | null, value: string | null): void {
@@ -66,7 +74,9 @@ export class DoranNlpInputElement extends HTMLElement {
   }
 
   #onDocPointer = (event: PointerEvent): void => {
-    if (this.#open && !this.contains(event.target as Node)) {
+    const target = event.target as Node;
+    // The list lives in a body portal, so check both trees.
+    if (this.#open && !this.contains(target) && !this.#list?.contains(target)) {
       this.#open = false;
       this.#renderList();
     }
@@ -101,12 +111,21 @@ export class DoranNlpInputElement extends HTMLElement {
       `<div class="doran-nlp__field">` +
       `<input type="text" class="doran-nlp__input" dir="rtl" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-controls="${listId}" />` +
       `<span class="doran-nlp__hint" aria-hidden></span>` +
-      `</div>` +
-      `<ul class="doran-nlp__suggestions" id="${listId}" role="listbox" hidden></ul>`;
+      `</div>`;
 
     this.#input = this.querySelector('.doran-nlp__input');
     this.#hint = this.querySelector('.doran-nlp__hint');
-    this.#list = this.querySelector('.doran-nlp__suggestions');
+
+    // Body portal + fixed positioning: never clipped by overflow ancestors.
+    this.#list?.remove();
+    const list = document.createElement('ul');
+    list.className = 'doran-nlp__suggestions';
+    list.id = listId;
+    list.setAttribute('role', 'listbox');
+    list.setAttribute('dir', 'rtl');
+    list.hidden = true;
+    document.body.appendChild(list);
+    this.#list = list;
 
     const input = this.#input!;
     input.value = this.#text;
@@ -216,7 +235,13 @@ export class DoranNlpInputElement extends HTMLElement {
     this.#input?.setAttribute('aria-expanded', String(visible));
     if (!visible) {
       list.innerHTML = '';
+      this.#stopTracking?.();
+      this.#stopTracking = null;
       return;
+    }
+    // Glue the fixed-position list to the input while visible.
+    if (!this.#stopTracking && this.#input) {
+      this.#stopTracking = trackPopoverPosition(this.#input, list, { matchTriggerWidth: true });
     }
     list.innerHTML = this.#suggestions
       .map((s, i) => {

@@ -30,4 +30,5 @@
   }
 </script>
 
-<doran-datepicker bind:this={el} on:change={onChange} {...attrs}></doran-datepicker>
+<!-- Children (e.g. a custom `slot="icon"` node) pass through to the element. -->
+<doran-datepicker bind:this={el} on:change={onChange} {...attrs}><slot /></doran-datepicker>

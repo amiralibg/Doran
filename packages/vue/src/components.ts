@@ -56,7 +56,7 @@ export const DoranDatePicker = defineComponent({
     'update:modelValue': (_d: DoranDate | null) => true,
     change: (_d: DoranDate | null, _g: Date | null) => true,
   },
-  setup(props, { attrs, emit }) {
+  setup(props, { attrs, emit, slots }) {
     const el = useElement<HTMLElement & { value: DoranDate | null }>(() => props.modelValue);
     const defaults = injectDoranDefaults();
     const onChange = (e: Event) => {
@@ -64,7 +64,13 @@ export const DoranDatePicker = defineComponent({
       emit('update:modelValue', date);
       emit('change', date, date ? date.toGregorian() : null);
     };
-    return () => h('doran-datepicker', { ref: el, ...mergeDefaults(defaults, attrs), onChange });
+    // Children (e.g. a custom `slot="icon"` node) pass through to the element.
+    return () =>
+      h(
+        'doran-datepicker',
+        { ref: el, ...mergeDefaults(defaults, attrs), onChange },
+        slots.default?.(),
+      );
   },
 });
 
