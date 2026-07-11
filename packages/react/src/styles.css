@@ -496,11 +496,14 @@
   height: 1.05rem;
 }
 
+/*
+ * Rendered in a body-level portal and positioned `fixed` from the trigger rect
+ * (top/left arrive as inline styles), so overflow:hidden/auto ancestors can
+ * never clip it. Override the stacking level with `--doran-z-popover`.
+ */
 .doran-datepicker__popover {
-  position: absolute;
-  z-index: 50;
-  margin-top: var(--doran-space-xs);
-  inset-inline-start: 0;
+  position: fixed;
+  z-index: var(--doran-z-popover, 9999);
   animation: doran-pop-in 0.12s ease;
 }
 
@@ -671,11 +674,14 @@
   background: var(--doran-surface-muted);
 }
 
+/*
+ * Body-portaled and positioned `fixed` at the input's width (top/left/width
+ * arrive as inline styles), so overflow ancestors can never clip it.
+ */
 .doran-nlp__suggestions {
-  position: absolute;
-  z-index: 50;
-  top: calc(100% + var(--doran-space-xs));
-  inset-inline: 0;
+  position: fixed;
+  z-index: var(--doran-z-popover, 9999);
+  box-sizing: border-box;
   margin: 0;
   padding: var(--doran-space-xs);
   list-style: none;

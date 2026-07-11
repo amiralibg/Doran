@@ -65,7 +65,9 @@ type Noop = () => void;
   selector: 'dr-date-picker',
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  template: `<doran-datepicker #el (change)="onChange($event)"></doran-datepicker>`,
+  template: `<doran-datepicker #el (change)="onChange($event)"
+    ><ng-content></ng-content
+  ></doran-datepicker>`,
   providers: [
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DoranDatePicker), multi: true },
   ],
@@ -78,6 +80,8 @@ export class DoranDatePicker implements ControlValueAccessor, AfterViewInit, OnC
   @Input() placeholder?: string;
   @Input() format?: string;
   @Input() withTime?: boolean;
+  /** Hide the trigger icon. Project a custom one instead via `<svg slot="icon">…`. */
+  @Input() hideIcon?: boolean;
 
   private value: DoranDate | null = null;
   // Element properties (`value`) must be set *after* the lazy `@doranjs/wc` import
@@ -107,6 +111,7 @@ export class DoranDatePicker implements ControlValueAccessor, AfterViewInit, OnC
     setAttr(el, 'placeholder', this.placeholder);
     setAttr(el, 'format', this.format);
     setBool(el, 'with-time', this.withTime);
+    setBool(el, 'hide-icon', this.hideIcon);
     el.value = this.value;
   }
 

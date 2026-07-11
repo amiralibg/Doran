@@ -57,7 +57,10 @@ describe('<doran-nlp-input>', () => {
     const input = el.querySelector<HTMLInputElement>('.doran-nlp__input')!;
     input.dispatchEvent(new FocusEvent('focus'));
     type(el, 'فرد');
-    const list = el.querySelector<HTMLUListElement>('.doran-nlp__suggestions')!;
+    // The list is body-portaled so overflow ancestors cannot clip it.
+    const list = document.querySelector<HTMLUListElement>('.doran-nlp__suggestions')!;
+    expect(el.contains(list)).toBe(false);
+    expect(list.parentElement).toBe(document.body);
     expect(list.hidden).toBe(false);
     const options = list.querySelectorAll<HTMLButtonElement>('[data-index]');
     expect(options.length).toBeGreaterThan(0);
@@ -65,5 +68,14 @@ describe('<doran-nlp-input>', () => {
     farda.click();
     expect(input.value.startsWith('فرد')).toBe(true);
     expect(input.value.length).toBeGreaterThan('فرد'.length);
+  });
+
+  it('removes the portaled list when the element is disconnected', () => {
+    const el = mount();
+    el.querySelector<HTMLInputElement>('.doran-nlp__input')!.dispatchEvent(new FocusEvent('focus'));
+    type(el, 'فرد');
+    expect(document.querySelector('.doran-nlp__suggestions')).not.toBeNull();
+    el.remove();
+    expect(document.querySelector('.doran-nlp__suggestions')).toBeNull();
   });
 });

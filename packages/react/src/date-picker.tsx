@@ -10,8 +10,11 @@ import {
   useState,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { DoranCalendar, type DoranCalendarProps } from './calendar';
+import { usePopoverPosition } from './use-popover-position';
 
 export interface DoranDatePickerProps extends Pick<
   DoranCalendarProps,
@@ -47,6 +50,11 @@ export interface DoranDatePickerProps extends Pick<
   id?: string;
   /** Preset height — `sm` 32 px · `md` 40 px (default) · `lg` 48 px. */
   size?: 'sm' | 'md' | 'lg';
+  /**
+   * The trigger icon. Defaults to the built-in calendar icon; pass any node to
+   * replace it, or `null` to render no icon at all.
+   */
+  icon?: ReactNode | null;
 }
 
 /**
@@ -74,6 +82,7 @@ export function DoranDatePicker({
   style,
   id,
   size,
+  icon,
   withTime,
   headerMode,
   minuteStep,
@@ -95,6 +104,9 @@ export function DoranDatePicker({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const popoverId = useId();
+  // The popover is portaled to <body> and positioned `fixed` from the trigger
+  // rect, so it can never be clipped by an overflow ancestor (cards, modals, …).
+  const popoverPosition = usePopoverPosition(open, triggerRef, popoverRef);
 
   /** Close the popover, optionally returning focus to the trigger button. */
   function close(restoreFocus: boolean) {
@@ -105,7 +117,11 @@ export function DoranDatePicker({
   useEffect(() => {
     if (!open) return;
     function onPointerDown(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      // The popover lives in a body portal, so check both trees.
+      if (!rootRef.current?.contains(target) && !popoverRef.current?.contains(target)) {
+        setOpen(false);
+      }
     }
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape') close(true);
@@ -177,39 +193,47 @@ export function DoranDatePicker({
         <span className={cn(!selected && 'doran-datepicker__placeholder')}>
           {selected ? selected.withLocale(locale).format(resolvedFormat) : placeholder}
         </span>
-        <span aria-hidden className="doran-datepicker__icon">
-          <CalendarIcon />
-        </span>
+        {icon !== null && (
+          <span aria-hidden className="doran-datepicker__icon">
+            {icon ?? <CalendarIcon />}
+          </span>
+        )}
       </button>
 
-      {open && (
-        <div
-          ref={popoverRef}
-          id={popoverId}
-          role="dialog"
-          aria-modal="false"
-          aria-label="تقویم"
-          className="doran-datepicker__popover"
-          onKeyDown={trapTab}
-        >
-          <DoranCalendar
-            locale={locale}
-            value={selected}
-            onChange={handleChange}
-            {...(min ? { min } : {})}
-            {...(max ? { max } : {})}
-            {...(withTime ? { withTime } : {})}
-            {...(headerMode ? { headerMode } : {})}
-            {...(minuteStep !== undefined ? { minuteStep } : {})}
-            {...(defaultTime ? { defaultTime } : {})}
-            {...(isHoliday ? { isHoliday } : {})}
-            {...(weekends ? { weekends } : {})}
-            {...(arrows ? { arrows } : {})}
-            {...(showOutsideDays !== undefined ? { showOutsideDays } : {})}
-            {...(selected ? { defaultMonth: { year: selected.year, month: selected.month } } : {})}
-          />
-        </div>
-      )}
+      {open &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            id={popoverId}
+            role="dialog"
+            aria-modal="false"
+            aria-label="تقویم"
+            dir="rtl"
+            className="doran-datepicker__popover"
+            style={popoverPosition ?? { visibility: 'hidden' }}
+            onKeyDown={trapTab}
+          >
+            <DoranCalendar
+              locale={locale}
+              value={selected}
+              onChange={handleChange}
+              {...(min ? { min } : {})}
+              {...(max ? { max } : {})}
+              {...(withTime ? { withTime } : {})}
+              {...(headerMode ? { headerMode } : {})}
+              {...(minuteStep !== undefined ? { minuteStep } : {})}
+              {...(defaultTime ? { defaultTime } : {})}
+              {...(isHoliday ? { isHoliday } : {})}
+              {...(weekends ? { weekends } : {})}
+              {...(arrows ? { arrows } : {})}
+              {...(showOutsideDays !== undefined ? { showOutsideDays } : {})}
+              {...(selected
+                ? { defaultMonth: { year: selected.year, month: selected.month } }
+                : {})}
+            />
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

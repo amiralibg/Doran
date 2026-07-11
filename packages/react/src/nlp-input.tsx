@@ -11,6 +11,8 @@ import {
 } from '@doranjs/nlp';
 import { cn } from '@doranjs/ui';
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { createPortal } from 'react-dom';
+import { usePopoverPosition } from './use-popover-position';
 
 /** State returned by {@link useNlpSuggest}. */
 export interface NlpSuggestState {
@@ -135,6 +137,7 @@ export function DoranNlpInput({
   const [active, setActive] = useState(-1);
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const listId = useId();
 
   const suggestOptions = useMemo<SuggestOptions>(
@@ -154,7 +157,11 @@ export function DoranNlpInput({
   useEffect(() => {
     if (!open) return;
     function onPointerDown(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      // The list lives in a body portal, so check both trees.
+      if (!rootRef.current?.contains(target) && !listRef.current?.contains(target)) {
+        setOpen(false);
+      }
     }
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
@@ -201,6 +208,11 @@ export function DoranNlpInput({
   }
 
   const showList = showSuggestions && open && suggestions.length > 0;
+  // Portaled to <body> and positioned `fixed` at the input's width, so overflow
+  // ancestors can never clip the dropdown.
+  const listPosition = usePopoverPosition(showList, inputRef, listRef, {
+    matchTriggerWidth: true,
+  });
   const hintParts =
     showHint && text.trim() && result ? previewParts(result.date, locale, format) : null;
   const hintUnknown = showHint && text.trim().length > 0 && !result;
@@ -242,30 +254,39 @@ export function DoranNlpInput({
         )}
       </div>
 
-      {showList && (
-        <ul className="doran-nlp__suggestions" id={listId} role="listbox">
-          {suggestions.map((s, i) => (
-            <li key={`${s.value}-${i}`} role="option" aria-selected={i === active}>
-              <button
-                type="button"
-                className={cn(
-                  'doran-nlp__suggestion',
-                  i === active && 'doran-nlp__suggestion--active',
-                )}
-                onMouseEnter={() => setActive(i)}
-                onClick={() => choose(s)}
-              >
-                <span>{s.label}</span>
-                {s.date && (
-                  <span className="doran-nlp__suggestion-preview">
-                    <Preview parts={previewParts(s.date, locale, format)} />
-                  </span>
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {showList &&
+        createPortal(
+          <ul
+            ref={listRef}
+            className="doran-nlp__suggestions"
+            id={listId}
+            role="listbox"
+            dir="rtl"
+            style={listPosition ?? { visibility: 'hidden' }}
+          >
+            {suggestions.map((s, i) => (
+              <li key={`${s.value}-${i}`} role="option" aria-selected={i === active}>
+                <button
+                  type="button"
+                  className={cn(
+                    'doran-nlp__suggestion',
+                    i === active && 'doran-nlp__suggestion--active',
+                  )}
+                  onMouseEnter={() => setActive(i)}
+                  onClick={() => choose(s)}
+                >
+                  <span>{s.label}</span>
+                  {s.date && (
+                    <span className="doran-nlp__suggestion-preview">
+                      <Preview parts={previewParts(s.date, locale, format)} />
+                    </span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>,
+          document.body,
+        )}
     </div>
   );
 }
