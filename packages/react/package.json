@@ -1,6 +1,6 @@
 {
   "name": "@doranjs/react",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "RTL-first, accessible React calendar and date-picker components for the Persian calendar.",
   "license": "MIT",
   "author": "Doran Contributors",
