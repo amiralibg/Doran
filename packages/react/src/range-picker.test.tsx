@@ -1,4 +1,4 @@
-import { DoranDate } from '@doranjs/core';
+import { DoranDate, enUS } from '@doranjs/core';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { DoranRangePicker } from './range-picker';
@@ -13,6 +13,13 @@ describe('DoranRangePicker footer actions', () => {
     render(<DoranRangePicker timeZone="UTC" defaultValue={{ start, end }} onChange={onChange} />);
     fireEvent.click(screen.getByRole('button', { name: 'پاک کردن' }));
     expect(onChange).toHaveBeenCalledWith({ start: null, end: null }, { start: null, end: null });
+  });
+
+  it('localizes Clear in English', () => {
+    render(<DoranRangePicker locale={enUS} timeZone="UTC" />);
+
+    expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'پاک کردن' })).not.toBeInTheDocument();
   });
 
   it('hides the entire footer when footerActions is empty', () => {

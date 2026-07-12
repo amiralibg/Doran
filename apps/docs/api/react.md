@@ -68,7 +68,7 @@ import { DoranCalendar, DoranDatePicker } from '@doranjs/react';
 />;
 
 // locale جهانی — یک بار در root برنامه:
-setDefaultLocale(enUS); // همهٔ pickerها بدون prop اضافه به انگلیسی تبدیل می‌شوند
+setDefaultLocale(enUS); // نام‌ها، ارقام و دکمه‌های فوتر همهٔ pickerها انگلیسی می‌شوند
 ```
 
 ## propهای `DoranRangePicker`
@@ -107,7 +107,7 @@ import { DoranRangePicker, type GregorianDateRange } from '@doranjs/react';
 
 `DoranRangePicker` به‌صورت پیش‌فرض کنترل `clear` را در فوتر نشان می‌دهد؛
 `footerActions={[]}` آن را همراه با خلاصهٔ بازه پنهان می‌کند. `hideFooter` فقط برای سازگاری
-قدیمی باقی مانده و منسوخ است.
+قدیمی باقی مانده و منسوخ است. متن دکمه‌ها از locale فعال می‌آید: `faIR` «امروز»/«پاک کردن» و `enUS`، Today/Clear را نشان می‌دهد.
 
 ## انتخاب ماه، سال و ساعت
 

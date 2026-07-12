@@ -1,4 +1,4 @@
-import { DoranDate, type Locale } from '@doranjs/core';
+import { DoranDate, resolveCalendarLabels, type Locale } from '@doranjs/core';
 import { getHolidaysOn } from '@doranjs/holidays';
 import { buildMonthGrid, navigateFocus, type GridNav, type MonthGrid } from './grid';
 import { chevronDown, chevronLeft, chevronRight, chevronUp } from './icons';
@@ -317,6 +317,7 @@ export class DoranCalendarElement extends HTMLElement {
 
   #render(): void {
     const locale = this.#locale;
+    const labels = resolveCalendarLabels(locale);
     const num = (n: number | string) => locale.formatNumber(String(n));
     const headerMode = this.getAttribute('header-mode') === 'separate' ? 'separate' : 'dropdown';
 
@@ -332,8 +333,8 @@ export class DoranCalendarElement extends HTMLElement {
     const footerButtons = footerActions
       .map((action) =>
         action === 'today'
-          ? `<button type="button" class="doran-btn doran-btn--outline doran-calendar__footer-action doran-calendar__footer-action--today" data-action="today" data-footer-action="today" ${todayDisabled ? 'disabled' : ''}>امروز</button>`
-          : `<button type="button" class="doran-btn doran-btn--outline doran-calendar__footer-action doran-calendar__footer-action--clear" data-action="clear" data-footer-action="clear">پاک کردن</button>`,
+          ? `<button type="button" class="doran-btn doran-btn--outline doran-calendar__footer-action doran-calendar__footer-action--today" data-action="today" data-footer-action="today" ${todayDisabled ? 'disabled' : ''}>${esc(labels.today)}</button>`
+          : `<button type="button" class="doran-btn doran-btn--outline doran-calendar__footer-action doran-calendar__footer-action--clear" data-action="clear" data-footer-action="clear">${esc(labels.clear)}</button>`,
       )
       .join('');
     const footer =

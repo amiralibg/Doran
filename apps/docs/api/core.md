@@ -294,8 +294,22 @@ gregorianWeekday(gy, gm, gd); // ۰ = شنبه
 ## Localeها
 
 ```ts
-import { faIR, enUS, registerLocale, setDefaultLocale } from '@doranjs/core';
+import {
+  enUS,
+  faIR,
+  registerLocale,
+  resolveCalendarLabels,
+  setDefaultLocale,
+  type CalendarLabels,
+  type Locale,
+} from '@doranjs/core';
+
+resolveCalendarLabels(enUS); // { today: "Today", clear: "Clear" }
 ```
+
+فیلد اختیاری `Locale.calendarLabels` برچسب کنترل‌های «امروز» و «پاک کردن» را
+سفارشی می‌کند. این فیلد اختیاری است تا localeهای سفارشی قبلی سازگار بمانند؛ در
+صورت نبودن آن، برچسب‌های فارسی استفاده می‌شوند.
 
 ## ابزارهای رقم
 

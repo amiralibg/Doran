@@ -68,7 +68,7 @@ const fa: Dict = {
     'با showOutsideDays خانه‌های ابتدا و انتهای جدول با روزهای ماه‌های مجاور پر می‌شوند.',
   calLocaleTitle: 'زبان تقویم (Locale)',
   calLocaleDesc:
-    'با prop به‌نام locale زبان تقویم عوض می‌شود؛ این‌جا تقویمِ انگلیسی (enUS) با اعداد لاتین نمایش داده می‌شود.',
+    'با prop به‌نام locale نام‌ها، اعداد و دکمه‌های فوتر عوض می‌شوند؛ این‌جا enUS با اعداد لاتین و دکمه‌های «Today» و «Clear» نمایش داده می‌شود.',
   calHeadlessTitle: 'بدون‌سَر (Headless)',
   calHeadlessDesc:
     'ترکیب هوکِ useCalendar با کامپوننت نمایشیِ DoranMonthView برای کنترل کامل روی ظاهر و ناوبری.',
@@ -191,7 +191,7 @@ const en: Dict = {
     'showOutsideDays fills the leading and trailing cells with days from the neighbouring months.',
   calLocaleTitle: 'Calendar locale',
   calLocaleDesc:
-    'The locale prop switches the calendar’s language — here the English (enUS) locale with Latin digits.',
+    'The locale prop switches month and weekday names, digits, and footer labels — here enUS shows Latin digits with Today and Clear.',
   calHeadlessTitle: 'Headless',
   calHeadlessDesc:
     'Compose the headless useCalendar hook with the presentational DoranMonthView for full control over markup and navigation.',

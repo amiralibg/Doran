@@ -1,5 +1,10 @@
 import { normalizeDigits, toLatinDigits, toPersianDigits } from './digits';
-import type { Locale, LocaleLike } from './types';
+import type { CalendarLabels, Locale, LocaleLike } from './types';
+
+const DEFAULT_CALENDAR_LABELS: CalendarLabels = {
+  today: 'امروز',
+  clear: 'پاک کردن',
+};
 
 /** The Persian (Iran) locale — the default for Doran. */
 export const faIR: Locale = {
@@ -25,6 +30,7 @@ export const faIR: Locale = {
   meridiem: ['قبل از ظهر', 'بعد از ظهر'],
   formatNumber: toPersianDigits,
   parseNumber: normalizeDigits,
+  calendarLabels: DEFAULT_CALENDAR_LABELS,
   relativeTime: {
     future: 'در %s',
     past: '%s پیش',
@@ -67,6 +73,10 @@ export const enUS: Locale = {
   meridiem: ['AM', 'PM'],
   formatNumber: toLatinDigits,
   parseNumber: normalizeDigits,
+  calendarLabels: {
+    today: 'Today',
+    clear: 'Clear',
+  },
   relativeTime: {
     future: 'in %s',
     past: '%s ago',
@@ -120,4 +130,9 @@ export function resolveLocale(locale?: LocaleLike): Locale {
   if (!locale) return defaultLocale;
   if (typeof locale === 'string') return registry.get(locale) ?? defaultLocale;
   return locale;
+}
+
+/** Returns calendar-control labels, falling back to Persian for custom legacy locales. */
+export function resolveCalendarLabels(locale: Locale): CalendarLabels {
+  return locale.calendarLabels ?? DEFAULT_CALENDAR_LABELS;
 }

@@ -63,7 +63,7 @@ import '@doranjs/wc/styles.css';
 `footer-actions` ترتیب `today` و `clear` را حفظ می‌کند و مقدار خالی (`footer-actions=""`) کل
 فوتر را پنهان می‌کند. «امروز» تاریخ امروز را انتخاب و `bind:value`/`change` را به‌روزرسانی
 می‌کند؛ «پاک کردن» هر دو مقدار Doran و میلادی را `null` می‌کند. RangePicker به‌صورت پیش‌فرض
-کنترل `clear` دارد؛ مقدار خالی فوتر و خلاصهٔ بازه را پنهان می‌کند. `hide-footer` منسوخ است.
+کنترل `clear` دارد؛ مقدار خالی فوتر و خلاصهٔ بازه را پنهان می‌کند. `hide-footer` منسوخ است. متن دکمه‌ها از locale فعال می‌آید: `fa` «امروز»/«پاک کردن» و `en`، Today/Clear را نشان می‌دهد.
 
 `icon-position` و `text-align` مقدارهای `left`/`right` می‌گیرند. `input-width` یک عرض CSS است؛
 `dropdown-width` می‌تواند `auto` (عرض ذاتی)، `trigger` (هم‌اندازهٔ ورودی) یا هر عرض CSS مثل

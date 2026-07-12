@@ -4,7 +4,7 @@ import { DoranDate } from '@doranjs/core';
 import { DoranCalendar } from '@doranjs/angular';
 
 // The locale input switches the calendar's language. locale="en" renders English
-// month/weekday names with Latin digits — the same component.
+// month/weekday names, Latin digits, and localized footer actions.
 @Component({
   selector: 'demo-cal-locale',
   standalone: true,

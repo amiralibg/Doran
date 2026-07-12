@@ -60,6 +60,7 @@ export {
   getDefaultLocale,
   getLocale,
   registerLocale,
+  resolveCalendarLabels,
   resolveLocale,
   setDefaultLocale,
 } from './locale';
@@ -75,6 +76,7 @@ export {
 
 // Types.
 export type {
+  CalendarLabels,
   DateUnit,
   DiffUnit,
   DoranDateOptions,

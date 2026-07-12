@@ -83,6 +83,14 @@ export type LocaleLike = string | Locale;
 /** Day-of-week index where 0 = Saturday … 6 = Friday (Persian week convention). */
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
+/** Labels used by calendar controls. */
+export interface CalendarLabels {
+  /** Label for the action that selects today. */
+  today: string;
+  /** Label for the action that clears the current selection. */
+  clear: string;
+}
+
 /** A localization bundle for formatting Jalali dates. */
 export interface Locale {
   /** Unique name, e.g. `"fa-IR"`. */
@@ -105,4 +113,6 @@ export interface Locale {
   parseNumber: (value: string) => string;
   /** Relative-time phrases for {@link DoranDate.fromNow}. Optional; a default is used. */
   relativeTime?: RelativeTimeStrings;
+  /** Labels used by calendar controls. Optional for backward-compatible custom locales. */
+  calendarLabels?: CalendarLabels;
 }

@@ -65,6 +65,15 @@ describe('<doran-calendar>', () => {
     expect(el.value?.isSame(today, 'day')).toBe(true);
   });
 
+  it('localizes footer actions in English', () => {
+    const el = mount({ locale: 'en', 'footer-actions': 'today,clear' });
+
+    expect(el.querySelector('[data-action="today"]')?.textContent).toBe('Today');
+    expect(el.querySelector('[data-action="clear"]')?.textContent).toBe('Clear');
+    expect(el.textContent).not.toContain('امروز');
+    expect(el.textContent).not.toContain('پاک کردن');
+  });
+
   it('preserves the selected time when Today is used with time enabled', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 6, 12, 13, 45));

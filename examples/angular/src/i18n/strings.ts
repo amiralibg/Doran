@@ -56,7 +56,7 @@ const fa: Dict = {
     'با weekends تعیین می‌کنید کدام روزها آخر هفته باشند (۰ = شنبه). پیش‌فرض فقط جمعه است.',
   calLocaleTitle: 'زبان تقویم (Locale)',
   calLocaleDesc:
-    'با attributeِ locale زبان تقویم عوض می‌شود؛ این‌جا تقویمِ انگلیسی با اعداد لاتین نمایش داده می‌شود.',
+    'با inputِ locale نام‌ها، اعداد و دکمه‌های فوتر عوض می‌شوند؛ این‌جا locale انگلیسی اعداد لاتین و دکمه‌های «Today» و «Clear» را نشان می‌دهد.',
   calHeadlessTitle: 'بدون‌سَر (Headless)',
   calHeadlessDesc:
     'با سرویسِ createCalendarGrid (سیگنال) گریدِ خودتان را بسازید — همان منطقِ ناوبریِ مشترک، بدون کامپوننتِ آماده.',
@@ -153,7 +153,7 @@ const en: Dict = {
     'weekends chooses which weekday indices count as the weekend (0 = Saturday). The default is Friday only.',
   calLocaleTitle: 'Calendar locale',
   calLocaleDesc:
-    'The locale attribute switches the calendar’s language — here English with Latin digits.',
+    'The locale input switches month and weekday names, digits, and footer labels — here English uses Latin digits with Today and Clear.',
   calHeadlessTitle: 'Headless',
   calHeadlessDesc:
     'Build your own grid with the createCalendarGrid (signals) — the same shared navigation logic, no ready-made component.',

@@ -1,4 +1,4 @@
-import { DoranDate, faIR } from '@doranjs/core';
+import { DoranDate, enUS, faIR } from '@doranjs/core';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { DoranCalendar } from './calendar';
@@ -22,6 +22,22 @@ describe('DoranCalendar', () => {
       <DoranCalendar timeZone="UTC" today={today} defaultMonth={{ year: 1405, month: 3 }} />,
     );
     expect(monthHeading(container)).toHaveTextContent(faIR.months[2]!);
+  });
+
+  it('localizes footer actions in English', () => {
+    render(
+      <DoranCalendar
+        locale={enUS}
+        timeZone="UTC"
+        today={today}
+        footerActions={['today', 'clear']}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Today' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'امروز' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'پاک کردن' })).not.toBeInTheDocument();
   });
 
   it('navigates to the next and previous month', () => {

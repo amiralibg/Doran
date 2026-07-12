@@ -1,9 +1,10 @@
 # Locales & digits
 
 Two things vary by audience: the **locale** (month/weekday names, relative-time
-phrases) and the **digit style** (Persian `۱۴۰۵` vs Latin `1405`). Doran keeps
-them separable so an English LTR UI can show Persian month names with Latin
-digits — or any other mix — without fighting the locale system.
+phrases, and calendar control labels) and the **digit style** (Persian `۱۴۰۵` vs
+Latin `1405`). Doran keeps them separable so an English LTR UI can show Persian
+month names with Latin digits — or any other mix — without fighting the locale
+system.
 
 ## Locale precedence
 
@@ -41,9 +42,20 @@ For an LTR English UI, call `setDefaultLocale(enUS)` once at startup. Every
 options needed.
 :::
 
-> A React/SSR context **provider** that scopes the locale to a subtree (rather
-> than a global) is tracked separately. Until then, `setDefaultLocale` is the
-> app-wide knob and the `locale` prop/option is the per-use override.
+Calendar controls use labels from the same locale:
+
+```ts
+import { enUS, resolveCalendarLabels } from '@doranjs/core';
+
+resolveCalendarLabels(enUS); // { today: "Today", clear: "Clear" }
+```
+
+Custom `Locale` objects can provide `calendarLabels`. Existing custom locales
+that omit them remain compatible and use the Persian control labels.
+
+> In React, `DoranProvider` can scope a locale to one subtree. The
+> web-component bindings (Vue, Svelte, and Angular) accept `locale="fa"` or
+> `locale="en"` on each component.
 
 ## Per-call digit control
 
@@ -66,9 +78,10 @@ locale defines (`fa-IR` → Persian, `en-US` → Latin).
 
 ### Why not just swap the locale?
 
-Swapping to `enUS` to get Latin digits also swaps month/weekday names to English.
-When you want Persian names with Latin digits (common in bilingual UIs), the
-per-call `digits` switch is the ergonomic path — no custom locale required.
+Swapping to `enUS` to get Latin digits also swaps month/weekday names and
+calendar control labels to English. When you want Persian names with Latin
+digits (common in bilingual UIs), the per-call `digits` switch is the ergonomic
+path — no custom locale required.
 
 ## Digit utilities
 

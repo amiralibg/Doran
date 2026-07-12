@@ -81,6 +81,13 @@ describe('<doran-rangepicker>', () => {
     expect(el.value.end).toBeNull();
   });
 
+  it('localizes Clear in English', () => {
+    const el = mount({ locale: 'en' });
+
+    expect(el.querySelector('[data-action="clear"]')?.textContent).toBe('Clear');
+    expect(el.textContent).not.toContain('پاک کردن');
+  });
+
   it('defaults to Clear, honors only clear tokens, and supports no actions', () => {
     expect(mount().querySelector('[data-action="clear"]')).not.toBeNull();
     document.body.innerHTML = '';

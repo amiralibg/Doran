@@ -85,7 +85,7 @@ custom element pass می‌شود — فهرست کامل در [`@doranjs/wc`](/
 «امروز» تاریخ امروز را انتخاب و تغییر را emit می‌کند؛ «پاک کردن» مقدار فرم و
 `change.value`/`change.gregorian` را `null` می‌کند. `dr-range-picker` به‌صورت پیش‌فرض کنترل
 `clear` دارد و `[footerActions]="[]"` فوترش را پنهان می‌کند. `hideFooter` در `dr-calendar`
-منسوخ است؛ از `[footerActions]="[]"` استفاده کنید.
+منسوخ است؛ از `[footerActions]="[]"` استفاده کنید. متن دکمه‌ها از locale فعال می‌آید: `fa` «امروز»/«پاک کردن» و `en`، Today/Clear را نشان می‌دهد.
 
 `[disabled]` و وضعیت disabled فرم، trigger بومی را غیرفعال می‌کنند؛ در این حالت DatePicker باز
 نمی‌شود و popover باز نیز بسته می‌شود.

@@ -3,7 +3,7 @@
   import { DoranCalendar } from '@doranjs/svelte';
 
   // The locale attribute switches the calendar's language. locale="en" renders
-  // English month/weekday names with Latin digits — the same component.
+  // English month/weekday names, Latin digits, and localized footer actions.
   let value: DoranDate | null = DoranDate.now();
 </script>
 

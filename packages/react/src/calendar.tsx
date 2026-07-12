@@ -1,6 +1,6 @@
 'use client';
 
-import { type DoranDate, type Locale } from '@doranjs/core';
+import { resolveCalendarLabels, type DoranDate, type Locale } from '@doranjs/core';
 import { useResolvedLocale } from './provider';
 import { Button, cn } from '@doranjs/ui';
 import { useState } from 'react';
@@ -82,6 +82,7 @@ export function DoranCalendar({
   ...options
 }: DoranCalendarProps) {
   const locale = useResolvedLocale(localeProp);
+  const labels = resolveCalendarLabels(locale);
   const isControlled = value !== undefined;
   const [internal, setInternal] = useState<DoranDate | null>(defaultValue ?? null);
   const selected = isControlled ? (value ?? null) : internal;
@@ -188,7 +189,7 @@ export function DoranCalendar({
                 disabled={calendar.isDisabled(calendar.today)}
                 onClick={calendar.selectToday}
               >
-                امروز
+                {labels.today}
               </Button>
             ) : (
               <Button
@@ -198,7 +199,7 @@ export function DoranCalendar({
                 data-footer-action={action}
                 onClick={() => emit(null)}
               >
-                پاک کردن
+                {labels.clear}
               </Button>
             ),
           )}
