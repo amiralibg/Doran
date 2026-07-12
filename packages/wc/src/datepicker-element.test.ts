@@ -138,6 +138,9 @@ describe('<doran-datepicker>', () => {
     expect((input.querySelector('.doran-datepicker__value') as HTMLElement).style.textAlign).toBe(
       'left',
     );
+    // Bidi isolation: without dir="auto" the RTL host reorders digit-only
+    // values like `1405-04-16 03:24` into time-before-date.
+    expect(input.querySelector('.doran-datepicker__value')?.getAttribute('dir')).toBe('auto');
     expect(el.style.getPropertyValue('--doran-input-width')).toBe('18rem');
   });
 

@@ -158,6 +158,9 @@ describe('DoranDatePicker', () => {
     expect(root.style.getPropertyValue('--doran-input-width')).toBe('240px');
     expect(trigger).toHaveStyle({ width: '240px', flexDirection: 'row-reverse' });
     expect(display).toHaveStyle({ textAlign: 'left' });
+    // Bidi isolation: without dir="auto" the RTL root reorders digit-only
+    // values like `1405-04-16 03:24` into time-before-date.
+    expect(display).toHaveAttribute('dir', 'auto');
   });
 
   it('supports custom and trigger-matched dropdown widths', () => {

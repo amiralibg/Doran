@@ -250,7 +250,11 @@ export function DoranDatePicker({
         aria-controls={open ? popoverId : undefined}
         onClick={() => setOpen((o) => !o)}
       >
+        {/* dir="auto": digit-only values (e.g. `YYYY-MM-DD HH:mm`) resolve LTR so
+            the surrounding RTL context can't reorder the date/time runs, while
+            Persian placeholders and month-name formats still resolve RTL. */}
         <span
+          dir="auto"
           className={cn('doran-datepicker__value', !selected && 'doran-datepicker__placeholder')}
           style={{ flex: 1, textAlign }}
         >

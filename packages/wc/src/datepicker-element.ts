@@ -193,7 +193,10 @@ export class DoranDatePickerElement extends HTMLElement {
     const icon = boolAttr(this, 'hide-icon')
       ? ''
       : `<span class="doran-datepicker__icon" aria-hidden>${this.#customIcon ? '' : calendarIcon}</span>`;
-    const labelHtml = `<span class="${labelClass}" data-text-align="${textAlign}">${label}</span>`;
+    // dir="auto": digit-only values (e.g. `YYYY-MM-DD HH:mm`) resolve LTR so the
+    // host's RTL context can't reorder the date/time runs, while Persian
+    // placeholders and month-name formats still resolve RTL.
+    const labelHtml = `<span class="${labelClass}" data-text-align="${textAlign}" dir="auto">${label}</span>`;
 
     this.#destroyPopover();
     this.innerHTML =
