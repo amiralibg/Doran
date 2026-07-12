@@ -1,5 +1,11 @@
 # @doranjs/core
 
+## 0.1.1
+
+### Patch Changes
+
+- [#44](https://github.com/amiralibg/Doran/pull/44) [`b73c99a`](https://github.com/amiralibg/Doran/commit/b73c99a95e5dd306f6611da38aad13d6e5819302) Thanks [@amiralibg](https://github.com/amiralibg)! - Localize calendar footer actions such as Today and Clear from the active locale instead of always showing Persian labels.
+
 ## 0.1.0
 
 ### Minor Changes
