@@ -54,6 +54,17 @@ describe('useCalendar', () => {
     act(() => result.current.goToToday());
     expect([result.current.year, result.current.month]).toEqual([1405, 3]);
   });
+
+  it('selects today separately from the backward-compatible navigation action', () => {
+    const onChange = vi.fn();
+    const { result } = renderHook(() => useCalendar({ today, onChange }));
+    act(() => result.current.goToNextMonth());
+    act(() => result.current.goToToday());
+    expect(onChange).not.toHaveBeenCalled();
+    act(() => result.current.selectToday());
+    expect(onChange).toHaveBeenCalledWith(today.startOf('day'));
+    expect(result.current.isSelected(today)).toBe(true);
+  });
 });
 
 describe('useDateRange', () => {

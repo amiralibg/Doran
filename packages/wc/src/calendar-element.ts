@@ -2,7 +2,14 @@ import { DoranDate, type Locale } from '@doranjs/core';
 import { getHolidaysOn } from '@doranjs/holidays';
 import { buildMonthGrid, navigateFocus, type GridNav, type MonthGrid } from './grid';
 import { chevronDown, chevronLeft, chevronRight, chevronUp } from './icons';
-import { boolAttr, esc, parseJalaliAttr, resolveLocaleAttr, withTime } from './util';
+import {
+  boolAttr,
+  esc,
+  parseFooterActions,
+  parseJalaliAttr,
+  resolveLocaleAttr,
+  withTime,
+} from './util';
 
 type Panel = 'days' | 'months' | 'years';
 
@@ -11,9 +18,11 @@ type Panel = 'days' | 'months' | 'years';
  *
  * Attributes: `value`, `min`, `max` (`YYYY/MM/DD`), `locale` (`fa`|`en`),
  * `header-mode` (`dropdown`|`separate`), `with-time`, `show-holidays`,
- * `weekends` (comma-separated indices), `hide-footer`, `year-span`.
+ * `weekends` (comma-separated indices), `footer-actions` (`today,clear`),
+ * `hide-footer`, and `year-span`.
  *
- * Emits a `change` CustomEvent with `{ date, iso, value }` when a day is chosen.
+ * Emits a `change` CustomEvent with `{ date, iso, value }` when a day is chosen
+ * or cleared; Clear emits `date: null`, `iso: null`, and `value: ''`.
  */
 export class DoranCalendarElement extends HTMLElement {
   static get observedAttributes(): string[] {
@@ -27,6 +36,7 @@ export class DoranCalendarElement extends HTMLElement {
       'show-holidays',
       'weekends',
       'hide-footer',
+      'footer-actions',
       'year-span',
     ];
   }
@@ -121,16 +131,17 @@ export class DoranCalendarElement extends HTMLElement {
     return false;
   }
 
-  #emit(date: DoranDate): void {
+  #emit(date: DoranDate | null): void {
     this.dispatchEvent(
       new CustomEvent('change', {
         bubbles: false,
         detail: {
           date,
-          iso: date.toISOString(),
-          value: date
-            .withLocale(this.#locale)
-            .format(this.#withTime ? 'YYYY/MM/DD HH:mm' : 'YYYY/MM/DD'),
+          iso: date?.toISOString() ?? null,
+          value:
+            date
+              ?.withLocale(this.#locale)
+              .format(this.#withTime ? 'YYYY/MM/DD HH:mm' : 'YYYY/MM/DD') ?? '',
         },
       }),
     );
@@ -144,6 +155,12 @@ export class DoranCalendarElement extends HTMLElement {
     this.#viewMonth = next.month;
     this.#render();
     this.#emit(next);
+  }
+
+  #clear(): void {
+    this.#selected = null;
+    this.#render();
+    this.#emit(null);
   }
 
   #navMonth(delta: number): void {
@@ -200,10 +217,11 @@ export class DoranCalendarElement extends HTMLElement {
         );
         break;
       case 'today': {
-        const today = DoranDate.now();
-        this.#viewYear = today.year;
-        this.#viewMonth = today.month;
-        this.#render();
+        this.#selectDay(DoranDate.now());
+        break;
+      }
+      case 'clear': {
+        this.#clear();
         break;
       }
       case 'time': {
@@ -309,9 +327,19 @@ export class DoranCalendarElement extends HTMLElement {
     const body =
       this.#panel === 'days' ? this.#renderMonth(locale, num) : this.#renderPanel(locale, num);
     const time = this.#withTime && this.#panel === 'days' ? this.#renderTime(num) : '';
-    const footer = boolAttr(this, 'hide-footer')
-      ? ''
-      : `<div class="doran-calendar__footer"><button type="button" class="doran-btn doran-btn--outline" data-action="today">امروز</button></div>`;
+    const footerActions = parseFooterActions(this.getAttribute('footer-actions'), ['today']);
+    const todayDisabled = this.#isDisabled(DoranDate.now());
+    const footerButtons = footerActions
+      .map((action) =>
+        action === 'today'
+          ? `<button type="button" class="doran-btn doran-btn--outline doran-calendar__footer-action doran-calendar__footer-action--today" data-action="today" data-footer-action="today" ${todayDisabled ? 'disabled' : ''}>امروز</button>`
+          : `<button type="button" class="doran-btn doran-btn--outline doran-calendar__footer-action doran-calendar__footer-action--clear" data-action="clear" data-footer-action="clear">پاک کردن</button>`,
+      )
+      .join('');
+    const footer =
+      boolAttr(this, 'hide-footer') || footerButtons === ''
+        ? ''
+        : `<div class="doran-calendar__footer">${footerButtons}</div>`;
 
     this.innerHTML = header + body + time + footer;
 

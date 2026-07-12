@@ -8,20 +8,37 @@ import WithTime from '../demos/datepicker/WithTime.vue';
 import WithTimeSrc from '../demos/datepicker/WithTime.vue?raw';
 import Format from '../demos/datepicker/Format.vue';
 import FormatSrc from '../demos/datepicker/Format.vue?raw';
+import Customization from '../demos/datepicker/Customization.vue';
+import CustomizationSrc from '../demos/datepicker/Customization.vue?raw';
 
 const app = useApp();
 </script>
 
 <template>
   <Section id="datepicker" title="<DoranDatePicker>" :intro="app.t('dpIntro')">
-    <DemoCard :title="app.t('dpDefaultTitle')" :description="app.t('dpDefaultDesc')" :code="DefaultSrc">
+    <DemoCard
+      :title="app.t('dpDefaultTitle')"
+      :description="app.t('dpDefaultDesc')"
+      :code="DefaultSrc"
+    >
       <Default :lang="app.lang()" />
     </DemoCard>
     <DemoCard :title="app.t('dpTimeTitle')" :description="app.t('dpTimeDesc')" :code="WithTimeSrc">
       <WithTime :lang="app.lang()" />
     </DemoCard>
-    <DemoCard :title="app.t('dpFormatTitle')" :description="app.t('dpFormatDesc')" :code="FormatSrc">
+    <DemoCard
+      :title="app.t('dpFormatTitle')"
+      :description="app.t('dpFormatDesc')"
+      :code="FormatSrc"
+    >
       <Format :lang="app.lang()" />
+    </DemoCard>
+    <DemoCard
+      :title="app.t('dpCustomizationTitle')"
+      :description="app.t('dpCustomizationDesc')"
+      :code="CustomizationSrc"
+    >
+      <Customization :lang="app.lang()" />
     </DemoCard>
   </Section>
 </template>

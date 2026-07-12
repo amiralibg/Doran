@@ -2,6 +2,23 @@
 
 Moving to Doran from another Persian-date library is usually a small, mechanical change.
 
+## Nullable React `onChange`
+
+`DoranCalendar` and `DoranDatePicker` now support the `clear` footer action, so their `onChange`
+signatures are nullable. Update existing handlers to guard `null` before using the date:
+
+```tsx
+<DoranDatePicker
+  footerActions={['today', 'clear']}
+  onChange={(date, gregorian) => {
+    if (!date || !gregorian) return;
+    save(gregorian.toISOString());
+  }}
+/>
+```
+
+DatePicker passes `null` for both arguments on Clear; Calendar calls `onChange(null)`.
+
 ## Full parity matrix — moment / dayjs vs Doran
 
 | Operation                | `moment-jalaali`                      | `dayjs` (Jalali plugin)               | Doran (`@doranjs/core`)                      |

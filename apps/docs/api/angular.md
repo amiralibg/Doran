@@ -61,6 +61,35 @@ export class BookingComponent {
 پشتیبانی می‌کند (`locale`، `placeholder`، `format`، `with-time`، `min`، `max`، …) مستقیماً به
 custom element pass می‌شود — فهرست کامل در [`@doranjs/wc`](/api/wc).
 
+## سفارشی‌سازی DatePicker و فوتر
+
+| Input           | Type / مقدار                       | توضیح                                                                    |
+| --------------- | ---------------------------------- | ------------------------------------------------------------------------ |
+| `footerActions` | `('today' \| 'clear')[] \| string` | ترتیب اکشن‌های Calendar/DatePicker؛ `[]` یا `''` کل فوتر را پنهان می‌کند |
+| `iconPosition`  | `'left' \| 'right'`                | جای آیکن trigger؛ پیش‌فرض `left`                                         |
+| `textAlign`     | `'left' \| 'right'`                | تراز متن trigger؛ پیش‌فرض `right`                                        |
+| `inputWidth`    | `string`                           | عرض CSS ورودی، مثل `18rem`                                               |
+| `dropdownWidth` | `'auto' \| 'trigger' \| string`    | عرض ذاتی، برابر trigger یا عرض CSS سفارشی                                |
+
+```html
+<dr-date-picker
+  [formControl]="date"
+  [footerActions]="['today', 'clear']"
+  iconPosition="right"
+  textAlign="left"
+  inputWidth="18rem"
+  dropdownWidth="trigger"
+/>
+```
+
+«امروز» تاریخ امروز را انتخاب و تغییر را emit می‌کند؛ «پاک کردن» مقدار فرم و
+`change.value`/`change.gregorian` را `null` می‌کند. `dr-range-picker` به‌صورت پیش‌فرض کنترل
+`clear` دارد و `[footerActions]="[]"` فوترش را پنهان می‌کند. `hideFooter` در `dr-calendar`
+منسوخ است؛ از `[footerActions]="[]"` استفاده کنید.
+
+`[disabled]` و وضعیت disabled فرم، trigger بومی را غیرفعال می‌کنند؛ در این حالت DatePicker باز
+نمی‌شود و popover باز نیز بسته می‌شود.
+
 ## headless — `createCalendarGrid`
 
 برای markupِ کاملاً دلخواه، یک گریدِ signal-based همان `buildMonthGrid` / `navigateFocus`ِ مشترکِ

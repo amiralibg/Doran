@@ -75,9 +75,28 @@ describe('<doran-rangepicker>', () => {
     monthDays(el)[0]!.click();
     const onChange = vi.fn();
     el.addEventListener('change', (e) => onChange((e as CustomEvent).detail));
-    el.querySelector<HTMLButtonElement>('[data-action="reset"]')!.click();
+    el.querySelector<HTMLButtonElement>('[data-action="clear"]')!.click();
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(el.value.start).toBeNull();
     expect(el.value.end).toBeNull();
+  });
+
+  it('defaults to Clear, honors only clear tokens, and supports no actions', () => {
+    expect(mount().querySelector('[data-action="clear"]')).not.toBeNull();
+    document.body.innerHTML = '';
+
+    const filtered = mount({ 'footer-actions': 'today clear today' });
+    expect(filtered.querySelectorAll('[data-action="clear"]')).toHaveLength(1);
+    expect(filtered.querySelector('[data-action="today"]')).toBeNull();
+    document.body.innerHTML = '';
+
+    const none = mount({ 'footer-actions': '' });
+    expect(none.querySelector('[data-action="clear"]')).toBeNull();
+    expect(none.querySelector('.doran-rangepicker__footer')).toBeNull();
+  });
+
+  it('keeps hide-footer compatibility', () => {
+    const el = mount({ 'hide-footer': '', 'footer-actions': 'clear' });
+    expect(el.querySelector('.doran-rangepicker__footer')).toBeNull();
   });
 });

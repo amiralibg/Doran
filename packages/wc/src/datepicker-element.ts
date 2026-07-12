@@ -6,8 +6,10 @@ import { boolAttr, esc, parseJalaliAttr, resolveLocaleAttr } from './util';
 
 /**
  * `<doran-datepicker>` — a date input with a pop-over `<doran-calendar>`. Closes on
- * outside-click or Escape. Forwards `value`, `min`, `max`, `locale`, `header-mode`,
- * `with-time`, `show-holidays`, `placeholder`, and `format`.
+ * outside-click or Escape. Forwards calendar configuration including `min`, `max`,
+ * `locale`, `header-mode`, `with-time`, `show-holidays`, and `footer-actions`.
+ * Customize the trigger with `icon-position`, `text-align`, `input-width`, and
+ * `dropdown-width` (`auto`, `trigger`, or a CSS width).
  *
  * The pop-over is appended to `document.body` and positioned `fixed` from the
  * trigger rect, so it always renders above the page and is never clipped by an
@@ -18,7 +20,27 @@ import { boolAttr, esc, parseJalaliAttr, resolveLocaleAttr } from './util';
  */
 export class DoranDatePickerElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ['value', 'placeholder', 'format', 'locale', 'with-time', 'hide-icon'];
+    return [
+      'value',
+      'placeholder',
+      'format',
+      'locale',
+      'min',
+      'max',
+      'header-mode',
+      'with-time',
+      'show-holidays',
+      'weekends',
+      'hide-footer',
+      'footer-actions',
+      'year-span',
+      'hide-icon',
+      'icon-position',
+      'text-align',
+      'input-width',
+      'dropdown-width',
+      'disabled',
+    ];
   }
 
   #selected: DoranDate | null = null;
@@ -57,6 +79,7 @@ export class DoranDatePickerElement extends HTMLElement {
   attributeChangedCallback(name: string): void {
     if (!this.#initialized) return;
     if (name === 'value') this.#selected = parseJalaliAttr(this.getAttribute('value'));
+    if (name === 'disabled' && boolAttr(this, 'disabled')) this.#open = false;
     this.#render();
   }
 
@@ -74,6 +97,14 @@ export class DoranDatePickerElement extends HTMLElement {
       this.getAttribute('format') ??
       (boolAttr(this, 'with-time') ? 'YYYY/MM/DD HH:mm' : 'YYYY/MM/DD')
     );
+  }
+
+  get #iconPosition(): 'left' | 'right' {
+    return this.getAttribute('icon-position') === 'right' ? 'right' : 'left';
+  }
+
+  get #textAlign(): 'left' | 'right' {
+    return this.getAttribute('text-align') === 'left' ? 'left' : 'right';
   }
 
   #onDocPointer = (event: PointerEvent): void => {
@@ -96,6 +127,7 @@ export class DoranDatePickerElement extends HTMLElement {
   #onClick = (event: Event): void => {
     const trigger = (event.target as HTMLElement).closest('[data-action="toggle"]');
     if (trigger && this.contains(trigger)) {
+      if (boolAttr(this, 'disabled')) return;
       this.#open = !this.#open;
       if (this.#open) this.#focusCalendarOnRender = true;
       this.#render();
@@ -132,24 +164,53 @@ export class DoranDatePickerElement extends HTMLElement {
   }
 
   #render(): void {
+    if (boolAttr(this, 'disabled')) this.#open = false;
     const locale = resolveLocaleAttr(this.getAttribute('locale'));
     const placeholder = this.getAttribute('placeholder') ?? 'انتخاب تاریخ';
+    const iconPosition = this.#iconPosition;
+    const textAlign = this.#textAlign;
+    const dropdownWidth = this.getAttribute('dropdown-width')?.trim() || 'auto';
+    const dropdownWidthMode =
+      dropdownWidth === 'auto' || dropdownWidth === 'trigger' ? dropdownWidth : 'custom';
     const label = this.#selected
       ? esc(this.#selected.withLocale(locale).format(this.#format))
-      : `<span class="doran-datepicker__placeholder">${esc(placeholder)}</span>`;
+      : esc(placeholder);
+    const labelClass = `doran-datepicker__value${this.#selected ? '' : ' doran-datepicker__placeholder'}`;
 
     this.classList.add('doran-datepicker');
+    this.classList.toggle('doran-datepicker--icon-left', iconPosition === 'left');
+    this.classList.toggle('doran-datepicker--icon-right', iconPosition === 'right');
+    this.classList.toggle('doran-datepicker--text-left', textAlign === 'left');
+    this.classList.toggle('doran-datepicker--text-right', textAlign === 'right');
     this.setAttribute('dir', 'rtl');
+    this.dataset.iconPosition = iconPosition;
+    this.dataset.textAlign = textAlign;
+    this.dataset.dropdownWidth = dropdownWidthMode;
+    const inputWidth = this.getAttribute('input-width')?.trim();
+    if (inputWidth) this.style.setProperty('--doran-input-width', inputWidth);
+    else this.style.removeProperty('--doran-input-width');
 
     const icon = boolAttr(this, 'hide-icon')
       ? ''
       : `<span class="doran-datepicker__icon" aria-hidden>${this.#customIcon ? '' : calendarIcon}</span>`;
+    const labelHtml = `<span class="${labelClass}" data-text-align="${textAlign}">${label}</span>`;
 
     this.#destroyPopover();
     this.innerHTML =
-      `<button type="button" class="doran-datepicker__input" data-action="toggle" aria-haspopup="dialog" aria-expanded="${this.#open}">` +
-      `<span>${label}</span>${icon}` +
+      `<button type="button" class="doran-datepicker__input" data-action="toggle" data-icon-position="${iconPosition}" data-text-align="${textAlign}" aria-haspopup="dialog" aria-expanded="${this.#open}" ${boolAttr(this, 'disabled') ? 'disabled' : ''}>` +
+      labelHtml +
+      icon +
       `</button>`;
+    const trigger = this.querySelector<HTMLElement>('[data-action="toggle"]');
+    if (trigger) {
+      trigger.style.flexDirection = iconPosition === 'left' ? 'row' : 'row-reverse';
+      if (inputWidth) trigger.style.width = inputWidth;
+    }
+    const value = this.querySelector<HTMLElement>('.doran-datepicker__value');
+    if (value) {
+      value.style.flex = '1';
+      value.style.textAlign = textAlign;
+    }
 
     // Re-insert the user's custom icon node (innerHTML wiped the slot span).
     if (this.#customIcon && !boolAttr(this, 'hide-icon')) {
@@ -158,7 +219,8 @@ export class DoranDatePickerElement extends HTMLElement {
 
     if (this.#open) {
       const popover = document.createElement('div');
-      popover.className = 'doran-datepicker__popover';
+      popover.className = `doran-datepicker__popover doran-datepicker__popover--${dropdownWidthMode}`;
+      popover.dataset.dropdownWidth = dropdownWidthMode;
       popover.setAttribute('role', 'dialog');
       popover.setAttribute('aria-modal', 'false');
       popover.setAttribute('aria-label', 'تقویم');
@@ -174,6 +236,9 @@ export class DoranDatePickerElement extends HTMLElement {
         'with-time',
         'show-holidays',
         'weekends',
+        'hide-footer',
+        'footer-actions',
+        'year-span',
       ]) {
         const v = this.getAttribute(attr);
         if (v !== null) calendar.setAttribute(attr, v);
@@ -186,9 +251,13 @@ export class DoranDatePickerElement extends HTMLElement {
         );
       }
       calendar.addEventListener('change', (e) => {
-        const detail = (e as CustomEvent).detail as { date: DoranDate };
+        const detail = (e as CustomEvent).detail as {
+          date: DoranDate | null;
+          iso: string | null;
+          value: string;
+        };
         this.#selected = detail.date;
-        if (!boolAttr(this, 'with-time')) {
+        if (detail.date === null || !boolAttr(this, 'with-time')) {
           this.#open = false;
           this.#focusTriggerOnRender = true;
         }
@@ -197,11 +266,18 @@ export class DoranDatePickerElement extends HTMLElement {
         e.stopPropagation();
       });
       popover.appendChild(calendar);
+      if (dropdownWidthMode === 'custom') popover.style.width = dropdownWidth;
       // Body portal + fixed positioning: never clipped by overflow ancestors.
       document.body.appendChild(popover);
+      // Preserve a property-set value's time-of-day; the value attribute only
+      // carries a Jalali date and cannot represent time.
+      if (this.#selected) calendar.value = this.#selected;
       this.#popover = popover;
-      const trigger = this.querySelector<HTMLElement>('[data-action="toggle"]');
-      if (trigger) this.#stopTracking = trackPopoverPosition(trigger, popover);
+      if (trigger) {
+        this.#stopTracking = trackPopoverPosition(trigger, popover, {
+          matchTriggerWidth: dropdownWidthMode === 'trigger',
+        });
+      }
 
       // Appending upgrades <doran-calendar> synchronously, so its focusable day exists.
       if (this.#focusCalendarOnRender) {

@@ -20,5 +20,6 @@ export {
   type DoranDateRange,
   type GregorianDateRange,
 } from './components';
+export { type FooterAction, type FooterActionsInput } from './attributes';
 export { type CalendarGrid, createCalendarGrid } from './use-calendar-grid';
 export { DORAN_DEFAULTS, type DoranDefaults, DoranProvider } from './provider';

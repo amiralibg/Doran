@@ -47,6 +47,30 @@ function onChange(_doran: DoranDate | null, gregorian: Date | null) {
 Any attribute the underlying element supports (`locale`, `placeholder`, `format`, `with-time`,
 `min`, `max`, …) passes straight through — see [`@doranjs/wc`](/en/api/wc) for the full list.
 
+## DatePicker and footer customization
+
+```vue
+<DoranDatePicker
+  v-model="date"
+  footer-actions="today,clear"
+  icon-position="right"
+  text-align="left"
+  input-width="18rem"
+  dropdown-width="trigger"
+/>
+```
+
+`footer-actions` preserves the order of `today` and `clear`; an empty value
+(`footer-actions=""`) hides the whole footer. Today selects the current date and updates
+`v-model`/`change`; Clear emits `null` for both Doran and Gregorian values. RangePicker has a
+Clear control by default, and an empty value hides its footer and range summary. `hide-footer` is
+deprecated.
+
+`icon-position` and `text-align` accept `left`/`right`. `input-width` is a CSS width;
+`dropdown-width` accepts `auto` (intrinsic), `trigger` (match the input), or any CSS width such as
+`24rem`. `disabled` disables the web component trigger, prevents opening, and closes an open
+popover.
+
 ## Headless — `useCalendarGrid`
 
 For fully custom markup, the composable reuses the shared `buildMonthGrid` / `navigateFocus` from

@@ -1,5 +1,7 @@
 import { DoranDate, type DoranDateOptions, enUS, faIR, type Locale } from '@doranjs/core';
 
+export type FooterAction = 'today' | 'clear';
+
 /** Resolves a locale attribute (`fa`, `fa-IR`, `en`, `en-US`) to a {@link Locale}. */
 export function resolveLocaleAttr(name: string | null): Locale {
   if (!name) return faIR;
@@ -30,6 +32,22 @@ export function boolAttr(el: Element, name: string): boolean {
   if (!el.hasAttribute(name)) return false;
   const v = el.getAttribute(name);
   return v !== 'false' && v !== '0';
+}
+
+/**
+ * Parses ordered footer action tokens. A missing attribute uses the component
+ * default, while a present empty attribute intentionally renders no actions.
+ */
+export function parseFooterActions(
+  value: string | null,
+  defaults: FooterAction[],
+  allowed: FooterAction[] = ['today', 'clear'],
+): FooterAction[] {
+  if (value === null) return defaults;
+  return value
+    .toLowerCase()
+    .split(/[\s,]+/)
+    .filter((token): token is FooterAction => allowed.includes(token as FooterAction));
 }
 
 /** Escapes text for safe interpolation into innerHTML. */

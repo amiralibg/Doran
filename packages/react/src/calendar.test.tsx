@@ -73,14 +73,100 @@ describe('DoranCalendar', () => {
     );
   });
 
-  it('returns to today via the footer button after navigating away', () => {
+  it('selects today via the footer button after navigating away', () => {
+    const onChange = vi.fn();
     const { container } = render(
-      <DoranCalendar timeZone="UTC" today={today} defaultMonth={{ year: 1405, month: 3 }} />,
+      <DoranCalendar
+        timeZone="UTC"
+        today={today}
+        defaultMonth={{ year: 1405, month: 3 }}
+        onChange={onChange}
+      />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'ماه بعد' }));
     expect(monthHeading(container)).toHaveTextContent(faIR.months[3]!);
     fireEvent.click(screen.getByRole('button', { name: 'امروز' }));
     expect(monthHeading(container)).toHaveTextContent(faIR.months[2]!);
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ year: 1405, month: 3, day: 15 }),
+    );
+    expect(cell(container, 1405, 3, 15).closest('[role="gridcell"]')).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+
+  it('disables Today when it falls outside min/max bounds', () => {
+    const onChange = vi.fn();
+    const max = DoranDate.fromJalali(1405, 3, 14, UTC);
+    render(<DoranCalendar timeZone="UTC" today={today} max={max} onChange={onChange} />);
+    const todayButton = screen.getByRole('button', { name: 'امروز' });
+    expect(todayButton).toBeDisabled();
+    fireEvent.click(todayButton);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('combines Today with the selected or default time when withTime', () => {
+    const selectedTimeChange = vi.fn();
+    const selected = DoranDate.fromJalali(1405, 3, 10, UTC).addHours(9).addMinutes(45);
+    const { unmount } = render(
+      <DoranCalendar
+        timeZone="UTC"
+        today={today}
+        defaultValue={selected}
+        withTime
+        onChange={selectedTimeChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'امروز' }));
+    const picked = selectedTimeChange.mock.calls[0]![0] as DoranDate;
+    expect([picked.year, picked.month, picked.day, picked.hour, picked.minute]).toEqual([
+      1405, 3, 15, 9, 45,
+    ]);
+
+    unmount();
+    const defaultTimeChange = vi.fn();
+    render(
+      <DoranCalendar
+        timeZone="UTC"
+        today={today}
+        withTime
+        defaultTime={{ hour: 13, minute: 20 }}
+        onChange={defaultTimeChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'امروز' }));
+    const defaultTimePick = defaultTimeChange.mock.calls[0]![0] as DoranDate;
+    expect([defaultTimePick.hour, defaultTimePick.minute]).toEqual([13, 20]);
+  });
+
+  it('renders ordered footer actions, clears, and supports hiding the footer', () => {
+    const onChange = vi.fn();
+    const selected = DoranDate.fromJalali(1405, 3, 10, UTC);
+    const { container, rerender } = render(
+      <DoranCalendar
+        timeZone="UTC"
+        today={today}
+        defaultValue={selected}
+        footerActions={['clear', 'today']}
+        onChange={onChange}
+      />,
+    );
+    const actions = Array.from(container.querySelectorAll('[data-footer-action]'));
+    expect(actions.map((action) => action.getAttribute('data-footer-action'))).toEqual([
+      'clear',
+      'today',
+    ]);
+    fireEvent.click(screen.getByRole('button', { name: 'پاک کردن' }));
+    expect(onChange).toHaveBeenLastCalledWith(null);
+    expect(cell(container, 1405, 3, 10).closest('[role="gridcell"]')).toHaveAttribute(
+      'aria-selected',
+      'false',
+    );
+
+    rerender(<DoranCalendar timeZone="UTC" today={today} footerActions={[]} />);
+    expect(container.querySelector('.doran-calendar__footer')).not.toBeInTheDocument();
   });
 
   it('opens the month picker panel from the heading', () => {

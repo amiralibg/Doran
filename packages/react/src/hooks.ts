@@ -40,6 +40,8 @@ export interface UseCalendarReturn {
   goToNextYear: () => void;
   goToPrevYear: () => void;
   goToToday: () => void;
+  /** Select today through the normal bounded selection flow. */
+  selectToday: () => void;
   setMonth: (value: YearMonth) => void;
   select: (day: DoranDate) => void;
   isDisabled: (day: DoranDate) => boolean;
@@ -130,6 +132,7 @@ export function useCalendar(options: UseCalendarOptions = {}): UseCalendarReturn
     goToNextYear: () => setView((v) => addMonth(v, 12)),
     goToPrevYear: () => setView((v) => addMonth(v, -12)),
     goToToday: () => setView({ year: resolvedToday.year, month: resolvedToday.month }),
+    selectToday: () => select(resolvedToday),
     setMonth: setView,
     select,
     isDisabled,

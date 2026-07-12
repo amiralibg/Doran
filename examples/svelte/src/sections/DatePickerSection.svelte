@@ -8,6 +8,8 @@
   import WithTimeSrc from '../demos/datepicker/WithTime.svelte?raw';
   import Format from '../demos/datepicker/Format.svelte';
   import FormatSrc from '../demos/datepicker/Format.svelte?raw';
+  import Customization from '../demos/datepicker/Customization.svelte';
+  import CustomizationSrc from '../demos/datepicker/Customization.svelte?raw';
 </script>
 
 <Section id="datepicker" title="<DoranDatePicker>" intro={$t('dpIntro')}>
@@ -19,5 +21,12 @@
   </DemoCard>
   <DemoCard title={$t('dpFormatTitle')} description={$t('dpFormatDesc')} code={FormatSrc}>
     <Format lang={$lang} />
+  </DemoCard>
+  <DemoCard
+    title={$t('dpCustomizationTitle')}
+    description={$t('dpCustomizationDesc')}
+    code={CustomizationSrc}
+  >
+    <Customization lang={$lang} />
   </DemoCard>
 </Section>

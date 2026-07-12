@@ -17,6 +17,8 @@ import { useDateRange, type DateRange, type UseDateRangeOptions } from './hooks'
 import { DoranMonthView } from './month-view';
 import { defaultRangePresets, type RangePreset } from './presets';
 
+const DEFAULT_FOOTER_ACTIONS: readonly 'clear'[] = ['clear'];
+
 export interface DoranRangePickerProps extends UseDateRangeOptions {
   locale?: Locale;
   headerMode?: HeaderMode;
@@ -33,6 +35,8 @@ export interface DoranRangePickerProps extends UseDateRangeOptions {
   presets?: boolean | RangePreset[];
   /** How many month grids to show side by side. Defaults to `1`. */
   numberOfMonths?: number;
+  /** Ordered footer actions. Defaults to `['clear']`; pass `[]` to hide the footer. */
+  footerActions?: readonly 'clear'[];
   className?: string;
 }
 
@@ -56,6 +60,7 @@ export function DoranRangePicker({
   yearSpan = 60,
   presets,
   numberOfMonths = 1,
+  footerActions = DEFAULT_FOOTER_ACTIONS,
   className,
   ...rangeOptions
 }: DoranRangePickerProps) {
@@ -222,12 +227,22 @@ export function DoranRangePicker({
         <div className="doran-rangepicker__calendar">{calendarBody}</div>
       </div>
 
-      <div className="doran-calendar__footer doran-rangepicker__footer">
-        <span className="doran-rangepicker__summary">{summary}</span>
-        <Button variant="outline" onClick={range.reset}>
-          پاک کردن
-        </Button>
-      </div>
+      {footerActions.length > 0 && (
+        <div className="doran-calendar__footer doran-rangepicker__footer">
+          <span className="doran-rangepicker__summary">{summary}</span>
+          {footerActions.map((action, index) => (
+            <Button
+              key={`${action}-${index}`}
+              variant="outline"
+              className="doran-calendar__footer-action doran-calendar__footer-action--clear"
+              data-footer-action={action}
+              onClick={range.reset}
+            >
+              پاک کردن
+            </Button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

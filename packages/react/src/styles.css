@@ -448,6 +448,8 @@
 .doran-datepicker {
   position: relative;
   display: inline-block;
+  width: var(--doran-input-width, auto);
+  max-width: 100%;
   font-family: var(--doran-font-sans);
 }
 
@@ -457,6 +459,7 @@
   justify-content: space-between;
   gap: var(--doran-space-sm);
   min-width: var(--doran-input-width, 12rem);
+  max-width: 100%;
   height: var(--doran-input-height, 2.5rem);
   padding: 0 var(--doran-space-md);
   background: var(--doran-input-bg, var(--doran-surface));
@@ -466,13 +469,31 @@
   font-family: inherit;
   font-size: 0.9rem;
   cursor: pointer;
+  box-sizing: border-box;
   transition:
     border-color var(--doran-transition, 0.15s ease),
     box-shadow var(--doran-transition, 0.15s ease);
 }
 
+.doran-datepicker__input[data-icon-position='left'] {
+  flex-direction: row;
+}
+
+.doran-datepicker__input[data-icon-position='right'] {
+  flex-direction: row-reverse;
+}
+
 .doran-datepicker__input:hover {
   border-color: var(--doran-border-strong);
+}
+
+.doran-datepicker__input:disabled {
+  opacity: var(--doran-disabled-opacity, 0.55);
+  cursor: not-allowed;
+}
+
+.doran-datepicker__input:disabled:hover {
+  border-color: var(--doran-input-border-color, var(--doran-border));
 }
 
 .doran-datepicker__input:focus-visible,
@@ -482,12 +503,29 @@
   box-shadow: 0 0 0 3px var(--doran-focus-ring);
 }
 
+.doran-datepicker__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doran-datepicker__value[data-text-align='left'] {
+  text-align: left;
+}
+
+.doran-datepicker__value[data-text-align='right'] {
+  text-align: right;
+}
+
 .doran-datepicker__placeholder {
   color: var(--doran-text-muted);
 }
 
 .doran-datepicker__icon {
   display: inline-flex;
+  flex-shrink: 0;
   color: var(--doran-text-muted);
 }
 
@@ -503,8 +541,15 @@
  */
 .doran-datepicker__popover {
   position: fixed;
+  max-width: calc(100vw - 1rem);
   z-index: var(--doran-z-popover, 9999);
   animation: doran-pop-in 0.12s ease;
+}
+
+.doran-datepicker__popover--trigger > .doran-calendar,
+.doran-datepicker__popover--custom > .doran-calendar {
+  width: 100%;
+  max-width: 100%;
 }
 
 @keyframes doran-pop-in {

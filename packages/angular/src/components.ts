@@ -14,6 +14,14 @@ import {
 import { type ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { type DoranDate } from '@doranjs/core';
 import { type AgendaEvent } from '@doranjs/wc';
+import {
+  applyDatePickerAttributes,
+  type FooterActionsInput,
+  setAttr,
+  setBool,
+  setFooterActions,
+  weekendsAttr,
+} from './attributes';
 import { DORAN_DEFAULTS, type DoranDefaults } from './provider';
 import { detail, ensureElements } from './wc';
 
@@ -25,23 +33,6 @@ function applyLocale(
 ): void {
   const locale = explicit ?? defaults?.locale;
   if (locale) el.setAttribute('locale', locale);
-}
-
-/** Set/remove a string or numeric attribute (empty/nullish clears it). */
-function setAttr(el: HTMLElement, name: string, value: string | number | undefined | null): void {
-  if (value == null || value === '') el.removeAttribute(name);
-  else el.setAttribute(name, String(value));
-}
-
-/** Toggle a boolean attribute (present when `true`). */
-function setBool(el: HTMLElement, name: string, value: boolean | undefined): void {
-  el.toggleAttribute(name, value === true);
-}
-
-/** Normalize the `weekends` input (`[5, 6]` or `"5,6"`) into the attribute form. */
-function weekendsAttr(value: number[] | string | undefined): string | undefined {
-  if (value == null) return undefined;
-  return Array.isArray(value) ? value.join(',') : value;
 }
 
 /** Range value shared by the range picker — mirrors `@doranjs/react`'s shape. */
@@ -80,10 +71,22 @@ export class DoranDatePicker implements ControlValueAccessor, AfterViewInit, OnC
   @Input() placeholder?: string;
   @Input() format?: string;
   @Input() withTime?: boolean;
+  @Input() footerActions?: FooterActionsInput;
+  @Input() iconPosition?: 'left' | 'right';
+  @Input() textAlign?: 'left' | 'right';
+  @Input() inputWidth?: string;
+  @Input() dropdownWidth?: 'auto' | 'trigger' | string;
+  @Input() min?: DoranDate | string;
+  @Input() max?: DoranDate | string;
+  @Input() headerMode?: 'dropdown' | 'separate';
+  @Input() showHolidays?: boolean;
+  @Input() weekends?: number[] | string;
+  @Input() disabled?: boolean;
   /** Hide the trigger icon. Project a custom one instead via `<svg slot="icon">…`. */
   @Input() hideIcon?: boolean;
 
   private value: DoranDate | null = null;
+  private formDisabled = false;
   // Element properties (`value`) must be set *after* the lazy `@doranjs/wc` import
   // upgrades the element — a pre-upgrade assignment creates an expando that shadows
   // the element's setter and never renders. `ready` gates every property write.
@@ -108,10 +111,7 @@ export class DoranDatePicker implements ControlValueAccessor, AfterViewInit, OnC
   private syncEl(): void {
     const el = this.el.nativeElement;
     applyLocale(el, this.locale, this.defaults);
-    setAttr(el, 'placeholder', this.placeholder);
-    setAttr(el, 'format', this.format);
-    setBool(el, 'with-time', this.withTime);
-    setBool(el, 'hide-icon', this.hideIcon);
+    applyDatePickerAttributes(el, this, this.formDisabled);
     el.value = this.value;
   }
 
@@ -126,7 +126,10 @@ export class DoranDatePicker implements ControlValueAccessor, AfterViewInit, OnC
     this.cbTouched = fn;
   }
   setDisabledState(isDisabled: boolean): void {
-    if (this.el) this.el.nativeElement.toggleAttribute('disabled', isDisabled);
+    this.formDisabled = isDisabled;
+    if (this.el) {
+      this.el.nativeElement.toggleAttribute('disabled', this.disabled === true || isDisabled);
+    }
   }
 
   onChange(e: Event): void {
@@ -161,6 +164,7 @@ export class DoranCalendar implements ControlValueAccessor, AfterViewInit, OnCha
   @Input() showHolidays?: boolean;
   @Input() weekends?: number[] | string;
   @Input() hideFooter?: boolean;
+  @Input() footerActions?: FooterActionsInput;
   @Input() yearSpan?: number;
 
   private value: DoranDate | null = null;
@@ -190,6 +194,7 @@ export class DoranCalendar implements ControlValueAccessor, AfterViewInit, OnCha
     setBool(el, 'show-holidays', this.showHolidays);
     setAttr(el, 'weekends', weekendsAttr(this.weekends));
     setBool(el, 'hide-footer', this.hideFooter);
+    setFooterActions(el, this.footerActions);
     setAttr(el, 'year-span', this.yearSpan);
     el.value = this.value;
   }
@@ -209,7 +214,7 @@ export class DoranCalendar implements ControlValueAccessor, AfterViewInit, OnCha
   }
 
   onChange(e: Event): void {
-    const value = detail<{ date: DoranDate }>(e)?.date ?? null;
+    const value = detail<{ date: DoranDate | null }>(e)?.date ?? null;
     this.value = value;
     this.cbChange(value);
     this.cbTouched();
@@ -241,6 +246,7 @@ export class DoranRangePicker implements ControlValueAccessor, AfterViewInit, On
   @Input() weekends?: number[] | string;
   @Input() presets?: boolean;
   @Input() months?: number;
+  @Input() footerActions?: FooterActionsInput;
   @Input() yearSpan?: number;
 
   private value: DoranDateRange = { start: null, end: null };
@@ -270,6 +276,7 @@ export class DoranRangePicker implements ControlValueAccessor, AfterViewInit, On
     setAttr(el, 'weekends', weekendsAttr(this.weekends));
     setBool(el, 'presets', this.presets);
     setAttr(el, 'months', this.months);
+    setFooterActions(el, this.footerActions);
     setAttr(el, 'year-span', this.yearSpan);
     el.value = this.value;
   }

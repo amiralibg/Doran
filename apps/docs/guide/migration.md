@@ -2,6 +2,25 @@
 
 مهاجرت به دوران از یک کتابخانهٔ دیگرِ تاریخ فارسی معمولاً تغییری کوچک و مکانیکی است.
 
+## تغییر nullable در `onChange` React
+
+اکنون `DoranCalendar` و `DoranDatePicker` اکشن فوترِ `clear` دارند، بنابراین امضای `onChange`
+nullable است. handlerهای قبلی را طوری به‌روزرسانی کنید که `null` را پیش از استفاده از تاریخ
+بررسی کنند:
+
+```tsx
+<DoranDatePicker
+  footerActions={['today', 'clear']}
+  onChange={(date, gregorian) => {
+    if (!date || !gregorian) return;
+    save(gregorian.toISOString());
+  }}
+/>
+```
+
+در DatePicker هر دو آرگومان هنگام Clear برابر `null` هستند؛ در Calendar،
+`onChange(null)` فراخوانی می‌شود.
+
 ## جدول پریتی کامل — moment / dayjs در برابر دوران
 
 | عملیات                 | `moment-jalaali`                     | `dayjs` (plugin جلالی)  | دوران (`@doranjs/core`)           |

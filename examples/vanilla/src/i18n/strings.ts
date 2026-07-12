@@ -54,6 +54,9 @@ const fa: Dict = {
   dpFormatDesc: 'با format قالبِ نمایش و با placeholder متنِ راهنما را تعیین می‌کنید.',
   dpHolidaysTitle: 'تعطیلات',
   dpHolidaysDesc: 'ویژگی show-holidays به تقویمِ داخلِ پاپ‌اوور هم منتقل می‌شود.',
+  dpCustomizationTitle: 'اکشن‌ها و چیدمان',
+  dpCustomizationDesc:
+    'فوترِ مرتبِ امروز/پاک کردن، جای آیکن، تراز متن و عرض هماهنگِ ورودی و dropdown را یک‌جا تنظیم کنید.',
 
   // ── <doran-rangepicker> ────────────────────────────────────────────
   rpIntro: 'انتخاب بازهٔ تاریخ با همان منطقِ تقویم؛ با میان‌برهای آماده و نمایش چندماهه.',
@@ -147,6 +150,9 @@ const en: Dict = {
   dpFormatDesc: 'format controls the display; placeholder sets the empty-state hint.',
   dpHolidaysTitle: 'Holidays',
   dpHolidaysDesc: 'The show-holidays attribute is forwarded to the popover calendar.',
+  dpCustomizationTitle: 'Actions and layout',
+  dpCustomizationDesc:
+    'Configure ordered Today/Clear actions, icon position, text alignment, and matching input/dropdown widths together.',
 
   // ── <doran-rangepicker> ────────────────────────────────────────────
   rpIntro:

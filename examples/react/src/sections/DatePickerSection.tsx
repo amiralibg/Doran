@@ -10,6 +10,8 @@ import Format from '../demos/datepicker/Format';
 import FormatSrc from '../demos/datepicker/Format?raw';
 import MinMax from '../demos/datepicker/MinMax';
 import MinMaxSrc from '../demos/datepicker/MinMax?raw';
+import Customization from '../demos/datepicker/Customization';
+import CustomizationSrc from '../demos/datepicker/Customization?raw';
 
 export function DatePickerSection() {
   const { t, locale } = useLang();
@@ -26,6 +28,13 @@ export function DatePickerSection() {
       </DemoCard>
       <DemoCard title={t('dpRangeTitle')} description={t('dpRangeDesc')} code={MinMaxSrc}>
         <MinMax locale={locale} />
+      </DemoCard>
+      <DemoCard
+        title={t('dpCustomizationTitle')}
+        description={t('dpCustomizationDesc')}
+        code={CustomizationSrc}
+      >
+        <Customization locale={locale} />
       </DemoCard>
     </Section>
   );
