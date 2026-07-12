@@ -92,4 +92,98 @@ describe('DoranDatePicker', () => {
     expect(screen.getByTestId('my-icon')).toBeInTheDocument();
     expect(document.querySelector('.doran-datepicker__icon svg')).not.toBeInTheDocument();
   });
+
+  it('clears to nullable values and closes even when withTime', () => {
+    const onChange = vi.fn();
+    render(
+      <DoranDatePicker
+        defaultValue={value}
+        withTime
+        footerActions={['clear']}
+        onChange={onChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /۱۴۰۵/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'پاک کردن' }));
+    expect(onChange).toHaveBeenCalledWith(null, null);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByText('انتخاب تاریخ')).toBeInTheDocument();
+  });
+
+  it('keeps a controlled value after Clear while emitting null and closing', () => {
+    const onChange = vi.fn();
+    render(
+      <DoranDatePicker value={value} withTime footerActions={['clear']} onChange={onChange} />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /۱۴۰۵/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'پاک کردن' }));
+    expect(onChange).toHaveBeenCalledWith(null, null);
+    expect(screen.getByText('۱۴۰۵/۰۳/۱۵ ۰۰:۰۰')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('treats Today like date selection for plain and time-enabled pickers', () => {
+    const plainChange = vi.fn();
+    const { unmount } = render(
+      <DoranDatePicker footerActions={['today']} onChange={plainChange} />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'انتخاب تاریخ' }));
+    fireEvent.click(screen.getByRole('button', { name: 'امروز' }));
+    expect(plainChange).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    unmount();
+    const timeChange = vi.fn();
+    render(<DoranDatePicker withTime footerActions={['today']} onChange={timeChange} />);
+    fireEvent.click(screen.getByRole('button', { name: 'انتخاب تاریخ' }));
+    fireEvent.click(screen.getByRole('button', { name: 'امروز' }));
+    expect(timeChange).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('exposes trigger layout attributes and applies numeric input widths as pixels', () => {
+    const { container } = render(
+      <DoranDatePicker
+        placeholder="یک تاریخ"
+        iconPosition="right"
+        textAlign="left"
+        inputWidth={240}
+      />,
+    );
+    const root = container.querySelector<HTMLElement>('.doran-datepicker')!;
+    const trigger = screen.getByRole('button', { name: 'یک تاریخ' });
+    const display = container.querySelector<HTMLElement>('.doran-datepicker__value')!;
+    expect(root).toHaveAttribute('data-icon-position', 'right');
+    expect(root).toHaveAttribute('data-text-align', 'left');
+    expect(root.style.getPropertyValue('--doran-input-width')).toBe('240px');
+    expect(trigger).toHaveStyle({ width: '240px', flexDirection: 'row-reverse' });
+    expect(display).toHaveStyle({ textAlign: 'left' });
+  });
+
+  it('supports custom and trigger-matched dropdown widths', () => {
+    const { unmount } = render(<DoranDatePicker defaultValue={value} dropdownWidth={320} />);
+    fireEvent.click(screen.getByRole('button', { name: /۱۴۰۵/ }));
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-dropdown-width', 'custom');
+    expect(screen.getByRole('dialog')).toHaveStyle({ width: '320px' });
+
+    unmount();
+    render(<DoranDatePicker defaultValue={value} dropdownWidth="trigger" />);
+    const trigger = screen.getByRole('button', { name: /۱۴۰۵/ });
+    const rectSpy = vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
+      width: 236,
+      height: 40,
+      top: 10,
+      right: 246,
+      bottom: 50,
+      left: 10,
+      x: 10,
+      y: 10,
+      toJSON: () => ({}),
+    });
+    fireEvent.click(trigger);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('data-dropdown-width', 'trigger');
+    expect(dialog).toHaveStyle({ width: '236px' });
+    rectSpy.mockRestore();
+  });
 });

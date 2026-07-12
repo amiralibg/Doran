@@ -15,7 +15,14 @@ import { useCalendar, type UseCalendarOptions } from './hooks';
 import { DoranMonthView } from './month-view';
 import { DoranTimePicker, type TimeValue } from './time-picker';
 
-export interface DoranCalendarProps extends UseCalendarOptions {
+/** Actions that can be rendered in a calendar footer. */
+export type CalendarFooterAction = 'today' | 'clear';
+
+const DEFAULT_FOOTER_ACTIONS: readonly CalendarFooterAction[] = ['today'];
+
+export interface DoranCalendarProps extends Omit<UseCalendarOptions, 'onChange'> {
+  /** Called when a date is selected or the selection is cleared. */
+  onChange?: (date: DoranDate | null) => void;
   /** Locale for labels and digits. Defaults to Persian. */
   locale?: Locale;
   /** Render days outside the current month. */
@@ -39,7 +46,9 @@ export interface DoranCalendarProps extends UseCalendarOptions {
   yearSpan?: number;
   /** Custom navigation arrows. */
   arrows?: CalendarArrows;
-  /** Hide the "today" footer button. */
+  /** Ordered footer actions. Defaults to `['today']`; pass `[]` to hide the footer. */
+  footerActions?: readonly CalendarFooterAction[];
+  /** @deprecated Use `footerActions={[]}` instead. */
   hideFooter?: boolean;
   className?: string;
 }
@@ -64,6 +73,7 @@ export function DoranCalendar({
   weekends,
   yearSpan = 60,
   arrows,
+  footerActions = DEFAULT_FOOTER_ACTIONS,
   hideFooter,
   className,
   value,
@@ -77,10 +87,11 @@ export function DoranCalendar({
   const selected = isControlled ? (value ?? null) : internal;
 
   const [panel, setPanel] = useState<CalendarPanel>('days');
+  const resolvedFooterActions = hideFooter ? [] : footerActions;
 
   const time: TimeValue = selected ? { hour: selected.hour, minute: selected.minute } : defaultTime;
 
-  function emit(next: DoranDate) {
+  function emit(next: DoranDate | null) {
     if (!isControlled) setInternal(next);
     onChange?.(next);
   }
@@ -165,11 +176,32 @@ export function DoranCalendar({
         />
       )}
 
-      {!hideFooter && (
+      {resolvedFooterActions.length > 0 && (
         <div className="doran-calendar__footer">
-          <Button variant="outline" onClick={calendar.goToToday}>
-            امروز
-          </Button>
+          {resolvedFooterActions.map((action, index) =>
+            action === 'today' ? (
+              <Button
+                key={`${action}-${index}`}
+                variant="outline"
+                className="doran-calendar__footer-action doran-calendar__footer-action--today"
+                data-footer-action={action}
+                disabled={calendar.isDisabled(calendar.today)}
+                onClick={calendar.selectToday}
+              >
+                امروز
+              </Button>
+            ) : (
+              <Button
+                key={`${action}-${index}`}
+                variant="outline"
+                className="doran-calendar__footer-action doran-calendar__footer-action--clear"
+                data-footer-action={action}
+                onClick={() => emit(null)}
+              >
+                پاک کردن
+              </Button>
+            ),
+          )}
         </div>
       )}
     </div>

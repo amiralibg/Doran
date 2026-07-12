@@ -84,6 +84,9 @@ const fa: Dict = {
   dpFormatDesc: 'با format قالبِ نمایش تاریخ و با placeholder متنِ راهنما را تعیین می‌کنید.',
   dpRangeTitle: 'حداقل/حداکثر و غیرفعال',
   dpRangeDesc: 'با min و max بازهٔ مجاز را محدود می‌کنید؛ با disabled کل ورودی غیرفعال می‌شود.',
+  dpCustomizationTitle: 'اکشن‌ها و چیدمان',
+  dpCustomizationDesc:
+    'فوترِ مرتبِ امروز/پاک کردن، جای آیکن، تراز متن و عرض هماهنگِ ورودی و dropdown را یک‌جا تنظیم کنید.',
 
   // ── <DoranRangePicker> ─────────────────────────────────────────────
   rpIntro: 'انتخاب بازهٔ تاریخ با همان منطقِ تقویم؛ با میان‌برهای آماده و نمایش چندماهه.',
@@ -204,6 +207,9 @@ const en: Dict = {
   dpFormatDesc: 'format controls how the date is displayed; placeholder sets the empty-state hint.',
   dpRangeTitle: 'Min/max and disabled',
   dpRangeDesc: 'min and max bound the selectable range; disabled turns the whole input off.',
+  dpCustomizationTitle: 'Actions and layout',
+  dpCustomizationDesc:
+    'Configure ordered Today/Clear actions, icon position, text alignment, and matching input/dropdown widths together.',
 
   // ── <DoranRangePicker> ─────────────────────────────────────────────
   rpIntro:

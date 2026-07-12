@@ -47,6 +47,29 @@ import '@doranjs/wc/styles.css';
 هر attribute‌ای که عنصرِ زیرین پشتیبانی می‌کند (`locale`، `placeholder`، `format`، `with-time`،
 `min`، `max`، …) از طریقِ `$$restProps` pass می‌شود — فهرست کامل در [`@doranjs/wc`](/api/wc).
 
+## سفارشی‌سازی DatePicker و فوتر
+
+```svelte
+<DoranDatePicker
+  bind:value
+  footer-actions="today,clear"
+  icon-position="right"
+  text-align="left"
+  input-width="18rem"
+  dropdown-width="trigger"
+/>
+```
+
+`footer-actions` ترتیب `today` و `clear` را حفظ می‌کند و مقدار خالی (`footer-actions=""`) کل
+فوتر را پنهان می‌کند. «امروز» تاریخ امروز را انتخاب و `bind:value`/`change` را به‌روزرسانی
+می‌کند؛ «پاک کردن» هر دو مقدار Doran و میلادی را `null` می‌کند. RangePicker به‌صورت پیش‌فرض
+کنترل `clear` دارد؛ مقدار خالی فوتر و خلاصهٔ بازه را پنهان می‌کند. `hide-footer` منسوخ است.
+
+`icon-position` و `text-align` مقدارهای `left`/`right` می‌گیرند. `input-width` یک عرض CSS است؛
+`dropdown-width` می‌تواند `auto` (عرض ذاتی)، `trigger` (هم‌اندازهٔ ورودی) یا هر عرض CSS مثل
+`24rem` باشد. `disabled` trigger وب‌کامپوننت را غیرفعال می‌کند؛ DatePicker باز نمی‌شود و
+popover باز بسته می‌شود.
+
 ## headless — `createCalendarGrid`
 
 برای markupِ کاملاً دلخواه، این store همان `buildMonthGrid` / `navigateFocus`ِ مشترکِ

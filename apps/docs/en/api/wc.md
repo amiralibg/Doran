@@ -35,17 +35,33 @@ import '@doranjs/wc/styles.css'; // tokens + component styles in one file
 
 ## Attributes
 
-| Attribute       | Elements                          | Description                                  |
-| --------------- | --------------------------------- | -------------------------------------------- |
-| `value`         | calendar, datepicker, nlp-input   | `YYYY/MM/DD` (or the raw text for nlp-input) |
-| `min` / `max`   | calendar, datepicker              | Selectable bounds                            |
-| `locale`        | all                               | `fa` (default) or `en`                       |
-| `header-mode`   | calendar, rangepicker             | `dropdown` (default) or `separate`           |
-| `with-time`     | calendar, datepicker              | Enable the time picker                       |
-| `show-holidays` | calendar, datepicker, rangepicker | Mark official holidays                       |
-| `weekends`      | calendar, rangepicker             | Comma-separated weekday indices (`6` = Fri)  |
-| `placeholder`   | datepicker, nlp-input             | Placeholder text                             |
-| `format`        | datepicker, nlp-input             | Display/preview format pattern               |
+| Attribute        | Elements                          | Description                                                   |
+| ---------------- | --------------------------------- | ------------------------------------------------------------- |
+| `value`          | calendar, datepicker, nlp-input   | `YYYY/MM/DD` (or the raw text for nlp-input)                  |
+| `min` / `max`    | calendar, datepicker              | Selectable bounds                                             |
+| `locale`         | all                               | `fa` (default) or `en`                                        |
+| `header-mode`    | calendar, rangepicker             | `dropdown` (default) or `separate`                            |
+| `with-time`      | calendar, datepicker              | Enable the time picker                                        |
+| `show-holidays`  | calendar, datepicker, rangepicker | Mark official holidays                                        |
+| `weekends`       | calendar, rangepicker             | Comma-separated weekday indices (`6` = Fri)                   |
+| `placeholder`    | datepicker, nlp-input             | Placeholder text                                              |
+| `format`         | datepicker, nlp-input             | Display/preview format pattern                                |
+| `footer-actions` | calendar, datepicker, rangepicker | Ordered comma/space-separated actions; empty hides the footer |
+| `hide-footer`    | calendar, datepicker, rangepicker | Deprecated; use `footer-actions=""`                           |
+| `icon-position`  | datepicker                        | `left` (default) or `right`                                   |
+| `text-align`     | datepicker                        | `right` (default) or `left`                                   |
+| `input-width`    | datepicker                        | CSS trigger width, such as `18rem`                            |
+| `dropdown-width` | datepicker                        | `auto`, `trigger`, or a custom CSS width                      |
+| `disabled`       | datepicker                        | Disables the trigger and closes an open popover               |
+
+`footer-actions="today,clear"` preserves the declared button order. Today selects the current
+date and emits `change`; Clear removes the value and emits `null` in `detail.date` and
+`detail.iso`. RangePicker accepts only `clear` and shows it in the footer by default.
+`footer-actions=""` hides the whole footer, including the range summary.
+
+`dropdown-width="auto"` uses the intrinsic popover width, `trigger` matches the trigger, and any
+other value such as `24rem` is used as a custom CSS width. When `disabled` is present, the
+datepicker's native trigger is disabled, cannot open on click, and closes any open popover.
 
 ## Events
 
@@ -53,7 +69,7 @@ All elements emit a bubbling `change` `CustomEvent`:
 
 ```js
 document.querySelector('doran-calendar').addEventListener('change', (e) => {
-  console.log(e.detail.date); // a DoranDate
+  console.log(e.detail.date); // DoranDate, or null after Clear
   console.log(e.detail.value); // formatted string
 });
 

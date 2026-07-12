@@ -5,6 +5,7 @@ import { defineDoranElements } from './register';
 
 beforeAll(() => defineDoranElements());
 afterEach(() => {
+  vi.useRealTimers();
   document.body.innerHTML = '';
 });
 
@@ -47,6 +48,79 @@ describe('<doran-calendar>', () => {
     expect([detail.date.year, detail.date.month, detail.date.day]).toEqual([1405, 3, 20]);
     expect(detail.value).toBe('۱۴۰۵/۰۳/۲۰');
     expect(el.value?.day).toBe(20);
+  });
+
+  it('uses Today as the default footer action and selects it through normal change', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 6, 12, 13, 45));
+    const el = mount({ value: '1404/01/01' });
+    const onChange = vi.fn();
+    el.addEventListener('change', (e) => onChange((e as CustomEvent).detail));
+
+    el.querySelector<HTMLButtonElement>('[data-action="today"]')!.click();
+
+    const today = DoranDate.now();
+    const detail = onChange.mock.calls[0]![0] as { date: DoranDate };
+    expect(detail.date.isSame(today, 'day')).toBe(true);
+    expect(el.value?.isSame(today, 'day')).toBe(true);
+  });
+
+  it('preserves the selected time when Today is used with time enabled', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 6, 12, 13, 45));
+    const el = mount({ 'with-time': '' });
+    el.value = DoranDate.fromJalali(1404, 1, 1).startOf('day').addHours(9).addMinutes(25);
+    const onChange = vi.fn();
+    el.addEventListener('change', (e) => onChange((e as CustomEvent).detail));
+
+    el.querySelector<HTMLButtonElement>('[data-action="today"]')!.click();
+
+    const selected = (onChange.mock.calls[0]![0] as { date: DoranDate }).date;
+    expect([selected.hour, selected.minute]).toEqual([9, 25]);
+  });
+
+  it('does not select Today when it is outside min/max', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 6, 12));
+    const today = DoranDate.now();
+    const el = mount({
+      min: `${today.year + 1}/01/01`,
+    });
+    const onChange = vi.fn();
+    el.addEventListener('change', onChange);
+
+    const todayButton = el.querySelector<HTMLButtonElement>('[data-action="today"]')!;
+    expect(todayButton.disabled).toBe(true);
+    todayButton.click();
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(el.value).toBeNull();
+  });
+
+  it('parses ordered footer actions and emits a nullable clear detail', () => {
+    const el = mount({ value: '1405/03/15', 'footer-actions': 'clear, today' });
+    expect(
+      [...el.querySelectorAll<HTMLElement>('.doran-calendar__footer [data-action]')].map(
+        (button) => button.dataset.action,
+      ),
+    ).toEqual(['clear', 'today']);
+    const onChange = vi.fn();
+    el.addEventListener('change', (e) => onChange((e as CustomEvent).detail));
+
+    el.querySelector<HTMLButtonElement>('[data-action="clear"]')!.click();
+
+    expect(el.value).toBeNull();
+    expect(onChange).toHaveBeenCalledWith({ date: null, iso: null, value: '' });
+  });
+
+  it('renders no footer actions for an empty attribute or hide-footer', () => {
+    expect(mount({ 'footer-actions': '' }).querySelector('.doran-calendar__footer')).toBeNull();
+    document.body.innerHTML = '';
+    expect(
+      mount({ 'footer-actions': 'today,clear', 'hide-footer': '' }).querySelector(
+        '.doran-calendar__footer',
+      ),
+    ).toBeNull();
   });
 
   it('navigates months via the nav buttons', () => {

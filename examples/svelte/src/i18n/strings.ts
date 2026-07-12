@@ -70,6 +70,9 @@ const fa: Dict = {
   dpTimeDesc: 'با with-time علاوه بر تاریخ، زمان هم انتخاب می‌شود.',
   dpFormatTitle: 'قالب و متن راهنما',
   dpFormatDesc: 'با format قالبِ نمایشِ تاریخ و با placeholder متنِ راهنما را تعیین می‌کنید.',
+  dpCustomizationTitle: 'اکشن‌ها و چیدمان',
+  dpCustomizationDesc:
+    'فوترِ مرتبِ امروز/پاک کردن، جای آیکن، تراز متن و عرض هماهنگِ ورودی و dropdown را یک‌جا تنظیم کنید.',
 
   // ── <DoranRangePicker> ─────────────────────────────────────────────
   rpIntro: 'انتخابِ بازهٔ تاریخ با همان منطقِ تقویم؛ با میان‌برهای آماده و نمایشِ چندماهه.',
@@ -164,6 +167,9 @@ const en: Dict = {
   dpTimeDesc: 'with-time lets the user pick a time of day alongside the date.',
   dpFormatTitle: 'Format and placeholder',
   dpFormatDesc: 'format controls how the date is displayed; placeholder sets the empty-state hint.',
+  dpCustomizationTitle: 'Actions and layout',
+  dpCustomizationDesc:
+    'Configure ordered Today/Clear actions, icon position, text alignment, and matching input/dropdown widths together.',
 
   // ── <DoranRangePicker> ─────────────────────────────────────────────
   rpIntro:

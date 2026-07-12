@@ -6,11 +6,12 @@ import { SOURCES } from '../generated-sources';
 import { DpDefault } from '../demos/datepicker/default.component';
 import { DpWithTime } from '../demos/datepicker/with-time.component';
 import { DpFormat } from '../demos/datepicker/format.component';
+import { DpCustomization } from '../demos/datepicker/customization.component';
 
 @Component({
   selector: 'demo-datepicker-section',
   standalone: true,
-  imports: [Section, DemoCard, DpDefault, DpWithTime, DpFormat],
+  imports: [Section, DemoCard, DpDefault, DpWithTime, DpFormat, DpCustomization],
   template: `
     <demo-section id="datepicker" [title]="'<DoranDatePicker>'" [intro]="app.t('dpIntro')">
       <demo-card
@@ -33,6 +34,13 @@ import { DpFormat } from '../demos/datepicker/format.component';
         [code]="src['datepicker/format']"
       >
         <demo-dp-format [lang]="app.lang()" />
+      </demo-card>
+      <demo-card
+        [title]="app.t('dpCustomizationTitle')"
+        [description]="app.t('dpCustomizationDesc')"
+        [code]="src['datepicker/customization']"
+      >
+        <demo-dp-customization [lang]="app.lang()" />
       </demo-card>
     </demo-section>
   `,

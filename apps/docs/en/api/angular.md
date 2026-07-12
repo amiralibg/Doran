@@ -62,6 +62,35 @@ export class BookingComponent {
 (`locale`, `placeholder`, `format`, `with-time`, `min`, `max`, …) passes straight through to the
 custom element — see [`@doranjs/wc`](/en/api/wc) for the full list.
 
+## DatePicker and footer customization
+
+| Input           | Type / value                       | Description                                                              |
+| --------------- | ---------------------------------- | ------------------------------------------------------------------------ |
+| `footerActions` | `('today' \| 'clear')[] \| string` | Ordered Calendar/DatePicker actions; `[]` or `''` hides the whole footer |
+| `iconPosition`  | `'left' \| 'right'`                | Trigger icon position; defaults to `left`                                |
+| `textAlign`     | `'left' \| 'right'`                | Trigger text alignment; defaults to `right`                              |
+| `inputWidth`    | `string`                           | CSS trigger width, such as `18rem`                                       |
+| `dropdownWidth` | `'auto' \| 'trigger' \| string`    | Intrinsic, trigger-matched, or custom CSS popover width                  |
+
+```html
+<dr-date-picker
+  [formControl]="date"
+  [footerActions]="['today', 'clear']"
+  iconPosition="right"
+  textAlign="left"
+  inputWidth="18rem"
+  dropdownWidth="trigger"
+/>
+```
+
+Today selects the current date and emits the change; Clear sets both the form value and
+`change.value`/`change.gregorian` to `null`. `dr-range-picker` has a Clear control by default;
+`[footerActions]="[]"` hides its footer. `hideFooter` on `dr-calendar` is deprecated; use
+`[footerActions]="[]"`.
+
+Both `[disabled]` and the form control's disabled state disable the native trigger. The DatePicker
+cannot open in that state, and an open popover is closed.
+
 ## Headless — `createCalendarGrid`
 
 For fully custom markup, a signal-based grid reuses the shared `buildMonthGrid` / `navigateFocus`

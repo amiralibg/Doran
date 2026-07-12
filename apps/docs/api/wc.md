@@ -35,17 +35,34 @@ import '@doranjs/wc/styles.css'; // tokenها + استایل کامپوننت‌
 
 ## Attributeها
 
-| Attribute       | Elementها                         | توضیح                                    |
-| --------------- | --------------------------------- | ---------------------------------------- |
-| `value`         | calendar، datepicker، nlp-input   | `YYYY/MM/DD` (یا متن خام برای nlp-input) |
-| `min` / `max`   | calendar، datepicker              | کران‌های قابل انتخاب                     |
-| `locale`        | همه                               | `fa` (پیش‌فرض) یا `en`                   |
-| `header-mode`   | calendar، rangepicker             | `dropdown` (پیش‌فرض) یا `separate`       |
-| `with-time`     | calendar، datepicker              | فعال‌سازی انتخابگر ساعت                  |
-| `show-holidays` | calendar، datepicker، rangepicker | نشانه‌گذاری تعطیلات رسمی                 |
-| `weekends`      | calendar، rangepicker             | اندیس روزهای هفته با کاما (`6` = جمعه)   |
-| `placeholder`   | datepicker، nlp-input             | متن placeholder                          |
-| `format`        | datepicker، nlp-input             | الگوی format برای نمایش/پیش‌نمایش        |
+| Attribute        | Elementها                         | توضیح                                                        |
+| ---------------- | --------------------------------- | ------------------------------------------------------------ |
+| `value`          | calendar، datepicker، nlp-input   | `YYYY/MM/DD` (یا متن خام برای nlp-input)                     |
+| `min` / `max`    | calendar، datepicker              | کران‌های قابل انتخاب                                         |
+| `locale`         | همه                               | `fa` (پیش‌فرض) یا `en`                                       |
+| `header-mode`    | calendar، rangepicker             | `dropdown` (پیش‌فرض) یا `separate`                           |
+| `with-time`      | calendar، datepicker              | فعال‌سازی انتخابگر ساعت                                      |
+| `show-holidays`  | calendar، datepicker، rangepicker | نشانه‌گذاری تعطیلات رسمی                                     |
+| `weekends`       | calendar، rangepicker             | اندیس روزهای هفته با کاما (`6` = جمعه)                       |
+| `placeholder`    | datepicker، nlp-input             | متن placeholder                                              |
+| `format`         | datepicker، nlp-input             | الگوی format برای نمایش/پیش‌نمایش                            |
+| `footer-actions` | calendar، datepicker، rangepicker | اکشن‌های مرتب با کاما/فاصله؛ مقدار خالی فوتر را پنهان می‌کند |
+| `hide-footer`    | calendar، datepicker، rangepicker | منسوخ؛ به‌جای آن `footer-actions=""` را استفاده کنید         |
+| `icon-position`  | datepicker                        | `left` (پیش‌فرض) یا `right`                                  |
+| `text-align`     | datepicker                        | `right` (پیش‌فرض) یا `left`                                  |
+| `input-width`    | datepicker                        | عرض CSS برای trigger، مثل `18rem`                            |
+| `dropdown-width` | datepicker                        | `auto`، `trigger` یا عرض CSS سفارشی                          |
+| `disabled`       | datepicker                        | trigger را غیرفعال می‌کند و popover باز را می‌بندد           |
+
+`footer-actions="today,clear"` ترتیب دکمه‌ها را دقیقاً حفظ می‌کند. «امروز» تاریخ امروز را
+انتخاب و رویداد `change` را منتشر می‌کند؛ «پاک کردن» مقدار را خالی می‌کند و
+`detail.date`/`detail.iso` را `null` می‌فرستد. RangePicker فقط اکشن `clear` را می‌پذیرد و آن را
+به‌صورت پیش‌فرض در فوتر نشان می‌دهد. `footer-actions=""` کل فوتر (از جمله خلاصهٔ بازه) را
+پنهان می‌کند.
+
+عرض `dropdown-width="auto"` ذاتی است، `trigger` عرض popover را با trigger برابر می‌کند و هر
+مقدار دیگر مثل `24rem` به‌عنوان عرض CSS سفارشی استفاده می‌شود. وقتی `disabled` حاضر باشد،
+trigger بومیِ datepicker غیرفعال است، با کلیک باز نمی‌شود و اگر popover باز باشد بسته می‌شود.
 
 ## Eventها
 
@@ -53,7 +70,7 @@ import '@doranjs/wc/styles.css'; // tokenها + استایل کامپوننت‌
 
 ```js
 document.querySelector('doran-calendar').addEventListener('change', (e) => {
-  console.log(e.detail.date); // یک DoranDate
+  console.log(e.detail.date); // DoranDate یا null پس از Clear
   console.log(e.detail.value); // رشتهٔ format‌شده
 });
 

@@ -41,7 +41,7 @@ export {
 
 // Components.
 export { DoranMonthView, type DoranMonthViewProps } from './month-view';
-export { DoranCalendar, type DoranCalendarProps } from './calendar';
+export { DoranCalendar, type CalendarFooterAction, type DoranCalendarProps } from './calendar';
 export { DoranDatePicker, type DoranDatePickerProps } from './date-picker';
 export { DoranRangePicker, type DoranRangePickerProps } from './range-picker';
 export { defaultRangePresets, type RangePreset } from './presets';

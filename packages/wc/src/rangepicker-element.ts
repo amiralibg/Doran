@@ -3,7 +3,7 @@ import { getHolidaysOn } from '@doranjs/holidays';
 import { buildMonthGrid, navigateFocus, type GridNav } from './grid';
 import { chevronDown, chevronLeft, chevronRight } from './icons';
 import { defaultRangePresets, type RangePreset } from './presets';
-import { boolAttr, esc, resolveLocaleAttr } from './util';
+import { boolAttr, esc, parseFooterActions, resolveLocaleAttr } from './util';
 
 type Panel = 'days' | 'months' | 'years';
 
@@ -18,7 +18,17 @@ type Panel = 'days' | 'months' | 'years';
  */
 export class DoranRangePickerElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ['locale', 'header-mode', 'show-holidays', 'weekends', 'year-span', 'presets', 'months'];
+    return [
+      'locale',
+      'header-mode',
+      'show-holidays',
+      'weekends',
+      'hide-footer',
+      'footer-actions',
+      'year-span',
+      'presets',
+      'months',
+    ];
   }
 
   #start: DoranDate | null = null;
@@ -244,6 +254,7 @@ export class DoranRangePickerElement extends HTMLElement {
         }
         break;
       }
+      case 'clear':
       case 'reset':
         this.#reset();
         break;
@@ -355,13 +366,28 @@ export class DoranRangePickerElement extends HTMLElement {
 
     const fmt = (d: DoranDate | null) => (d ? d.withLocale(locale).format('YYYY/MM/DD') : '—');
     const summary = `${fmt(this.#start)} تا ${fmt(this.#end)}`;
+    const footerActions = parseFooterActions(
+      this.getAttribute('footer-actions'),
+      ['clear'],
+      ['clear'],
+    );
+    const footerButtons = footerActions
+      .map(
+        () =>
+          `<button type="button" class="doran-btn doran-btn--outline doran-calendar__footer-action doran-calendar__footer-action--clear" data-action="clear" data-footer-action="clear">پاک کردن</button>`,
+      )
+      .join('');
+    const footer =
+      boolAttr(this, 'hide-footer') || footerButtons === ''
+        ? ''
+        : `<div class="doran-calendar__footer doran-rangepicker__footer">` +
+          `<span class="doran-rangepicker__summary">${esc(summary)}</span>` +
+          footerButtons +
+          `</div>`;
 
     this.innerHTML =
       `<div class="doran-rangepicker__body">${presetsHtml}<div class="doran-rangepicker__calendar">${header}${body}</div></div>` +
-      `<div class="doran-calendar__footer doran-rangepicker__footer">` +
-      `<span class="doran-rangepicker__summary">${esc(summary)}</span>` +
-      `<button type="button" class="doran-btn doran-btn--outline" data-action="reset">پاک کردن</button>` +
-      `</div>`;
+      footer;
 
     if (this.#focusDayAfterRender) {
       this.#focusDayAfterRender = false;

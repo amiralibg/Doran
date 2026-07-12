@@ -13,7 +13,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { DoranCalendar, type DoranCalendarProps } from './calendar';
+import { DoranCalendar, type CalendarFooterAction, type DoranCalendarProps } from './calendar';
 import { usePopoverPosition } from './use-popover-position';
 
 export interface DoranDatePickerProps extends Pick<
@@ -26,15 +26,16 @@ export interface DoranDatePickerProps extends Pick<
   | 'weekends'
   | 'arrows'
   | 'showOutsideDays'
+  | 'hideFooter'
 > {
   value?: DoranDate | null;
   defaultValue?: DoranDate | null;
   /**
-   * Called when the user selects a date.
-   * The second argument carries the same instant as a native `Date` for
-   * backends that expect Gregorian — no extra conversion needed.
+   * Called when the user selects or clears a date. Both arguments are `null`
+   * after Clear; otherwise the second carries the same instant as a native
+   * `Date` for backends that expect Gregorian.
    */
-  onChange?: (date: DoranDate, gregorian: Date) => void;
+  onChange?: (date: DoranDate | null, gregorian: Date | null) => void;
   /** Formatting locale. Falls back to the global default set by `setDefaultLocale()`. */
   locale?: Locale;
   /** Format pattern for the input display. Defaults to `YYYY/MM/DD` (`+ HH:mm` with time). */
@@ -55,6 +56,19 @@ export interface DoranDatePickerProps extends Pick<
    * replace it, or `null` to render no icon at all.
    */
   icon?: ReactNode | null;
+  /** Ordered calendar footer actions. Defaults to `['today']`; pass `[]` to hide it. */
+  footerActions?: readonly CalendarFooterAction[];
+  /** Visual icon position. Defaults to `left`, preserving the existing RTL layout. */
+  iconPosition?: 'left' | 'right';
+  /** Trigger text alignment. Defaults to `right`. */
+  textAlign?: 'left' | 'right';
+  /** Explicit trigger width. Numeric values are interpreted as pixels. */
+  inputWidth?: CSSProperties['width'];
+  /**
+   * Popover width: intrinsic (`auto`), equal to the trigger (`trigger`), or a
+   * custom CSS width. Numeric custom widths are interpreted as pixels.
+   */
+  dropdownWidth?: 'auto' | 'trigger' | CSSProperties['width'];
 }
 
 /**
@@ -67,6 +81,10 @@ const SIZE_HEIGHT: Record<'sm' | 'md' | 'lg', string> = {
   md: '40px',
   lg: '48px',
 };
+
+function normalizeWidth(width: CSSProperties['width']): CSSProperties['width'] {
+  return typeof width === 'number' ? `${width}px` : width;
+}
 
 export function DoranDatePicker({
   value,
@@ -83,6 +101,12 @@ export function DoranDatePicker({
   id,
   size,
   icon,
+  footerActions,
+  hideFooter,
+  iconPosition = 'left',
+  textAlign = 'right',
+  inputWidth,
+  dropdownWidth = 'auto',
   withTime,
   headerMode,
   minuteStep,
@@ -104,9 +128,17 @@ export function DoranDatePicker({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const popoverId = useId();
+  const matchesTriggerWidth = dropdownWidth === 'trigger';
+  const customDropdownWidth =
+    dropdownWidth !== 'auto' && dropdownWidth !== 'trigger'
+      ? normalizeWidth(dropdownWidth)
+      : undefined;
+  const normalizedInputWidth = normalizeWidth(inputWidth);
   // The popover is portaled to <body> and positioned `fixed` from the trigger
   // rect, so it can never be clipped by an overflow ancestor (cards, modals, …).
-  const popoverPosition = usePopoverPosition(open, triggerRef, popoverRef);
+  const popoverPosition = usePopoverPosition(open, triggerRef, popoverRef, {
+    matchTriggerWidth: matchesTriggerWidth,
+  });
 
   /** Close the popover, optionally returning focus to the trigger button. */
   function close(restoreFocus: boolean) {
@@ -161,36 +193,67 @@ export function DoranDatePicker({
     }
   }
 
-  function handleChange(date: DoranDate) {
+  function handleChange(date: DoranDate | null) {
     if (!isControlled) setInternal(date);
-    onChange?.(date, date.toGregorian());
+    onChange?.(date, date?.toGregorian() ?? null);
     // Keep the popover open while adjusting time; close on a plain date pick.
-    if (!withTime) close(true);
+    if (date === null || !withTime) close(true);
   }
 
   const sizeStyle = size
     ? ({ '--doran-input-height': SIZE_HEIGHT[size] } as CSSProperties)
     : undefined;
+  const inputWidthStyle =
+    normalizedInputWidth !== undefined
+      ? ({ '--doran-input-width': normalizedInputWidth } as CSSProperties)
+      : undefined;
+  const rootStyle =
+    sizeStyle || inputWidthStyle || style
+      ? ({ ...sizeStyle, ...inputWidthStyle, ...style } as CSSProperties)
+      : undefined;
+  const dropdownWidthMode =
+    dropdownWidth === 'auto' || dropdownWidth === 'trigger' ? dropdownWidth : 'custom';
+  const resolvedPopoverStyle = popoverPosition
+    ? {
+        ...popoverPosition,
+        ...(customDropdownWidth !== undefined ? { width: customDropdownWidth } : {}),
+      }
+    : {
+        visibility: 'hidden' as const,
+        ...(customDropdownWidth !== undefined ? { width: customDropdownWidth } : {}),
+      };
 
   return (
     <div
       ref={rootRef}
       id={id}
       className={cn('doran-datepicker', className)}
-      style={sizeStyle ? { ...sizeStyle, ...style } : style}
+      style={rootStyle}
+      data-icon-position={iconPosition}
+      data-text-align={textAlign}
+      data-dropdown-width={dropdownWidthMode}
       dir="rtl"
     >
       <button
         ref={triggerRef}
         type="button"
         className="doran-datepicker__input"
+        style={{
+          flexDirection: iconPosition === 'left' ? 'row' : 'row-reverse',
+          ...(normalizedInputWidth !== undefined ? { width: normalizedInputWidth } : {}),
+        }}
+        data-icon-position={iconPosition}
+        data-text-align={textAlign}
         disabled={disabled}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? popoverId : undefined}
         onClick={() => setOpen((o) => !o)}
       >
-        <span className={cn(!selected && 'doran-datepicker__placeholder')}>
+        <span
+          className={cn('doran-datepicker__value', !selected && 'doran-datepicker__placeholder')}
+          style={{ flex: 1, textAlign }}
+        >
           {selected ? selected.withLocale(locale).format(resolvedFormat) : placeholder}
         </span>
         {icon !== null && (
@@ -209,14 +272,20 @@ export function DoranDatePicker({
             aria-modal="false"
             aria-label="تقویم"
             dir="rtl"
-            className="doran-datepicker__popover"
-            style={popoverPosition ?? { visibility: 'hidden' }}
+            className={cn(
+              'doran-datepicker__popover',
+              `doran-datepicker__popover--${dropdownWidthMode}`,
+            )}
+            data-dropdown-width={dropdownWidthMode}
+            style={resolvedPopoverStyle}
             onKeyDown={trapTab}
           >
             <DoranCalendar
               locale={locale}
               value={selected}
               onChange={handleChange}
+              {...(footerActions ? { footerActions } : {})}
+              {...(hideFooter !== undefined ? { hideFooter } : {})}
               {...(min ? { min } : {})}
               {...(max ? { max } : {})}
               {...(withTime ? { withTime } : {})}
