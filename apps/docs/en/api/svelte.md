@@ -65,7 +65,7 @@ list.
 (`footer-actions=""`) hides the whole footer. Today selects the current date and updates
 `bind:value`/`change`; Clear emits `null` for both Doran and Gregorian values. RangePicker has a
 Clear control by default, and an empty value hides its footer and range summary. `hide-footer` is
-deprecated.
+deprecated. Button labels follow the active locale: `fa` uses «امروز»/«پاک کردن», while `en` uses Today/Clear.
 
 `icon-position` and `text-align` accept `left`/`right`. `input-width` is a CSS width;
 `dropdown-width` accepts `auto` (intrinsic), `trigger` (match the input), or any CSS width such as

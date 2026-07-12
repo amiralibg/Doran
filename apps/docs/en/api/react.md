@@ -75,7 +75,7 @@ const [date, setDate] = useState<DoranDate | null>(null);
 
 // Locale follows global default — call once at app root:
 setDefaultLocale(enUS);
-// Now every picker shows Latin digits and English month names with no extra prop.
+// Every picker now uses Latin digits, English names, and Today/Clear labels.
 ```
 
 ## `DoranRangePicker` props
@@ -114,7 +114,7 @@ selects the current date and calls `onChange`; Clear removes the value and emits
 
 `DoranRangePicker` shows a Clear control in its footer by default.
 `footerActions={[]}` hides it together with the range summary. `hideFooter` remains for backward
-compatibility but is deprecated.
+compatibility but is deprecated. Button labels follow the active locale: `faIR` uses «امروز»/«پاک کردن», while `enUS` uses Today/Clear.
 
 ## Month, year & time selection
 

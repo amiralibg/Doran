@@ -296,8 +296,22 @@ gregorianWeekday(gy, gm, gd); // 0 = Saturday
 ## Locales
 
 ```ts
-import { faIR, enUS, registerLocale, setDefaultLocale } from '@doranjs/core';
+import {
+  enUS,
+  faIR,
+  registerLocale,
+  resolveCalendarLabels,
+  setDefaultLocale,
+  type CalendarLabels,
+  type Locale,
+} from '@doranjs/core';
+
+resolveCalendarLabels(enUS); // { today: "Today", clear: "Clear" }
 ```
+
+`Locale.calendarLabels` optionally customizes the calendar's Today and Clear
+controls. It is optional so existing custom locales remain compatible; omitted
+labels fall back to Persian.
 
 ## Digit utilities
 

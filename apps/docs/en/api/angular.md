@@ -86,7 +86,7 @@ custom element — see [`@doranjs/wc`](/en/api/wc) for the full list.
 Today selects the current date and emits the change; Clear sets both the form value and
 `change.value`/`change.gregorian` to `null`. `dr-range-picker` has a Clear control by default;
 `[footerActions]="[]"` hides its footer. `hideFooter` on `dr-calendar` is deprecated; use
-`[footerActions]="[]"`.
+`[footerActions]="[]"`. Button labels follow the active locale: `fa` uses «امروز»/«پاک کردن», while `en` uses Today/Clear.
 
 Both `[disabled]` and the form control's disabled state disable the native trigger. The DatePicker
 cannot open in that state, and an open popover is closed.

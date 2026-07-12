@@ -1,6 +1,6 @@
 'use client';
 
-import { type DoranDate, type Locale } from '@doranjs/core';
+import { resolveCalendarLabels, type DoranDate, type Locale } from '@doranjs/core';
 import { useResolvedLocale } from './provider';
 import { Button, ChevronLeftIcon, ChevronRightIcon, cn } from '@doranjs/ui';
 import { useState } from 'react';
@@ -65,6 +65,7 @@ export function DoranRangePicker({
   ...rangeOptions
 }: DoranRangePickerProps) {
   const locale = useResolvedLocale(localeProp);
+  const labels = resolveCalendarLabels(locale);
   const range = useDateRange(rangeOptions);
   const calendar = useCalendar({ timeZone: rangeOptions.timeZone });
   const [panel, setPanel] = useState<CalendarPanel>('days');
@@ -238,7 +239,7 @@ export function DoranRangePicker({
               data-footer-action={action}
               onClick={range.reset}
             >
-              پاک کردن
+              {labels.clear}
             </Button>
           ))}
         </div>

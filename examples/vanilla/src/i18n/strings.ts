@@ -42,7 +42,8 @@ const fa: Dict = {
   calFooterTitle: 'بدون فوتر و بازهٔ سال',
   calFooterDesc: 'با hide-footer دکمهٔ «امروز» حذف و با year-span دامنهٔ سال‌ها تنظیم می‌شود.',
   calLocaleTitle: 'زبان تقویم (Locale)',
-  calLocaleDesc: 'با locale="en" تقویم انگلیسی با اعداد لاتین نمایش داده می‌شود.',
+  calLocaleDesc:
+    'با locale="en" نام‌ها و اعداد لاتین و دکمه‌های «Today» و «Clear» نمایش داده می‌شوند.',
 
   // ── <doran-datepicker> ─────────────────────────────────────────────
   dpIntro: 'ورودیِ تاریخ با پاپ‌اوورِ تقویم؛ با کلیک بیرون یا Escape بسته می‌شود.',
@@ -138,7 +139,7 @@ const en: Dict = {
   calFooterTitle: 'No footer & year span',
   calFooterDesc: 'hide-footer drops the “today” button; year-span sets the year range.',
   calLocaleTitle: 'Calendar locale',
-  calLocaleDesc: 'locale="en" renders the English calendar with Latin digits.',
+  calLocaleDesc: 'locale="en" renders English names, Latin digits, and Today/Clear footer labels.',
 
   // ── <doran-datepicker> ─────────────────────────────────────────────
   dpIntro: 'A date input with a calendar popover that closes on outside-click or Escape.',

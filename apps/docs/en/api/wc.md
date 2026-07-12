@@ -57,7 +57,7 @@ import '@doranjs/wc/styles.css'; // tokens + component styles in one file
 `footer-actions="today,clear"` preserves the declared button order. Today selects the current
 date and emits `change`; Clear removes the value and emits `null` in `detail.date` and
 `detail.iso`. RangePicker accepts only `clear` and shows it in the footer by default.
-`footer-actions=""` hides the whole footer, including the range summary.
+`footer-actions=""` hides the whole footer, including the range summary. Button labels follow `locale`: `fa` uses «امروز»/«پاک کردن», while `en` uses Today/Clear.
 
 `dropdown-width="auto"` uses the intrinsic popover width, `trigger` matches the trigger, and any
 other value such as `24rem` is used as a custom CSS width. When `disabled` is present, the

@@ -1,4 +1,4 @@
-import { DoranDate, type Locale } from '@doranjs/core';
+import { DoranDate, resolveCalendarLabels, type Locale } from '@doranjs/core';
 import { getHolidaysOn } from '@doranjs/holidays';
 import { buildMonthGrid, navigateFocus, type GridNav } from './grid';
 import { chevronDown, chevronLeft, chevronRight } from './icons';
@@ -312,6 +312,7 @@ export class DoranRangePickerElement extends HTMLElement {
 
   #render(): void {
     const locale = this.#locale;
+    const labels = resolveCalendarLabels(locale);
     const num = (n: number | string) => locale.formatNumber(String(n));
     const mode = this.getAttribute('header-mode') === 'separate' ? 'separate' : 'dropdown';
     const months = this.#months;
@@ -374,7 +375,7 @@ export class DoranRangePickerElement extends HTMLElement {
     const footerButtons = footerActions
       .map(
         () =>
-          `<button type="button" class="doran-btn doran-btn--outline doran-calendar__footer-action doran-calendar__footer-action--clear" data-action="clear" data-footer-action="clear">پاک کردن</button>`,
+          `<button type="button" class="doran-btn doran-btn--outline doran-calendar__footer-action doran-calendar__footer-action--clear" data-action="clear" data-footer-action="clear">${esc(labels.clear)}</button>`,
       )
       .join('');
     const footer =
