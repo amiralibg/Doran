@@ -1,5 +1,13 @@
 # @doranjs/wc
 
+## 0.2.2
+
+### Patch Changes
+
+- [#46](https://github.com/amiralibg/Doran/pull/46) [`042946a`](https://github.com/amiralibg/Doran/commit/042946a1a544c847a6de9580f54ab34ef8c244bd) Thanks [@amiralibg](https://github.com/amiralibg)! - Isolate the date-picker trigger value from the surrounding RTL context with
+  `dir="auto"` so digit-only formats like `YYYY-MM-DD HH:mm` no longer render
+  time-before-date when `textAlign` is set without an explicit direction.
+
 ## 0.2.1
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @doranjs/angular
 
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [[`042946a`](https://github.com/amiralibg/Doran/commit/042946a1a544c847a6de9580f54ab34ef8c244bd)]:
+  - @doranjs/wc@0.2.2
+
 ## 0.4.1
 
 ### Patch Changes
