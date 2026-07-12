@@ -1,5 +1,12 @@
 # @doranjs/nlp
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [[`b73c99a`](https://github.com/amiralibg/Doran/commit/b73c99a95e5dd306f6611da38aad13d6e5819302)]:
+  - @doranjs/core@0.1.1
+
 ## 0.1.1
 
 ### Patch Changes
