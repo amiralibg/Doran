@@ -1,5 +1,17 @@
 # @doranjs/angular
 
+## 0.4.0
+
+### Minor Changes
+
+- [#42](https://github.com/amiralibg/Doran/pull/42) [`912981e`](https://github.com/amiralibg/Doran/commit/912981e93314414849fe2af80a90008596e8df61) Thanks [@amiralibg](https://github.com/amiralibg)! - Make date-picker footer actions configurable, make Today select the current date, and
+  add nullable Clear events plus trigger alignment and input/dropdown width controls.
+
+### Patch Changes
+
+- Updated dependencies [[`912981e`](https://github.com/amiralibg/Doran/commit/912981e93314414849fe2af80a90008596e8df61)]:
+  - @doranjs/wc@0.2.0
+
 ## 0.3.0
 
 ### Minor Changes
