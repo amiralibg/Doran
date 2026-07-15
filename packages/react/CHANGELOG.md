@@ -1,5 +1,13 @@
 # @doranjs/react
 
+## 0.4.3
+
+### Patch Changes
+
+- Updated dependencies [[`4889c5d`](https://github.com/amiralibg/Doran/commit/4889c5da37f5d565bc3572e74e748b2f67c1317d)]:
+  - @doranjs/core@0.1.2
+  - @doranjs/nlp@0.1.3
+
 ## 0.4.2
 
 ### Patch Changes

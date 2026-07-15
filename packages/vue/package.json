@@ -1,6 +1,6 @@
 {
   "name": "@doranjs/vue",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Idiomatic Vue 3 bindings for Doran — v-model components over the @doranjs/wc engine, plus headless composables.",
   "license": "MIT",
   "author": "Doran Contributors",

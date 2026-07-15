@@ -1,5 +1,22 @@
 # @doranjs/core
 
+## 0.1.2
+
+### Patch Changes
+
+- [#48](https://github.com/amiralibg/Doran/pull/48) [`4889c5d`](https://github.com/amiralibg/Doran/commit/4889c5da37f5d565bc3572e74e748b2f67c1317d) Thanks [@amiralibg](https://github.com/amiralibg)! - Make `toLatinDigits` actually convert digits instead of returning its input unchanged.
+
+  `toLatinDigits` was an identity function, serving as the `formatNumber` hook for the
+  Latin-digit locale where identity is correct. But its public name promises a
+  Persian/Arabic → Latin conversion, so consumers normalizing user input reached for it
+  and got a silent no-op — Persian-keyboard input failed `/[0-9]/` validation with no
+  error to trace.
+
+  It now delegates to `normalizeDigits`, handling both the Persian ۰-۹ and Arabic-Indic
+  ٠-٩ families. This is not a breaking change: `normalizeDigits` is identity for ASCII
+  input, and every `formatNumber` call site passes ASCII, so Latin-locale formatting is
+  byte-for-byte unchanged.
+
 ## 0.1.1
 
 ### Patch Changes
