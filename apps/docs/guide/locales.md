@@ -92,4 +92,10 @@ import { toPersianDigits, toLatinDigits, normalizeDigits } from '@doranjs/core';
 
 toPersianDigits('1405'); // "۱۴۰۵"
 normalizeDigits('۱۴۰۵'); // "1405"  (فارسی/عربی → ASCII، برای parse ورودی)
+toLatinDigits('١٤٠٥'); // "1405"  (نام مستعار normalizeDigits)
 ```
+
+برای هر مقداری که کاربر تایپ می‌کند — شمارهٔ تلفن، شمارهٔ کارت، تاریخ — پیش از
+اعتبارسنجی یا ذخیره از `normalizeDigits` استفاده کنید. کیبورد فارسی `۰۹۱۲…`
+تولید می‌کند که بی‌سروصدا در بررسی `/[0-9]/` رد می‌شود. ورودی ASCII بدون تغییر
+عبور می‌کند، پس اعمال بی‌قیدوشرط آن امن است.

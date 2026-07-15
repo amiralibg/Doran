@@ -9,14 +9,19 @@ export function toPersianDigits(value: string): string {
   return value.replace(/[0-9]/g, (d) => PERSIAN_DIGITS[Number(d)]!);
 }
 
-/** Leaves a string untouched — the identity converter used by Latin-digit locales. */
+/**
+ * Converts Persian and Arabic numerals in a string to ASCII `0-9`.
+ * An alias of {@link normalizeDigits}; both handle the ۰-۹ and ٠-٩ families.
+ */
 export function toLatinDigits(value: string): string {
-  return value;
+  return normalizeDigits(value);
 }
 
 /**
  * Normalizes Persian and Arabic numerals in a string back to ASCII `0-9`.
- * Useful when parsing user input that may contain localized digits.
+ *
+ * Use this for user input — anything typed on a Persian keyboard may carry
+ * localized digits that will not match `/[0-9]/` based validation.
  */
 export function normalizeDigits(value: string): string {
   let result = '';

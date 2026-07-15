@@ -317,7 +317,16 @@ labels fall back to Persian.
 
 ```ts
 import { toPersianDigits, toLatinDigits, normalizeDigits } from '@doranjs/core';
+
+toPersianDigits('1405'); // "۱۴۰۵"
+normalizeDigits('۱۴۰۵'); // "1405"
+toLatinDigits('١٤٠٥'); // "1405"  (alias of normalizeDigits)
 ```
+
+Always run user input through `normalizeDigits` (or its `toLatinDigits` alias)
+before validating or storing it. A number typed on a Persian keyboard arrives as
+`۰۹۱۲…`, which will not match `/[0-9]/` based checks. Both handle the Persian
+۰-۹ and Arabic-Indic ٠-٩ families, and both leave ASCII input untouched.
 
 ## Doran and TC39 Temporal
 

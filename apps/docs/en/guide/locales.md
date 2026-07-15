@@ -92,4 +92,10 @@ import { toPersianDigits, toLatinDigits, normalizeDigits } from '@doranjs/core';
 
 toPersianDigits('1405'); // "۱۴۰۵"
 normalizeDigits('۱۴۰۵'); // "1405"  (Persian/Arabic → ASCII, for parsing input)
+toLatinDigits('١٤٠٥'); // "1405"  (alias of normalizeDigits)
 ```
+
+Reach for `normalizeDigits` on any user-typed value — phone numbers, card
+numbers, dates — before you validate or store it. Persian keyboards produce
+`۰۹۱۲…`, which silently fails `/[0-9]/` checks. ASCII input passes through
+unchanged, so it is safe to apply unconditionally.

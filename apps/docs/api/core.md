@@ -315,7 +315,16 @@ resolveCalendarLabels(enUS); // { today: "Today", clear: "Clear" }
 
 ```ts
 import { toPersianDigits, toLatinDigits, normalizeDigits } from '@doranjs/core';
+
+toPersianDigits('1405'); // "۱۴۰۵"
+normalizeDigits('۱۴۰۵'); // "1405"
+toLatinDigits('١٤٠٥'); // "1405"  (نام مستعار normalizeDigits)
 ```
+
+ورودی کاربر را همیشه پیش از اعتبارسنجی یا ذخیره از `normalizeDigits` (یا نام
+مستعار آن `toLatinDigits`) عبور دهید. عددی که با کیبورد فارسی تایپ می‌شود به شکل
+`۰۹۱۲…` می‌رسد و با بررسی‌های مبتنی بر `/[0-9]/` مطابقت نمی‌کند. هر دو، خانوادهٔ
+فارسی ۰-۹ و عربی ٠-٩ را پوشش می‌دهند و ورودی ASCII را دست‌نخورده برمی‌گردانند.
 
 ## دوران و TC39 Temporal
 
