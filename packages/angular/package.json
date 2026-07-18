@@ -1,6 +1,6 @@
 {
   "name": "@doranjs/angular",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Idiomatic Angular bindings for Doran — standalone components with ControlValueAccessor over the @doranjs/wc engine, plus a headless signal grid.",
   "license": "MIT",
   "author": "Doran Contributors",

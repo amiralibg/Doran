@@ -1,5 +1,12 @@
 # @doranjs/holidays
 
+## 0.0.8
+
+### Patch Changes
+
+- Updated dependencies [[`6335e77`](https://github.com/amiralibg/Doran/commit/6335e7728f1f5603e3a78b3d94d1821992e223e7)]:
+  - @doranjs/core@0.1.3
+
 ## 0.0.7
 
 ### Patch Changes
