@@ -7,29 +7,29 @@ import { DoranDatePicker } from './date-picker';
 const UTC = { timeZone: 'UTC' };
 const value = DoranDate.fromJalali(1405, 3, 15, UTC);
 
+/** The calendar icon is the pointer route into the popover. */
 function openPopover() {
-  fireEvent.click(screen.getByRole('button', { name: /۱۴۰۵/ }));
+  fireEvent.click(screen.getByRole('button', { name: /تقویم/ }));
   return screen.getByRole('dialog');
 }
 
 describe('trigger accessible name', () => {
-  it('names the field, not just its digits', () => {
+  it('names the field', () => {
     render(<DoranDatePicker placeholder="تاریخ تولد" />);
-    expect(screen.getByRole('button', { name: 'تاریخ تولد' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'تاریخ تولد' })).toBeInTheDocument();
   });
 
-  // aria-label replaces the button's text rather than adding to it, so naming the
-  // field must not cost the value.
-  it('announces both the field and the current value', () => {
+  // Unlike a button, an input's value is announced separately from its name, so the
+  // field can be named without hiding what it holds.
+  it('keeps the value readable alongside the name', () => {
     render(<DoranDatePicker placeholder="تاریخ تولد" defaultValue={value} />);
-    const trigger = screen.getByRole('button', { name: /تاریخ تولد/ });
-    expect(trigger.getAttribute('aria-label')).toContain('تاریخ تولد');
-    expect(trigger.getAttribute('aria-label')).toContain('۱۴۰۵/۰۳/۱۵');
+    const field = screen.getByRole('textbox', { name: 'تاریخ تولد' });
+    expect(field).toHaveValue('۱۴۰۵/۰۳/۱۵');
   });
 
   it('lets an explicit aria-label override the placeholder', () => {
     render(<DoranDatePicker placeholder="تاریخ تولد" aria-label="از تاریخ" />);
-    expect(screen.getByRole('button', { name: 'از تاریخ' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'از تاریخ' })).toBeInTheDocument();
   });
 
   it('defers entirely to aria-labelledby when given', () => {
@@ -39,9 +39,14 @@ describe('trigger accessible name', () => {
         <DoranDatePicker aria-labelledby="lbl" />
       </>,
     );
-    const trigger = screen.getByRole('button');
-    expect(trigger).toHaveAttribute('aria-labelledby', 'lbl');
-    expect(trigger).not.toHaveAttribute('aria-label');
+    const field = screen.getByRole('textbox');
+    expect(field).toHaveAttribute('aria-labelledby', 'lbl');
+    expect(field).not.toHaveAttribute('aria-label');
+  });
+
+  it('gives the calendar button its own name', () => {
+    render(<DoranDatePicker placeholder="تاریخ تولد" />);
+    expect(screen.getByRole('button', { name: 'باز کردن تقویم' })).toBeInTheDocument();
   });
 });
 
@@ -73,7 +78,7 @@ describe('non-modal popover keyboard behaviour', () => {
     fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true });
 
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(screen.getByRole('button', { name: /۱۴۰۵/ })).toHaveFocus();
+    expect(screen.getByRole('textbox')).toHaveFocus();
   });
 
   it('leaves Tab alone in the middle of the popover', () => {
@@ -96,7 +101,7 @@ describe('non-modal popover keyboard behaviour', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
 
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(screen.getByRole('button', { name: /۱۴۰۵/ })).toHaveFocus();
+    expect(screen.getByRole('textbox')).toHaveFocus();
   });
 });
 

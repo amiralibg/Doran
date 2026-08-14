@@ -602,46 +602,75 @@
   border-color: var(--doran-border-strong);
 }
 
-.doran-datepicker__input:disabled {
+/* The trigger is now a wrapper around a real <input>, so disabled and focus state
+   arrive from the field inside it rather than from the box itself. */
+.doran-datepicker__input[data-disabled] {
   opacity: var(--doran-disabled-opacity, 0.55);
   cursor: not-allowed;
 }
 
-.doran-datepicker__input:disabled:hover {
+.doran-datepicker__input[data-disabled]:hover {
   border-color: var(--doran-input-border-color, var(--doran-border));
 }
 
-.doran-datepicker__input:focus-visible,
-.doran-datepicker__input[aria-expanded='true'] {
+.doran-datepicker__input:focus-within {
   outline: none;
   border-color: var(--doran-input-focus-border-color, var(--doran-primary));
   box-shadow: var(--doran-input-focus-shadow, 0 0 0 3px var(--doran-focus-ring));
 }
 
-.doran-datepicker__value {
+.doran-datepicker__input[data-invalid] {
+  border-color: var(--doran-input-invalid-border-color, var(--doran-danger));
+}
+
+.doran-datepicker__input[data-invalid]:focus-within {
+  border-color: var(--doran-input-invalid-border-color, var(--doran-danger));
+  box-shadow: var(--doran-input-invalid-shadow, 0 0 0 3px var(--doran-danger-soft, transparent));
+}
+
+/* The bare text field: the wrapper owns the border, background, and height. */
+.doran-datepicker__control {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.doran-datepicker__value[data-text-align='left'] {
-  text-align: left;
+.doran-datepicker__control:focus {
+  outline: none;
 }
 
-.doran-datepicker__value[data-text-align='right'] {
-  text-align: right;
+.doran-datepicker__control:disabled {
+  cursor: not-allowed;
+  /* The wrapper already dims; dimming twice reads as broken. */
+  opacity: 1;
+  -webkit-text-fill-color: currentColor;
 }
 
-.doran-datepicker__placeholder {
+.doran-datepicker__control::placeholder {
   color: var(--doran-placeholder-color, var(--doran-text-muted));
+  opacity: 1;
 }
 
 .doran-datepicker__icon {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
   color: var(--doran-icon-color, var(--doran-text-muted));
+  cursor: pointer;
+}
+
+.doran-datepicker__icon:disabled {
+  cursor: not-allowed;
 }
 
 .doran-datepicker__icon svg {

@@ -53,6 +53,15 @@ export { formatParts, type DigitStyle, type FormatContext } from './format';
 // Digit utilities.
 export { normalizeDigits, toLatinDigits, toPersianDigits } from './digits';
 
+// Loose date input and formatted output, shared by every component surface.
+export {
+  formatValue,
+  toDoranDate,
+  type DateInput,
+  type FormattedValue,
+  type ValueFormat,
+} from './coerce';
+
 // Per-day annotations, shared by every calendar surface.
 export {
   dayKey,
