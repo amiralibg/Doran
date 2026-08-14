@@ -4,6 +4,8 @@ import { Section } from '../demo/Section';
 
 import Default from '../demos/datepicker/Default';
 import DefaultSrc from '../demos/datepicker/Default?raw';
+import Typing from '../demos/datepicker/Typing';
+import TypingSrc from '../demos/datepicker/Typing?raw';
 import WithTime from '../demos/datepicker/WithTime';
 import WithTimeSrc from '../demos/datepicker/WithTime?raw';
 import Format from '../demos/datepicker/Format';
@@ -19,6 +21,9 @@ export function DatePickerSection() {
     <Section id="datepicker" title="<DoranDatePicker>" intro={t('dpIntro')}>
       <DemoCard title={t('dpDefaultTitle')} description={t('dpDefaultDesc')} code={DefaultSrc}>
         <Default locale={locale} />
+      </DemoCard>
+      <DemoCard title={t('dpTypingTitle')} description={t('dpTypingDesc')} code={TypingSrc}>
+        <Typing locale={locale} />
       </DemoCard>
       <DemoCard title={t('dpTimeTitle')} description={t('dpTimeDesc')} code={WithTimeSrc}>
         <WithTime locale={locale} />

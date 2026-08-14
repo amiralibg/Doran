@@ -86,6 +86,8 @@ export class DoranDatePicker implements ControlValueAccessor, AfterViewInit, OnC
   @Input() disabled?: boolean;
   /** Hide the trigger icon. Project a custom one instead via `<svg slot="icon">…`. */
   @Input() hideIcon?: boolean;
+  /** Stops the user typing a date while leaving the calendar usable. */
+  @Input() readOnly?: boolean;
   /** Per-day annotations keyed by Jalali `YYYY-M-D`, forwarded to the pop-over calendar. */
   @Input() dayData?: DayDataMap | null;
   /** Blocks individual days beyond `min`/`max`. */

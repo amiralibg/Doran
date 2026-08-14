@@ -151,6 +151,71 @@ Shows a live autocomplete dropdown and a resolved-date hint pinned to the opposi
 (LTR) end of the field. The headless `useNlpSuggest(text, options)` hook returns
 `{ result, suggestions }` for building your own UI.
 
+## Typing a date
+
+The trigger is a real text field, so a date can be typed as well as picked —
+`1402/5/12`, `1402-5-12`, and `۱۴۰۲/۰۵/۱۲` all parse.
+
+Errors surface on blur rather than per keystroke: en route to `1402/05/12` the value
+passes through `1`, `14`, `140`, and flagging each would leave the field red the whole
+time it is in use. Text that doesn't parse is kept and marked `aria-invalid` rather
+than discarded; `onParseError` reports it. Pass `readOnly` where a date must come from
+the grid.
+
+The calendar opens on the icon, on `ArrowDown`, and deliberately not on focus, which
+would fight typing. It also does not take focus when it opens — that would pull the
+caret out of the field.
+
+## Value types
+
+`value`, `defaultValue`, `min`, and `max` accept a `DoranDate`, a native `Date`, epoch
+milliseconds, or a string — Jalali or Gregorian, Latin or Persian digits.
+
+```tsx
+// onChange receives a string, typed as such.
+<DoranDatePicker valueFormat="YYYY-MM-DD" onChange={setQueryParam} />
+```
+
+| `valueFormat`       | `onChange` receives                  |
+| ------------------- | ------------------------------------ |
+| `'doran'` (default) | `DoranDate`                          |
+| `'date'`            | native `Date`                        |
+| `'iso'`             | Gregorian UTC ISO string             |
+| any other string    | that Jalali pattern, in Latin digits |
+
+The second `onChange` argument is always the Gregorian `Date`. Pattern output uses
+Latin digits, since it is bound for a query string or an API rather than the screen.
+
+## Forms
+
+The picker forwards its ref to the input and accepts `name`, `required`, `readOnly`,
+`invalid`, `onBlur`, and `aria-describedby`. A named picker submits through a hidden
+input carrying a Latin-digit machine value.
+
+```tsx
+<Controller
+  control={control}
+  name="checkIn"
+  render={({ field, fieldState }) => (
+    <DoranDatePicker {...field} invalid={Boolean(fieldState.error)} />
+  )}
+/>
+```
+
+`{...field}` supplies `value`, `onChange`, `onBlur`, `name`, and `ref`. To keep plain
+strings in the form, set `valueFormat` and use `register` instead.
+
+## Styling parts
+
+```tsx
+<DoranDatePicker classNames={{ trigger: 'h-9', popover: 'shadow-xl' }} />
+```
+
+Slots are `root`, `trigger`, `input`, `icon`, `popover`, and `calendar`; your classes
+merge with Doran's. `portalContainer` moves the pop-over out of `document.body` — pass
+the dialog's element when the picker sits inside a focus-trapping dialog, since a
+body-level pop-over falls outside the trap.
+
 ## Day widgets
 
 Put your own content under each day — a fare, a seat count, an availability badge.

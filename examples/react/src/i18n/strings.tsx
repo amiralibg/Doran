@@ -85,6 +85,9 @@ const fa: Dict = {
   dpFormatDesc: 'با format قالبِ نمایش تاریخ و با placeholder متنِ راهنما را تعیین می‌کنید.',
   dpRangeTitle: 'حداقل/حداکثر و غیرفعال',
   dpRangeDesc: 'با min و max بازهٔ مجاز را محدود می‌کنید؛ با disabled کل ورودی غیرفعال می‌شود.',
+  dpTypingTitle: 'تایپ تاریخ',
+  dpTypingDesc:
+    'تریگر یک ورودی متنی واقعی است: ۱۴۰۲/۵/۱۲ یا 1402-5-12 را تایپ کنید. با valueFormat خروجی همان رشته‌ای می‌شود که در query param نگه می‌دارید. خطا هنگام خروج از فیلد نشان داده می‌شود، نه با هر کلید.',
   dpCustomizationTitle: 'اکشن‌ها و چیدمان',
   dpCustomizationDesc:
     'فوترِ مرتبِ امروز/پاک کردن، جای آیکن، تراز متن و عرض هماهنگِ ورودی و dropdown را یک‌جا تنظیم کنید.',
@@ -225,6 +228,9 @@ const en: Dict = {
   dpFormatDesc: 'format controls how the date is displayed; placeholder sets the empty-state hint.',
   dpRangeTitle: 'Min/max and disabled',
   dpRangeDesc: 'min and max bound the selectable range; disabled turns the whole input off.',
+  dpTypingTitle: 'Typing a date',
+  dpTypingDesc:
+    'The trigger is a real text field: type 1402/5/12 or ۱۴۰۲/۰۵/۱۲. valueFormat makes the output the same string you keep in a query param. Errors appear on blur, not on every keystroke.',
   dpCustomizationTitle: 'Actions and layout',
   dpCustomizationDesc:
     'Configure ordered Today/Clear actions, icon position, text alignment, and matching input/dropdown widths together.',

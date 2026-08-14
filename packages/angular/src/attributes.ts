@@ -71,6 +71,8 @@ export interface DatePickerAttributeInputs {
   weekends?: number[] | string;
   disabled?: boolean;
   hideIcon?: boolean;
+  /** Stops the user typing a date while leaving the calendar usable. */
+  readOnly?: boolean;
 }
 
 /** Apply the date-picker wrapper's explicit inputs to its custom element. */
@@ -94,4 +96,5 @@ export function applyDatePickerAttributes(
   setAttr(el, 'dropdown-width', inputs.dropdownWidth);
   setBool(el, 'disabled', inputs.disabled === true || formDisabled);
   setBool(el, 'hide-icon', inputs.hideIcon);
+  setBool(el, 'readonly', inputs.readOnly);
 }

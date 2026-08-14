@@ -44,7 +44,8 @@ zDoranDate({ min: '2024-01-01', max: new Date('2024-12-31T23:59:59.999Z') });
 ### React — react-hook-form
 
 ```tsx
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
+import { DoranDatePicker } from '@doranjs/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { zDoranDate } from '@doranjs/zod';
@@ -52,19 +53,43 @@ import { zDoranDate } from '@doranjs/zod';
 const Schema = z.object({ checkIn: zDoranDate({ min: '2024-01-01' }) });
 
 function BookingForm() {
-  const { register, handleSubmit } = useForm({ resolver: zodResolver(Schema) });
+  const { control, handleSubmit, formState } = useForm({ resolver: zodResolver(Schema) });
   const onSubmit = (values) =>
     // values.checkIn is a DoranDate — send Gregorian ISO to the API.
     fetch('/api/book', {
       method: 'POST',
       body: JSON.stringify({ checkIn: values.checkIn.toISOString() }),
     });
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <input type="date" {...register('checkIn')} />
+      <Controller
+        control={control}
+        name="checkIn"
+        render={({ field, fieldState }) => (
+          <DoranDatePicker
+            {...field}
+            invalid={Boolean(fieldState.error)}
+            aria-describedby={fieldState.error ? 'checkIn-error' : undefined}
+          />
+        )}
+      />
+      {formState.errors.checkIn && <p id="checkIn-error">{formState.errors.checkIn.message}</p>}
     </form>
   );
 }
+```
+
+`Controller` is the right tool here because the form holds a `DoranDate` rather than a
+string. `{...field}` supplies `value`, `onChange`, `onBlur`, `name`, and `ref` — the
+picker accepts all five.
+
+If you would rather keep strings in the form, set `valueFormat` and use `register`:
+
+```tsx
+const Schema = z.object({ checkIn: z.string().min(1) });
+
+<DoranDatePicker valueFormat="YYYY-MM-DD" {...register('checkIn')} />;
 ```
 
 ### Vue — VeeValidate

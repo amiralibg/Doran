@@ -135,6 +135,23 @@ export interface DoranDatePickerProps<F extends ValueFormat = 'doran'> extends P
    * than showing it as invalid.
    */
   onParseError?: (text: string) => void;
+  /**
+   * Class names for individual parts, for when `className` on the root can't reach
+   * what you need to style.
+   *
+   * ```tsx
+   * <DoranDatePicker classNames={{ trigger: 'h-9', popover: 'shadow-xl' }} />
+   * ```
+   */
+  classNames?: DatePickerClassNames;
+  /**
+   * Where the pop-over is portaled. Defaults to `document.body`.
+   *
+   * Pass the dialog's own element when the picker lives inside a focus-trapping
+   * dialog (shadcn, Radix, Headless UI) — a body-level pop-over sits outside the
+   * trap, so the trap pulls focus straight back out of the calendar.
+   */
+  portalContainer?: HTMLElement | null;
   /** Explicit trigger width. Numeric values are interpreted as pixels. */
   inputWidth?: CSSProperties['width'];
   /**
@@ -149,6 +166,22 @@ export interface DoranDatePickerProps<F extends ValueFormat = 'doran'> extends P
  * accessible, and closes on outside-click or `Escape`. Supports an optional time
  * picker via `withTime`.
  */
+/** Per-part class names, merged with Doran's own rather than replacing them. */
+export interface DatePickerClassNames {
+  /** The outermost element. Same target as the plain `className` prop. */
+  root?: string;
+  /** The bordered field wrapping the text input and the calendar icon. */
+  trigger?: string;
+  /** The bare `<input>` inside the field. */
+  input?: string;
+  /** The calendar icon button. */
+  icon?: string;
+  /** The portaled pop-over that holds the calendar. */
+  popover?: string;
+  /** The calendar itself, inside the pop-over. */
+  calendar?: string;
+}
+
 const SIZE_HEIGHT: Record<'sm' | 'md' | 'lg', string> = {
   sm: '32px',
   md: '40px',
@@ -191,6 +224,8 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
       onBlur,
       onFocus,
       onParseError,
+      classNames,
+      portalContainer,
       inputWidth,
       dropdownWidth = 'auto',
       withTime,
@@ -454,7 +489,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
       <div
         ref={rootRef}
         id={id}
-        className={cn('doran-datepicker', className)}
+        className={cn('doran-datepicker', classNames?.root, className)}
         style={rootStyle}
         data-icon-position={iconPosition}
         data-text-align={textAlign}
@@ -463,7 +498,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
       >
         <div
           ref={fieldRef}
-          className="doran-datepicker__input"
+          className={cn('doran-datepicker__input', classNames?.trigger)}
           style={{
             flexDirection: iconPosition === 'left' ? 'row' : 'row-reverse',
             ...(normalizedInputWidth !== undefined ? { width: normalizedInputWidth } : {}),
@@ -484,7 +519,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
             inputMode="numeric"
             autoComplete="off"
             dir="auto"
-            className="doran-datepicker__control"
+            className={cn('doran-datepicker__control', classNames?.input)}
             style={{ flex: 1, textAlign }}
             value={text}
             placeholder={placeholder}
@@ -510,7 +545,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
           {icon !== null && (
             <button
               type="button"
-              className="doran-datepicker__icon"
+              className={cn('doran-datepicker__icon', classNames?.icon)}
               // The input owns typing, so the calendar needs its own control — this is
               // also the only pointer-free way to open it besides ArrowDown.
               aria-label={openLabel}
@@ -538,6 +573,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
               className={cn(
                 'doran-datepicker__popover',
                 `doran-datepicker__popover--${dropdownWidthMode}`,
+                classNames?.popover,
               )}
               data-dropdown-width={dropdownWidthMode}
               style={resolvedPopoverStyle}
@@ -547,6 +583,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
                 locale={locale}
                 value={selected}
                 onChange={handleChange}
+                {...(classNames?.calendar ? { className: classNames.calendar } : {})}
                 {...(footerActions ? { footerActions } : {})}
                 {...(hideFooter !== undefined ? { hideFooter } : {})}
                 {...(minDate ? { min: minDate } : {})}
@@ -569,7 +606,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
                   : {})}
               />
             </div>,
-            document.body,
+            portalContainer ?? document.body,
           )}
       </div>
     );

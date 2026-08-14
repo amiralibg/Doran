@@ -1,4 +1,4 @@
-import { type DayDataMap, type DoranDate } from '@doranjs/core';
+import { parseJalali, type DayDataMap, type DoranDate } from '@doranjs/core';
 import { type DoranCalendarElement } from './calendar-element';
 import { calendarIcon } from './icons';
 import { trackPopoverPosition } from './popover-position';
@@ -47,8 +47,6 @@ export class DoranDatePickerElement extends HTMLElement {
   #selected: DoranDate | null = null;
   #open = false;
   #initialized = false;
-  /** Move focus into the calendar after the next render (popover just opened). */
-  #focusCalendarOnRender = false;
   /** Return focus to the trigger after the next render (popover closed via keyboard). */
   #focusTriggerOnRender = false;
   /** The body-portaled pop-over while open. */
@@ -61,6 +59,11 @@ export class DoranDatePickerElement extends HTMLElement {
   #slots: Map<SlotName, Element> = new Map();
   #dayData: DayDataMap | null = null;
   #disabledDates: ((day: DoranDate) => boolean) | null = null;
+  /** What the text field shows. Diverges from the value while being typed into. */
+  #text = '';
+  /** True while the user owns the text, so renders must not overwrite it. */
+  #typing = false;
+  #unparseable = false;
 
   /**
    * Per-day annotations keyed by Jalali `YYYY-M-D`, forwarded to the pop-over
@@ -97,6 +100,9 @@ export class DoranDatePickerElement extends HTMLElement {
       this.#initialized = true;
     }
     this.addEventListener('click', this.#onClick);
+    this.addEventListener('input', this.#onInput);
+    this.addEventListener('blur', this.#onFieldBlur, true);
+    this.addEventListener('keydown', this.#onFieldKeyDown);
     document.addEventListener('pointerdown', this.#onDocPointer);
     document.addEventListener('keydown', this.#onKey);
     this.#render();
@@ -104,6 +110,9 @@ export class DoranDatePickerElement extends HTMLElement {
 
   disconnectedCallback(): void {
     this.removeEventListener('click', this.#onClick);
+    this.removeEventListener('input', this.#onInput);
+    this.removeEventListener('blur', this.#onFieldBlur, true);
+    this.removeEventListener('keydown', this.#onFieldKeyDown);
     document.removeEventListener('pointerdown', this.#onDocPointer);
     document.removeEventListener('keydown', this.#onKey);
     this.#destroyPopover();
@@ -166,7 +175,6 @@ export class DoranDatePickerElement extends HTMLElement {
     if (trigger && this.contains(trigger)) {
       if (boolAttr(this, 'disabled')) return;
       this.#open = !this.#open;
-      if (this.#open) this.#focusCalendarOnRender = true;
       this.#render();
     }
   };
@@ -199,6 +207,122 @@ export class DoranDatePickerElement extends HTMLElement {
     }
   };
 
+  /** Emits `change` with the same detail shape `<doran-calendar>` uses. */
+  #emit(date: DoranDate | null): void {
+    this.dispatchEvent(
+      new CustomEvent('change', {
+        bubbles: false,
+        detail: {
+          date,
+          iso: date ? date.toISOString() : null,
+          value: date ? date.format('YYYY/MM/DD') : '',
+        },
+      }),
+    );
+  }
+
+  /** The text field inside the trigger, once rendered. */
+  get #field(): HTMLInputElement | null {
+    return this.querySelector<HTMLInputElement>('.doran-datepicker__control');
+  }
+
+  /** Whether a date sits inside `min`/`max`. */
+  #withinBounds(date: DoranDate): boolean {
+    const min = parseJalaliAttr(this.getAttribute('min'));
+    const max = parseJalaliAttr(this.getAttribute('max'));
+    if (min && date.isBefore(min.startOf('day'))) return false;
+    if (max && date.isAfter(max.endOf('day'))) return false;
+    return true;
+  }
+
+  /** Parses `raw`, returning a date only if it is complete and in range. */
+  #readDate(raw: string): DoranDate | null {
+    const parsed = parseJalali(raw);
+    if (!parsed || !this.#withinBounds(parsed)) return null;
+    return boolAttr(this, 'with-time') ? parsed : parsed.startOf('day');
+  }
+
+  /**
+   * Parses on every keystroke so the calendar follows along, and commits as soon as
+   * the text is a complete, in-range date. It never *raises* the invalid flag: en
+   * route to `1402/05/12` the value passes through `1`, `14`, `140`, and flagging
+   * each would leave the field red the whole time it is in use.
+   */
+  #onInput = (event: Event): void => {
+    const field = event.target as HTMLInputElement;
+    if (!field.classList.contains('doran-datepicker__control')) return;
+
+    this.#typing = true;
+    this.#text = field.value;
+
+    if (field.value.trim() === '') {
+      this.#setInvalid(false);
+      this.#selected = null;
+      this.#emit(null);
+      return;
+    }
+
+    const parsed = this.#readDate(field.value);
+    if (parsed) {
+      this.#setInvalid(false);
+      this.#selected = parsed;
+      this.#emit(parsed);
+      // Re-render only the calendar; rebuilding the trigger would drop the caret.
+      if (this.#open) this.#render();
+    }
+  };
+
+  /**
+   * Blur is where the field settles: text that parsed is normalized to the display
+   * format, and text that did not is left exactly as typed and marked invalid — so
+   * the user can see and fix their input rather than watch it vanish.
+   */
+  #onFieldBlur = (event: Event): void => {
+    const field = event.target as HTMLElement;
+    if (!field.classList.contains('doran-datepicker__control')) return;
+
+    const raw = this.#text.trim();
+    if (raw === '' || this.#readDate(this.#text)) {
+      this.#setInvalid(false);
+      this.#typing = false;
+      this.#render();
+    } else {
+      this.#setInvalid(true);
+    }
+  };
+
+  #onFieldKeyDown = (event: KeyboardEvent): void => {
+    const field = event.target as HTMLElement;
+    if (!field.classList.contains('doran-datepicker__control')) return;
+
+    if (event.key === 'ArrowDown' && !this.#open) {
+      // The conventional way to reach a picker's calendar from its input.
+      event.preventDefault();
+      this.#open = true;
+      this.#render();
+    } else if (event.key === 'Enter' && this.#open) {
+      event.preventDefault();
+      this.#close(true);
+    }
+  };
+
+  /** Toggles the invalid state in place, without a re-render that would drop focus. */
+  #setInvalid(next: boolean): void {
+    if (this.#unparseable === next) return;
+    this.#unparseable = next;
+
+    const field = this.#field;
+    const wrapper = this.querySelector<HTMLElement>('.doran-datepicker__input');
+    if (next) {
+      field?.setAttribute('aria-invalid', 'true');
+      wrapper?.setAttribute('data-invalid', 'true');
+    } else {
+      field?.removeAttribute('aria-invalid');
+      wrapper?.removeAttribute('data-invalid');
+    }
+    this.dispatchEvent(new CustomEvent('parseerror', { detail: { invalid: next } }));
+  }
+
   /** Removes the body-portaled pop-over and its position listeners. */
   #destroyPopover(): void {
     this.#stopTracking?.();
@@ -216,19 +340,13 @@ export class DoranDatePickerElement extends HTMLElement {
     const dropdownWidth = this.getAttribute('dropdown-width')?.trim() || 'auto';
     const dropdownWidthMode =
       dropdownWidth === 'auto' || dropdownWidth === 'trigger' ? dropdownWidth : 'custom';
-    const label = this.#selected
-      ? esc(this.#selected.withLocale(locale).format(this.#format))
-      : esc(placeholder);
-    const labelClass = `doran-datepicker__value${this.#selected ? '' : ' doran-datepicker__placeholder'}`;
-    // `aria-label` replaces the button's text rather than adding to it, so naming the
-    // field must not cost the value: the description says what the control is, the
-    // value says what it holds. An explicit `aria-label` attribute wins.
-    const describedAs = this.getAttribute('aria-label') ?? placeholder;
-    const triggerLabel = esc(
-      this.#selected
-        ? `${describedAs}: ${this.#selected.withLocale(locale).format(this.#format)}`
-        : describedAs,
-    );
+    const valueText = this.#selected ? this.#selected.withLocale(locale).format(this.#format) : '';
+    if (!this.#typing) this.#text = valueText;
+    // Unlike a button, an input's value is announced separately from its name, so
+    // naming the field costs nothing and the placeholder is the best default.
+    const explicitLabel = this.getAttribute('aria-label');
+    const fieldLabel = explicitLabel ?? placeholder;
+    const openLabel = explicitLabel ? `${explicitLabel} — تقویم` : 'باز کردن تقویم';
 
     this.classList.add('doran-datepicker');
     this.classList.toggle('doran-datepicker--icon-left', iconPosition === 'left');
@@ -243,34 +361,49 @@ export class DoranDatePickerElement extends HTMLElement {
     if (inputWidth) this.style.setProperty('--doran-input-width', inputWidth);
     else this.style.removeProperty('--doran-input-width');
 
+    const disabled = boolAttr(this, 'disabled');
     const icon = boolAttr(this, 'hide-icon')
       ? ''
-      : `<span class="doran-datepicker__icon" aria-hidden>${this.#customIcon ? '' : calendarIcon}</span>`;
-    // dir="auto": digit-only values (e.g. `YYYY-MM-DD HH:mm`) resolve LTR so the
-    // host's RTL context can't reorder the date/time runs, while Persian
-    // placeholders and month-name formats still resolve RTL.
-    const labelHtml = `<span class="${labelClass}" data-text-align="${textAlign}" dir="auto">${label}</span>`;
+      : `<button type="button" class="doran-datepicker__icon" data-action="toggle" tabindex="-1" aria-label="${esc(openLabel)}" aria-haspopup="dialog" aria-expanded="${this.#open}" ${disabled ? 'disabled' : ''}>${this.#customIcon ? '' : calendarIcon}</button>`;
+
+    // Rebuilding the trigger would wipe the caret and the selection mid-typing, so
+    // once the field has focus only the pop-over is re-rendered.
+    const fieldHasFocus = this.#field !== null && document.activeElement === this.#field;
 
     this.#destroyPopover();
-    this.innerHTML =
-      `<button type="button" class="doran-datepicker__input" data-action="toggle" data-icon-position="${iconPosition}" data-text-align="${textAlign}" aria-haspopup="dialog" aria-expanded="${this.#open}" aria-label="${triggerLabel}" ${boolAttr(this, 'disabled') ? 'disabled' : ''}>` +
-      labelHtml +
-      icon +
-      `</button>`;
-    const trigger = this.querySelector<HTMLElement>('[data-action="toggle"]');
-    if (trigger) {
-      trigger.style.flexDirection = iconPosition === 'left' ? 'row' : 'row-reverse';
-      if (inputWidth) trigger.style.width = inputWidth;
-    }
-    const value = this.querySelector<HTMLElement>('.doran-datepicker__value');
-    if (value) {
-      value.style.flex = '1';
-      value.style.textAlign = textAlign;
-    }
 
-    // Re-insert the user's custom icon node (innerHTML wiped the slot span).
-    if (this.#customIcon && !boolAttr(this, 'hide-icon')) {
-      this.querySelector('.doran-datepicker__icon')?.appendChild(this.#customIcon);
+    if (!fieldHasFocus) {
+      // dir="auto": digit-only values (e.g. `YYYY-MM-DD HH:mm`) resolve LTR so the
+      // host's RTL context can't reorder the date/time runs, while Persian
+      // placeholders and month-name formats still resolve RTL.
+      this.innerHTML =
+        `<div class="doran-datepicker__input" data-icon-position="${iconPosition}" data-text-align="${textAlign}"${disabled ? ' data-disabled="true"' : ''}${this.#unparseable ? ' data-invalid="true"' : ''}>` +
+        `<input type="text" class="doran-datepicker__control" inputmode="numeric" autocomplete="off" dir="auto"` +
+        ` value="${esc(this.#text)}" placeholder="${esc(placeholder)}" aria-label="${esc(fieldLabel)}"` +
+        ` data-text-align="${textAlign}"` +
+        ` aria-haspopup="dialog" aria-expanded="${this.#open}"${this.#unparseable ? ' aria-invalid="true"' : ''}` +
+        `${disabled ? ' disabled' : ''}${boolAttr(this, 'readonly') ? ' readonly' : ''} />` +
+        icon +
+        `</div>`;
+
+      const trigger = this.querySelector<HTMLElement>('.doran-datepicker__input');
+      if (trigger) {
+        trigger.style.flexDirection = iconPosition === 'left' ? 'row' : 'row-reverse';
+        if (inputWidth) trigger.style.width = inputWidth;
+      }
+      const control = this.#field;
+      if (control) {
+        control.style.flex = '1';
+        control.style.textAlign = textAlign;
+      }
+
+      // Re-insert the user's custom icon node (innerHTML wiped the slot span).
+      if (this.#customIcon && !boolAttr(this, 'hide-icon')) {
+        this.querySelector('.doran-datepicker__icon')?.appendChild(this.#customIcon);
+      }
+    } else if (this.#field) {
+      // Keep the pieces that can change while typing in sync, in place.
+      this.#field.setAttribute('aria-expanded', String(this.#open));
     }
 
     if (this.#open) {
@@ -339,17 +472,18 @@ export class DoranDatePickerElement extends HTMLElement {
       // carries a Jalali date and cannot represent time.
       if (this.#selected) calendar.value = this.#selected;
       this.#popover = popover;
-      if (trigger) {
-        this.#stopTracking = trackPopoverPosition(trigger, popover, {
+      // Measure the bordered field, not the host: `dropdown-width="trigger"` should
+      // match what the user sees.
+      const field = this.querySelector<HTMLElement>('.doran-datepicker__input');
+      if (field) {
+        this.#stopTracking = trackPopoverPosition(field, popover, {
           matchTriggerWidth: dropdownWidthMode === 'trigger',
         });
       }
 
-      // Appending upgrades <doran-calendar> synchronously, so its focusable day exists.
-      if (this.#focusCalendarOnRender) {
-        this.#focusCalendarOnRender = false;
-        popover.querySelector<HTMLElement>('.doran-month [tabindex="0"]')?.focus();
-      }
+      // Note: the calendar deliberately does not take focus on open. The trigger is
+      // a text field now, and yanking the caret out mid-typing would make it
+      // unusable; keyboard users reach the grid by tabbing forward.
     }
 
     if (this.#focusTriggerOnRender) {

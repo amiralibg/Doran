@@ -377,3 +377,55 @@ describe('valueFormat', () => {
     expect(field()).toHaveValue('۱۴۰۴/۰۵/۱۲');
   });
 });
+
+describe('classNames and portalContainer', () => {
+  it('merges per-part class names alongside Doran’s own', () => {
+    const { container } = render(
+      <DoranDatePicker
+        classNames={{ root: 'my-root', trigger: 'my-trigger', input: 'my-input', icon: 'my-icon' }}
+      />,
+    );
+
+    expect(container.querySelector('.doran-datepicker')).toHaveClass('my-root');
+    expect(container.querySelector('.doran-datepicker__input')).toHaveClass('my-trigger');
+    expect(container.querySelector('.doran-datepicker__control')).toHaveClass('my-input');
+    expect(container.querySelector('.doran-datepicker__icon')).toHaveClass('my-icon');
+  });
+
+  it('reaches the popover and the calendar inside it', () => {
+    render(<DoranDatePicker classNames={{ popover: 'my-popover', calendar: 'my-calendar' }} />);
+    fireEvent.click(screen.getByRole('button', { name: /تقویم/ }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveClass('my-popover');
+    // The calendar previously received no className at all, so it was unreachable.
+    expect(dialog.querySelector('.doran-calendar')).toHaveClass('my-calendar');
+  });
+
+  it('keeps className on the root working alongside classNames', () => {
+    const { container } = render(
+      <DoranDatePicker className="outer" classNames={{ root: 'inner' }} />,
+    );
+    expect(container.querySelector('.doran-datepicker')).toHaveClass('outer', 'inner');
+  });
+
+  // A body-level popover sits outside a dialog's focus trap, which then yanks focus
+  // straight back out of the calendar.
+  it('portals into a supplied container instead of document.body', () => {
+    const host = document.createElement('div');
+    host.id = 'trap';
+    document.body.appendChild(host);
+
+    render(<DoranDatePicker portalContainer={host} />);
+    fireEvent.click(screen.getByRole('button', { name: /تقویم/ }));
+
+    expect(host.querySelector('[role="dialog"]')).not.toBeNull();
+    host.remove();
+  });
+
+  it('still defaults to document.body', () => {
+    render(<DoranDatePicker />);
+    fireEvent.click(screen.getByRole('button', { name: /تقویم/ }));
+    expect(screen.getByRole('dialog').parentElement).toBe(document.body);
+  });
+});

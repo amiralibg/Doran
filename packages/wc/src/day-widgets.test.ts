@@ -145,7 +145,7 @@ describe('<doran-datepicker> forwarding', () => {
     };
     picker.dayData = { '1405-3-12': { text: '۱٬۲۰۰' } };
 
-    picker.querySelector<HTMLButtonElement>('.doran-datepicker__input')!.click();
+    picker.querySelector<HTMLButtonElement>('.doran-datepicker__icon')!.click();
 
     const calendar = document.querySelector('doran-calendar')!;
     expect(day(calendar, 1405, 3, 12).querySelector('.doran-day__content')?.textContent).toBe(
