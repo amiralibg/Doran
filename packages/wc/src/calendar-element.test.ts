@@ -149,11 +149,23 @@ describe('<doran-calendar>', () => {
     expect(el.querySelectorAll('[role="option"]')).toHaveLength(12);
   });
 
+  // Unavailable days carry `aria-disabled` rather than the native attribute, so they
+  // stay focusable and can announce why they cannot be picked.
   it('respects min/max by disabling out-of-range days', () => {
     const el = mount({ value: '1405/03/15', min: '1405/03/10', max: '1405/03/20' });
-    expect(day(el, 1405, 3, 9).disabled).toBe(true);
-    expect(day(el, 1405, 3, 21).disabled).toBe(true);
-    expect(day(el, 1405, 3, 15).disabled).toBe(false);
+    expect(day(el, 1405, 3, 9).getAttribute('aria-disabled')).toBe('true');
+    expect(day(el, 1405, 3, 21).getAttribute('aria-disabled')).toBe('true');
+    expect(day(el, 1405, 3, 15).hasAttribute('aria-disabled')).toBe(false);
+    expect(day(el, 1405, 3, 9).disabled).toBe(false);
+  });
+
+  it('ignores clicks on an out-of-range day', () => {
+    const el = mount({ value: '1405/03/15', min: '1405/03/10', max: '1405/03/20' });
+    const onChange = vi.fn();
+    el.addEventListener('change', onChange);
+
+    day(el, 1405, 3, 9).click();
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it('reflects the value property setter', () => {

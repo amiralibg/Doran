@@ -27,6 +27,7 @@ const fa: Dict = {
   navAgenda: 'برنامه — DoranAgenda',
   navNlpInput: 'ورودی زبان طبیعی — DoranNlpInput',
   navTimePicker: 'انتخاب زمان — DoranTimePicker',
+  navWidgets: 'ویجت روزها و اسلات‌ها',
   navTheming: 'پوسته و تم',
 
   // Toolbar buttons (label reflects the action that will happen on click).
@@ -87,6 +88,22 @@ const fa: Dict = {
   dpCustomizationTitle: 'اکشن‌ها و چیدمان',
   dpCustomizationDesc:
     'فوترِ مرتبِ امروز/پاک کردن، جای آیکن، تراز متن و عرض هماهنگِ ورودی و dropdown را یک‌جا تنظیم کنید.',
+
+  // ── Day widgets & slots ────────────────────────────────────────────
+  wgIntro:
+    'زیر هر روز محتوای دلخواه بگذارید و نواحی legend، aside و footer را با اجزای خودتان پر کنید.',
+  wgFaresTitle: 'نرخ بلیت زیر هر روز',
+  wgFaresDesc:
+    'با dayContent قیمت را زیر عدد روز نشان می‌دهیم، با dayProps ارزان‌ترین روز را نشانه‌گذاری می‌کنیم و روزهای تکمیل‌شده با disabledDates بسته می‌شوند — دلیلِ بسته بودن هم برای صفحه‌خوان خوانده می‌شود.',
+  wgEventsTitle: 'شمار جلسه‌های هر روز',
+  wgEventsDesc:
+    'همین کار با dayData انجام می‌شود: یک آبجکت سادهٔ قابل‌سریال‌سازی که می‌تواند مستقیماً از API بیاید و در Vue، Svelte، Angular و HTML ساده هم کار می‌کند.',
+  wgHotelTitle: 'ظرفیت اتاق در بازهٔ اقامت',
+  wgHotelDesc:
+    'شب‌های پرظرفیت و رو به اتمام با tone از هم جدا می‌شوند و شب‌های تکمیل با disabledReason بسته می‌شوند؛ روزِ بسته همچنان با صفحه‌کلید قابل دسترسی است تا دلیلش شنیده شود.',
+  wgSlotsTitle: 'اسلات‌ها و useDoranCalendar',
+  wgSlotsDesc:
+    'محتوای اسلات بیرون از جدول روزهاست، پس می‌تواند کاملاً تعاملی باشد. ویجت کناری با useDoranCalendar ماه را جابه‌جا می‌کند و فوتر انتخاب جاری را نشان می‌دهد.',
 
   // ── <DoranRangePicker> ─────────────────────────────────────────────
   rpIntro: 'انتخاب بازهٔ تاریخ با همان منطقِ تقویم؛ با میان‌برهای آماده و نمایش چندماهه.',
@@ -153,6 +170,7 @@ const en: Dict = {
   navAgenda: 'Agenda — DoranAgenda',
   navNlpInput: 'Natural-language input — DoranNlpInput',
   navTimePicker: 'Time picker — DoranTimePicker',
+  navWidgets: 'Day widgets & slots',
   navTheming: 'Theming',
 
   themeToDark: '🌙 Dark',
@@ -210,6 +228,22 @@ const en: Dict = {
   dpCustomizationTitle: 'Actions and layout',
   dpCustomizationDesc:
     'Configure ordered Today/Clear actions, icon position, text alignment, and matching input/dropdown widths together.',
+
+  // ── Day widgets & slots ────────────────────────────────────────────
+  wgIntro:
+    'Put your own content under each day, and fill the legend, aside, and footer regions with your own components.',
+  wgFaresTitle: 'Fares under each day',
+  wgFaresDesc:
+    'dayContent renders the price under the day number, dayProps marks the cheapest departure, and disabledDates blocks sold-out days — with the reason announced to screen readers.',
+  wgEventsTitle: 'Meeting counts',
+  wgEventsDesc:
+    'The same idea via dayData: a plain serializable object that can come straight from an API response, and works identically in Vue, Svelte, Angular, and plain HTML.',
+  wgHotelTitle: 'Rooms left across a stay',
+  wgHotelDesc:
+    'Tones separate plentiful nights from nearly-full ones, and fully-booked nights carry a disabledReason. A blocked day stays keyboard-focusable so the reason can actually be heard.',
+  wgSlotsTitle: 'Slots and useDoranCalendar',
+  wgSlotsDesc:
+    'Slot content sits outside the day grid, so it may be fully interactive. The sidebar widget drives the month through useDoranCalendar(), and the footer reflects the current selection.',
 
   // ── <DoranRangePicker> ─────────────────────────────────────────────
   rpIntro:

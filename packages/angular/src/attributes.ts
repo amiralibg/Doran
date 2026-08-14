@@ -1,7 +1,26 @@
-import { type DoranDate } from '@doranjs/core';
+import { type DayDataMap, type DoranDate } from '@doranjs/core';
 
 export type FooterAction = 'today' | 'clear';
 export type FooterActionsInput = readonly FooterAction[] | string;
+
+/** The day-widget inputs every calendar-like wrapper accepts. */
+export interface DayWidgetInputs {
+  dayData?: DayDataMap | null;
+  disabledDates?: ((day: DoranDate) => boolean) | null;
+}
+
+/**
+ * Applies the day-widget inputs as element *properties*.
+ *
+ * A day map and a predicate cannot be stringified into attributes, so unlike every
+ * other input here these are assigned directly. Call only after the custom element
+ * has upgraded, or the setters won't exist yet.
+ */
+export function applyDayWidgets(el: HTMLElement, inputs: DayWidgetInputs): void {
+  const target = el as HTMLElement & DayWidgetInputs;
+  if (inputs.dayData !== undefined) target.dayData = inputs.dayData;
+  if (inputs.disabledDates !== undefined) target.disabledDates = inputs.disabledDates;
+}
 
 /** Set/remove a string or numeric attribute (empty/nullish clears it). */
 export function setAttr(

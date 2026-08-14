@@ -1,9 +1,15 @@
 'use client';
 
-import { resolveCalendarLabels, type DoranDate, type Locale } from '@doranjs/core';
+import {
+  resolveCalendarLabels,
+  type DayDataMap,
+  type DayMeta,
+  type DoranDate,
+  type Locale,
+} from '@doranjs/core';
 import { useResolvedLocale } from './provider';
 import { Button, ChevronLeftIcon, ChevronRightIcon, cn } from '@doranjs/ui';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   CalendarHeader,
   MonthYearPanel,
@@ -11,10 +17,15 @@ import {
   type CalendarPanel,
   type HeaderMode,
 } from './calendar-header';
+import {
+  DoranCalendarProvider,
+  type CalendarSlots,
+  type DoranCalendarContextValue,
+} from './calendar-context';
 import { buildMonthGrid } from './grid';
 import { useCalendar, type YearMonth } from './hooks';
 import { useDateRange, type DateRange, type UseDateRangeOptions } from './hooks';
-import { DoranMonthView } from './month-view';
+import { DoranMonthView, type DayPropsResult } from './month-view';
 import { defaultRangePresets, type RangePreset } from './presets';
 
 const DEFAULT_FOOTER_ACTIONS: readonly 'clear'[] = ['clear'];
@@ -24,6 +35,22 @@ export interface DoranRangePickerProps extends UseDateRangeOptions {
   headerMode?: HeaderMode;
   /** Marks holiday days (dot + holiday color). */
   isHoliday?: (day: DoranDate) => boolean;
+  /**
+   * Renders extra content beneath each day number — a nightly rate, a count, a dot.
+   * Must be non-interactive: the day cell is itself a `<button>`.
+   */
+  dayContent?: (day: DoranDate, meta: DayMeta) => ReactNode;
+  /** Merges attributes onto a day button — styling hooks, tooltips, disabled state. */
+  dayProps?: (day: DoranDate, meta: DayMeta) => DayPropsResult | undefined;
+  /** Serializable per-day annotations, keyed by Jalali `YYYY-M-D`. */
+  dayData?: DayDataMap;
+  /**
+   * Your own content in the picker's `legend`, `aside`, and `footer` regions.
+   * `aside` shares the sidebar with `presets`, rendering above them.
+   */
+  slots?: CalendarSlots;
+  /** Blocks individual days — dates already booked, a sold-out departure. */
+  disabledDates?: (day: DoranDate) => boolean;
   /** Weekday indices treated as weekend (0 = Saturday). Defaults to `[6]` (Friday). */
   weekends?: number[];
   arrows?: CalendarArrows;
@@ -55,6 +82,11 @@ export function DoranRangePicker({
   locale: localeProp,
   headerMode = 'dropdown',
   isHoliday,
+  dayContent,
+  dayProps,
+  dayData,
+  slots,
+  disabledDates,
   weekends,
   arrows,
   yearSpan = 60,
@@ -67,7 +99,10 @@ export function DoranRangePicker({
   const locale = useResolvedLocale(localeProp);
   const labels = resolveCalendarLabels(locale);
   const range = useDateRange(rangeOptions);
-  const calendar = useCalendar({ timeZone: rangeOptions.timeZone });
+  const calendar = useCalendar({
+    ...(rangeOptions.timeZone ? { timeZone: rangeOptions.timeZone } : {}),
+    ...(disabledDates ? { disabledDates } : {}),
+  });
   const [panel, setPanel] = useState<CalendarPanel>('days');
 
   const months = Math.max(1, numberOfMonths);
@@ -124,7 +159,12 @@ export function DoranRangePicker({
       isRangeStart={range.isStart}
       isRangeEnd={range.isEnd}
       isSelected={(d) => range.isStart(d) || range.isEnd(d)}
+      isDisabled={calendar.isDisabled}
+      isOutOfBounds={calendar.isOutOfBounds}
       {...(isHoliday ? { isHoliday } : {})}
+      {...(dayContent ? { dayContent } : {})}
+      {...(dayProps ? { dayProps } : {})}
+      {...(dayData ? { dayData } : {})}
       {...(weekends ? { weekends } : {})}
     />
   );
@@ -200,51 +240,89 @@ export function DoranRangePicker({
     </>
   );
 
+  const context: DoranCalendarContextValue = {
+    year: calendar.year,
+    month: calendar.month,
+    today: calendar.today,
+    locale,
+    // A range picker has no single selection; `range` carries the real state.
+    selected: null,
+    range: range.range,
+    isSelected: (d) => range.isStart(d) || range.isEnd(d),
+    isDisabled: calendar.isDisabled,
+    goToPrevMonth: calendar.goToPrevMonth,
+    goToNextMonth: calendar.goToNextMonth,
+    goToPrevYear: calendar.goToPrevYear,
+    goToNextYear: calendar.goToNextYear,
+    goToToday: calendar.goToToday,
+    setMonth: calendar.setMonth,
+    select: range.selectDay,
+    selectRange: range.setRange,
+    clear: range.reset,
+  };
+
+  const hasSidebar = presetList.length > 0 || Boolean(slots?.aside);
+  const showFooter = footerActions.length > 0 || Boolean(slots?.footer);
+
   return (
-    <div
-      className={cn(
-        'doran-calendar',
-        'doran-rangepicker',
-        multi && 'doran-rangepicker--multi',
-        className,
-      )}
-      dir="rtl"
-    >
-      <div className="doran-rangepicker__body">
-        {presetList.length > 0 && (
-          <div className="doran-rangepicker__presets" role="group" aria-label="بازه‌های آماده">
-            {presetList.map((preset) => (
-              <button
-                key={preset.label}
-                type="button"
-                className="doran-rangepicker__preset"
-                onClick={() => applyPreset(preset)}
+    <DoranCalendarProvider value={context}>
+      <div
+        className={cn(
+          'doran-calendar',
+          'doran-rangepicker',
+          multi && 'doran-rangepicker--multi',
+          className,
+        )}
+        dir="rtl"
+      >
+        {slots?.legend && <div className="doran-calendar__legend">{slots.legend}</div>}
+
+        <div className="doran-rangepicker__body">
+          {hasSidebar && (
+            <div className="doran-rangepicker__presets doran-calendar__aside">
+              {slots?.aside}
+              {presetList.length > 0 && (
+                <div
+                  className="doran-rangepicker__preset-group"
+                  role="group"
+                  aria-label="بازه‌های آماده"
+                >
+                  {presetList.map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      className="doran-rangepicker__preset"
+                      onClick={() => applyPreset(preset)}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          <div className="doran-rangepicker__calendar">{calendarBody}</div>
+        </div>
+
+        {showFooter && (
+          <div className="doran-calendar__footer doran-rangepicker__footer">
+            <span className="doran-rangepicker__summary">{summary}</span>
+            {slots?.footer && <div className="doran-calendar__footer-slot">{slots.footer}</div>}
+            {footerActions.map((action, index) => (
+              <Button
+                key={`${action}-${index}`}
+                variant="outline"
+                className="doran-calendar__footer-action doran-calendar__footer-action--clear"
+                data-footer-action={action}
+                onClick={range.reset}
               >
-                {preset.label}
-              </button>
+                {labels.clear}
+              </Button>
             ))}
           </div>
         )}
-        <div className="doran-rangepicker__calendar">{calendarBody}</div>
       </div>
-
-      {footerActions.length > 0 && (
-        <div className="doran-calendar__footer doran-rangepicker__footer">
-          <span className="doran-rangepicker__summary">{summary}</span>
-          {footerActions.map((action, index) => (
-            <Button
-              key={`${action}-${index}`}
-              variant="outline"
-              className="doran-calendar__footer-action doran-calendar__footer-action--clear"
-              data-footer-action={action}
-              onClick={range.reset}
-            >
-              {labels.clear}
-            </Button>
-          ))}
-        </div>
-      )}
-    </div>
+    </DoranCalendarProvider>
   );
 }
 

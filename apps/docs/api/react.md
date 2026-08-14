@@ -144,6 +144,113 @@ import { DoranNlpInput } from '@doranjs/react';
 (LTR)ِ فیلد سنجاق می‌شود. هوک headlessِ `useNlpSuggest(text, options)` مقدار
 `{ result, suggestions }` را برای ساخت UI دلخواهتان برمی‌گرداند.
 
+## ویجت روزها
+
+زیر هر روز محتوای دلخواه بگذارید — نرخ بلیت، شمار صندلی، وضعیت ظرفیت.
+
+| Prop            | Type                                                | توضیح                                                            |
+| --------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
+| `dayContent`    | `(day: DoranDate, meta: DayMeta) => ReactNode`      | محتوای زیر عدد روز؛ باید غیرتعاملی باشد                          |
+| `dayProps`      | `(day: DoranDate, meta: DayMeta) => DayPropsResult` | ویژگی‌هایی که روی دکمهٔ روز ادغام می‌شود — `className`، `data-*` |
+| `dayData`       | `Record<string, DayDatum>`                          | داده‌های قابل‌سریال‌سازی با کلید جلالی `YYYY-M-D`                |
+| `disabledDates` | `(day: DoranDate) => boolean`                       | بستن روزهای منفرد، جدا از `min`/`max`                            |
+
+```tsx
+import { DoranDatePicker, dayKey } from '@doranjs/react';
+
+<DoranDatePicker
+  dayContent={(day) => <span>{fares[dayKey(day)]}</span>}
+  dayProps={(day) => ({
+    'data-cheapest': isCheapest(day) || undefined,
+    label: `${fares[dayKey(day)]} تومان`,
+  })}
+  disabledDates={(day) => soldOut(day)}
+/>;
+```
+
+دو نکته برای دسترس‌پذیری. **`dayContent` باید غیرتعاملی باشد** — خودِ خانهٔ روز یک
+`<button>` است، پس دکمه یا لینکِ تودرتو هم HTML نامعتبر است و هم مدل صفحه‌کلیدِ جدول را
+می‌شکند؛ محتوای تعاملی را در اسلات بگذارید. و **آنچه را نمایش می‌دهید اعلام کنید** —
+`aria-label` روز به‌جای افزودن، متن را جایگزین می‌کند، پس محتوای سفارشی تا وقتی `label`
+از `dayProps` برنگردانید برای صفحه‌خوان نامرئی است. متنِ `dayData` خودکار استفاده می‌شود.
+
+### dayData
+
+تابع رندر از مرز HTML رد نمی‌شود، پس یک نگاشتِ قابل‌سریال‌سازی هم هست. چون از JSON عبور
+می‌کند می‌تواند مستقیماً از پاسخ API بیاید و همان شکل در Vue، Svelte، Angular و HTML ساده
+هم کار می‌کند.
+
+```tsx
+<DoranDatePicker
+  dayData={{
+    '1404-5-12': { text: '۱٬۲۰۰٬۰۰۰', tone: 'low' },
+    '1404-5-14': { disabled: true, disabledReason: 'ظرفیت تکمیل' },
+  }}
+/>
+```
+
+`DayDatum` این‌ها را می‌پذیرد: `text`، `tone`، `label`، `title`، `disabled` و
+`disabledReason`. کلیدها جلالیِ `YYYY-M-D` هستند؛ شکل‌های صفرداده و با ارقام فارسی به
+همان روز می‌رسند. اگر هر دو برای یک روز محتوا بدهند، `dayContent` برنده است.
+
+`tone` به `data-tone` تبدیل می‌شود: `low`/`positive` و `high`/`negative` از پیش استایل
+دارند و هر مقدار دیگری برای CSS خودتان عبور می‌کند.
+
+### روزهای بسته
+
+روزِ بسته به‌جای ویژگی `disabled` مقدار `aria-disabled` می‌گیرد، پس همچنان قابل فوکوس
+می‌ماند و می‌تواند دلیلش را بگوید. پیمایش با کلیدهای جهت از شکافِ `min`/`max` — که ممکن
+است دهه‌ها طول بکشد — می‌پرد، اما روی روزهای بستهٔ منفرد می‌ایستد تا `disabledReason`
+شنیده شود.
+
+## اسلات‌ها
+
+نواحی `legend`، `aside` و `footer` محتوای شما را می‌پذیرند. برخلاف `dayContent`، محتوای
+اسلات بیرون از جدول روزهاست، پس می‌تواند کاملاً تعاملی باشد.
+
+```tsx
+<DoranCalendar
+  slots={{
+    legend: <FareLegend />,
+    aside: <FlexibleDatesPanel />,
+    footer: <SelectedFareSummary />,
+  }}
+/>
+```
+
+`useDoranCalendar()` وضعیت و پیمایشِ تقویم را به آن محتوا می‌دهد — و همین است که اسلات را
+از تزئین فراتر می‌برد:
+
+```tsx
+function JumpThreeMonths() {
+  const { year, month, setMonth } = useDoranCalendar();
+  return <button onClick={() => setMonth({ year, month: month + 3 })}>۳ ماه بعد</button>;
+}
+```
+
+این‌ها را در اختیار می‌گذارد: `year`، `month`، `today`، `locale`، `selected`، `range`،
+`isSelected`، `isDisabled`، `select`، `selectRange`، `clear`، `setMonth` و کمکی‌های
+`goTo*`. فراخوانی بیرون از تقویم Doran خطا می‌دهد.
+
+## تعطیلات رسمی ایران
+
+```tsx
+import { useHolidays } from '@doranjs/react/holidays';
+
+const holidays = useHolidays();
+
+<DoranDatePicker isHoliday={holidays.isHoliday} dayProps={holidays.dayProps} />;
+```
+
+یک خروجیِ subpath است، پس دادهٔ تعطیلات فقط وارد باندل‌هایی می‌شود که واردش کرده‌اند.
+هر سال را هم یک‌بار ایندکس می‌کند — `getHolidaysOn()` در هر فراخوانی کل سال را دوباره
+حساب می‌کند، کاری که یک جدول ماه در هر رندر ۴۲ بار انجام می‌داد.
+
+`isHoliday` به‌طور پیش‌فرض فقط تعطیلات رسمی را می‌شمارد؛ برای مناسبت‌ها
+`officialOnly: false` بدهید. تاریخ‌های قمریِ خارج از سال‌هایی که ایران رسماً اعلام کرده
+حسابی محاسبه می‌شوند و ممکن است یک روز این‌طرف یا آن‌طرف باشند — آن‌ها `data-approximate`
+دارند.
+
 ## Theming
 
 هر بخش CSS variable مخصوص خودش را می‌خواند، پس می‌توانید یک instance را بدون override کردنِ

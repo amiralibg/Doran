@@ -53,6 +53,17 @@ export { formatParts, type DigitStyle, type FormatContext } from './format';
 // Digit utilities.
 export { normalizeDigits, toLatinDigits, toPersianDigits } from './digits';
 
+// Per-day annotations, shared by every calendar surface.
+export {
+  dayKey,
+  indexDayData,
+  normalizeDayKey,
+  type DayDataMap,
+  type DayDatum,
+  type DayMeta,
+  type DayTone,
+} from './day';
+
 // Locales.
 export {
   enUS,

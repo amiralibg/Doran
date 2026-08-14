@@ -333,6 +333,9 @@ importers:
       '@doranjs/core':
         specifier: workspace:*
         version: link:../core
+      '@doranjs/holidays':
+        specifier: workspace:^
+        version: link:../holidays
       '@doranjs/nlp':
         specifier: workspace:*
         version: link:../nlp

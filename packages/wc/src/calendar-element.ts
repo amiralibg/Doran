@@ -1,7 +1,16 @@
-import { DoranDate, resolveCalendarLabels, type Locale } from '@doranjs/core';
-import { getHolidaysOn } from '@doranjs/holidays';
+import {
+  DoranDate,
+  indexDayData,
+  resolveCalendarLabels,
+  type DayDataMap,
+  type DayDatum,
+  type Locale,
+} from '@doranjs/core';
+import { isDayBlocked, renderDayCell } from './day-render';
 import { buildMonthGrid, navigateFocus, type GridNav, type MonthGrid } from './grid';
+import { hasHolidayOn } from './holidays-cache';
 import { chevronDown, chevronLeft, chevronRight, chevronUp } from './icons';
+import { captureSlots, restoreSlots, slotPlaceholder, type SlotName } from './slots';
 import {
   boolAttr,
   esc,
@@ -47,6 +56,39 @@ export class DoranCalendarElement extends HTMLElement {
   #time = { hour: 0, minute: 0 };
   #panel: Panel = 'days';
   #initialized = false;
+  #dayData: DayDataMap | null = null;
+  #dayIndex: Map<string, DayDatum> | null = null;
+  #disabledDates: ((day: DoranDate) => boolean) | null = null;
+  /** Author-supplied `[slot]` children, captured before the first render. */
+  #slots: Map<SlotName, Element> = new Map();
+
+  /**
+   * Per-day annotations keyed by Jalali `YYYY-M-D` — a fare, a count, a sold-out
+   * flag. Set as a JS property (render functions can't cross an HTML attribute):
+   *
+   * ```js
+   * picker.dayData = { '1404-5-12': { text: '۱٬۲۰۰٬۰۰۰', tone: 'low' } };
+   * ```
+   */
+  get dayData(): DayDataMap | null {
+    return this.#dayData;
+  }
+
+  set dayData(value: DayDataMap | null) {
+    this.#dayData = value;
+    this.#dayIndex = indexDayData(value);
+    if (this.#initialized) this.#render();
+  }
+
+  /** Blocks individual days beyond `min`/`max` — booked dates, sold-out departures. */
+  get disabledDates(): ((day: DoranDate) => boolean) | null {
+    return this.#disabledDates;
+  }
+
+  set disabledDates(value: ((day: DoranDate) => boolean) | null) {
+    this.#disabledDates = value;
+    if (this.#initialized) this.#render();
+  }
   /** The day reachable via keyboard (roving tabindex). */
   #focusDate: DoranDate | null = null;
   /** When true, the next render moves DOM focus onto the focusable day. */
@@ -59,6 +101,8 @@ export class DoranCalendarElement extends HTMLElement {
       this.#viewYear = base.year;
       this.#viewMonth = base.month;
       if (this.#selected) this.#time = { hour: this.#selected.hour, minute: this.#selected.minute };
+      // Must happen before the first render: innerHTML would discard these children.
+      this.#slots = captureSlots(this);
       this.#initialized = true;
     }
     this.addEventListener('click', this.#onClick);
@@ -123,12 +167,22 @@ export class DoranCalendarElement extends HTMLElement {
     return Number.isFinite(n) && n > 0 ? n : 60;
   }
 
-  #isDisabled(date: DoranDate): boolean {
+  /**
+   * Whether a day is outside `min`/`max`. Keyboard navigation skips these — a bounds
+   * gap can span decades — but lands on individually blocked days so they announce why.
+   */
+  #isOutOfBounds(date: DoranDate): boolean {
     const min = parseJalaliAttr(this.getAttribute('min'));
     const max = parseJalaliAttr(this.getAttribute('max'));
     if (min && date.isBefore(min.startOf('day'))) return true;
     if (max && date.isAfter(max.endOf('day'))) return true;
     return false;
+  }
+
+  #isDisabled(date: DoranDate): boolean {
+    if (this.#isOutOfBounds(date)) return true;
+    if (this.#disabledDates?.(date)) return true;
+    return isDayBlocked(date, false, this.#dayIndex);
   }
 
   #emit(date: DoranDate | null): void {
@@ -299,7 +353,7 @@ export class DoranCalendarElement extends HTMLElement {
     ) {
       const dir = move === 'prev-day' || move === 'prev-week' ? -1 : 1;
       let guard = 0;
-      while (this.#isDisabled(target) && guard < 366) {
+      while (this.#isOutOfBounds(target) && guard < 366) {
         target = target.addDays(dir);
         guard += 1;
       }
@@ -325,8 +379,14 @@ export class DoranCalendarElement extends HTMLElement {
     this.setAttribute('dir', 'rtl');
 
     const header = this.#renderHeader(locale, headerMode, num);
-    const body =
+    const legend = slotPlaceholder(this.#slots, 'legend');
+    const panel =
       this.#panel === 'days' ? this.#renderMonth(locale, num) : this.#renderPanel(locale, num);
+    // The row wrapper only appears when there is an aside to place, so the default
+    // markup — and anyone's CSS targeting it — is unchanged.
+    const body = this.#slots.has('aside')
+      ? `<div class="doran-calendar__body">${slotPlaceholder(this.#slots, 'aside')}<div class="doran-calendar__main">${panel}</div></div>`
+      : panel;
     const time = this.#withTime && this.#panel === 'days' ? this.#renderTime(num) : '';
     const footerActions = parseFooterActions(this.getAttribute('footer-actions'), ['today']);
     const todayDisabled = this.#isDisabled(DoranDate.now());
@@ -337,12 +397,14 @@ export class DoranCalendarElement extends HTMLElement {
           : `<button type="button" class="doran-btn doran-btn--outline doran-calendar__footer-action doran-calendar__footer-action--clear" data-action="clear" data-footer-action="clear">${esc(labels.clear)}</button>`,
       )
       .join('');
+    const footerSlot = slotPlaceholder(this.#slots, 'footer');
     const footer =
-      boolAttr(this, 'hide-footer') || footerButtons === ''
+      boolAttr(this, 'hide-footer') || (footerButtons === '' && footerSlot === '')
         ? ''
-        : `<div class="doran-calendar__footer">${footerButtons}</div>`;
+        : `<div class="doran-calendar__footer">${footerSlot}${footerButtons}</div>`;
 
-    this.innerHTML = header + body + time + footer;
+    this.innerHTML = header + legend + body + time + footer;
+    restoreSlots(this, this.#slots);
 
     if (this.#focusDayAfterRender) {
       this.#focusDayAfterRender = false;
@@ -410,35 +472,26 @@ export class DoranCalendarElement extends HTMLElement {
     const weeks = grid.weeks
       .map((week) => {
         const cells = week
-          .map((cell) => {
-            const disabled = this.#isDisabled(cell.date);
-            const selected = this.#selected ? cell.date.isSame(this.#selected, 'day') : false;
-            const weekend = weekends.includes(cell.weekday);
-            const holiday =
-              showHolidays && cell.inCurrentMonth && getHolidaysOn(cell.date).length > 0;
-            const cls = [
-              'doran-day',
-              !cell.inCurrentMonth ? 'doran-day--outside' : '',
-              weekend ? 'doran-day--weekend' : '',
-              holiday ? 'doran-day--holiday' : '',
-              cell.isToday ? 'doran-day--today' : '',
-              selected ? 'doran-day--selected' : '',
-            ]
-              .filter(Boolean)
-              .join(' ');
-            const isActive = cell.date.isSame(active, 'day');
-            return (
-              `<div class="doran-month__cell" role="gridcell" aria-selected="${selected}">` +
-              `<button type="button" class="${cls}" ${disabled ? 'disabled' : ''} tabindex="${isActive ? 0 : -1}" data-action="select-day" data-y="${cell.date.year}" data-m="${cell.date.month}" data-d="${cell.date.day}" aria-label="${esc(cell.date.withLocale(locale).format('dddd D MMMM YYYY'))}">${esc(num(cell.day))}</button>` +
-              `</div>`
-            );
-          })
+          .map((cell) =>
+            renderDayCell(
+              cell,
+              {
+                selected: this.#selected ? cell.date.isSame(this.#selected, 'day') : false,
+                disabled: this.#isDisabled(cell.date),
+                holiday: showHolidays && cell.inCurrentMonth && hasHolidayOn(cell.date),
+                weekend: weekends.includes(cell.weekday),
+                active: cell.date.isSame(active, 'day'),
+              },
+              { locale, num, dayIndex: this.#dayIndex },
+            ),
+          )
           .join('');
         return `<div class="doran-month__week" role="row">${cells}</div>`;
       })
       .join('');
 
-    return `<div class="doran-month" role="grid" aria-label="${gridLabel}"><div class="doran-month__weekdays" role="row">${weekdays}</div>${weeks}</div>`;
+    const richClass = this.#dayIndex ? ' doran-month--rich' : '';
+    return `<div class="doran-month${richClass}" role="grid" aria-label="${gridLabel}"><div class="doran-month__weekdays" role="row">${weekdays}</div>${weeks}</div>`;
   }
 
   #renderPanel(locale: Locale, num: (n: number | string) => string): string {

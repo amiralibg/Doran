@@ -1,7 +1,9 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  // `holidays` is a separate entry so the Iranian holiday dataset only lands in
+  // bundles that actually import `@doranjs/react/holidays`.
+  entry: ['src/index.ts', 'src/holidays.ts'],
   format: ['esm', 'cjs'],
   // declarationMap is on in tsconfig.base; tsup ignored it, so disable to keep dist lean.
   dts: { sourcemap: false },

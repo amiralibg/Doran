@@ -27,6 +27,11 @@ export interface DoranDatePickerProps extends Pick<
   | 'arrows'
   | 'showOutsideDays'
   | 'hideFooter'
+  | 'dayContent'
+  | 'dayProps'
+  | 'dayData'
+  | 'slots'
+  | 'disabledDates'
 > {
   value?: DoranDate | null;
   defaultValue?: DoranDate | null;
@@ -62,6 +67,14 @@ export interface DoranDatePickerProps extends Pick<
   iconPosition?: 'left' | 'right';
   /** Trigger text alignment. Defaults to `right`. */
   textAlign?: 'left' | 'right';
+  /**
+   * Accessible name for the trigger. Without one it announces only the formatted
+   * value — "۱۴۰۵/۰۳/۱۵, button" — with nothing saying it opens a date picker.
+   * Defaults to the placeholder, which is usually the right description.
+   */
+  'aria-label'?: string;
+  /** `id` of an element labelling the trigger, e.g. your own `<label>`. */
+  'aria-labelledby'?: string;
   /** Explicit trigger width. Numeric values are interpreted as pixels. */
   inputWidth?: CSSProperties['width'];
   /**
@@ -105,6 +118,8 @@ export function DoranDatePicker({
   hideFooter,
   iconPosition = 'left',
   textAlign = 'right',
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
   inputWidth,
   dropdownWidth = 'auto',
   withTime,
@@ -112,6 +127,11 @@ export function DoranDatePicker({
   minuteStep,
   defaultTime,
   isHoliday,
+  dayContent,
+  dayProps,
+  dayData,
+  slots,
+  disabledDates,
   weekends,
   arrows,
   showOutsideDays,
@@ -174,22 +194,33 @@ export function DoranDatePicker({
     day?.focus();
   }, [open]);
 
-  // Keep Tab focus cycling within the dialog while it is open.
-  function trapTab(event: ReactKeyboardEvent<HTMLDivElement>) {
+  /**
+   * Tabbing past either end of the pop-over closes it and moves on.
+   *
+   * The pop-over is `aria-modal="false"`, which promises assistive technology that
+   * the rest of the page is still reachable. A focus trap broke that promise: the
+   * keyboard could never leave. Instead the pop-over behaves like the non-modal
+   * dialog it claims to be — Tab exits forwards, Shift+Tab exits backwards to the
+   * trigger, and Escape still closes and restores focus.
+   */
+  function onPopoverKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (event.key !== 'Tab') return;
     const focusable = popoverRef.current?.querySelectorAll<HTMLElement>(
       'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
     );
     if (!focusable || focusable.length === 0) return;
+
     const first = focusable[0]!;
     const last = focusable[focusable.length - 1]!;
     const active = document.activeElement;
+
     if (event.shiftKey && active === first) {
+      // Backwards out of the pop-over lands on the trigger, where Tab began.
       event.preventDefault();
-      last.focus();
+      close(true);
     } else if (!event.shiftKey && active === last) {
-      event.preventDefault();
-      first.focus();
+      // Forwards out continues into the page; let the browser pick the next stop.
+      close(false);
     }
   }
 
@@ -211,6 +242,14 @@ export function DoranDatePicker({
     sizeStyle || inputWidthStyle || style
       ? ({ ...sizeStyle, ...inputWidthStyle, ...style } as CSSProperties)
       : undefined;
+  const valueText = selected ? selected.withLocale(locale).format(resolvedFormat) : '';
+
+  // `aria-label` replaces the button's text rather than adding to it, so naming the
+  // field alone would silence the value. Compose both: the description says what the
+  // control is, the value says what it currently holds.
+  const describedAs = ariaLabel ?? placeholder;
+  const triggerLabel = valueText ? `${describedAs}: ${valueText}` : describedAs;
+
   const dropdownWidthMode =
     dropdownWidth === 'auto' || dropdownWidth === 'trigger' ? dropdownWidth : 'custom';
   const resolvedPopoverStyle = popoverPosition
@@ -248,6 +287,9 @@ export function DoranDatePicker({
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? popoverId : undefined}
+        {...(ariaLabelledBy
+          ? { 'aria-labelledby': ariaLabelledBy }
+          : { 'aria-label': triggerLabel })}
         onClick={() => setOpen((o) => !o)}
       >
         {/* dir="auto": digit-only values (e.g. `YYYY-MM-DD HH:mm`) resolve LTR so
@@ -258,7 +300,7 @@ export function DoranDatePicker({
           className={cn('doran-datepicker__value', !selected && 'doran-datepicker__placeholder')}
           style={{ flex: 1, textAlign }}
         >
-          {selected ? selected.withLocale(locale).format(resolvedFormat) : placeholder}
+          {valueText || placeholder}
         </span>
         {icon !== null && (
           <span aria-hidden className="doran-datepicker__icon">
@@ -282,7 +324,7 @@ export function DoranDatePicker({
             )}
             data-dropdown-width={dropdownWidthMode}
             style={resolvedPopoverStyle}
-            onKeyDown={trapTab}
+            onKeyDown={onPopoverKeyDown}
           >
             <DoranCalendar
               locale={locale}
@@ -297,6 +339,11 @@ export function DoranDatePicker({
               {...(minuteStep !== undefined ? { minuteStep } : {})}
               {...(defaultTime ? { defaultTime } : {})}
               {...(isHoliday ? { isHoliday } : {})}
+              {...(dayContent ? { dayContent } : {})}
+              {...(dayProps ? { dayProps } : {})}
+              {...(dayData ? { dayData } : {})}
+              {...(slots ? { slots } : {})}
+              {...(disabledDates ? { disabledDates } : {})}
               {...(weekends ? { weekends } : {})}
               {...(arrows ? { arrows } : {})}
               {...(showOutsideDays !== undefined ? { showOutsideDays } : {})}

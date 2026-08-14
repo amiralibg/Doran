@@ -1,9 +1,15 @@
 'use client';
 
-import { resolveCalendarLabels, type DoranDate, type Locale } from '@doranjs/core';
+import {
+  resolveCalendarLabels,
+  type DayDataMap,
+  type DayMeta,
+  type DoranDate,
+  type Locale,
+} from '@doranjs/core';
 import { useResolvedLocale } from './provider';
 import { Button, cn } from '@doranjs/ui';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   CalendarHeader,
   MonthYearPanel,
@@ -11,8 +17,13 @@ import {
   type CalendarPanel,
   type HeaderMode,
 } from './calendar-header';
+import {
+  DoranCalendarProvider,
+  type CalendarSlots,
+  type DoranCalendarContextValue,
+} from './calendar-context';
 import { useCalendar, type UseCalendarOptions } from './hooks';
-import { DoranMonthView } from './month-view';
+import { DoranMonthView, type DayPropsResult } from './month-view';
 import { DoranTimePicker, type TimeValue } from './time-picker';
 
 /** Actions that can be rendered in a calendar footer. */
@@ -40,6 +51,17 @@ export interface DoranCalendarProps extends Omit<UseCalendarOptions, 'onChange'>
   defaultTime?: TimeValue;
   /** Marks holiday days (dot + holiday color). */
   isHoliday?: (day: DoranDate) => boolean;
+  /**
+   * Renders extra content beneath each day number — a fare, a count, a dot.
+   * Must be non-interactive: the day cell is itself a `<button>`.
+   */
+  dayContent?: (day: DoranDate, meta: DayMeta) => ReactNode;
+  /** Merges attributes onto a day button — styling hooks, tooltips, disabled state. */
+  dayProps?: (day: DoranDate, meta: DayMeta) => DayPropsResult | undefined;
+  /** Serializable per-day annotations, keyed by Jalali `YYYY-M-D`. */
+  dayData?: DayDataMap;
+  /** Your own content in the calendar's `legend`, `aside`, and `footer` regions. */
+  slots?: CalendarSlots;
   /** Weekday indices treated as weekend (0 = Saturday). Defaults to `[6]` (Friday). */
   weekends?: number[];
   /** How many years to offer around the current view in the year picker. */
@@ -70,6 +92,10 @@ export function DoranCalendar({
   minuteStep = 1,
   defaultTime = { hour: 0, minute: 0 },
   isHoliday,
+  dayContent,
+  dayProps,
+  dayData,
+  slots,
   weekends,
   yearSpan = 60,
   arrows,
@@ -127,85 +153,135 @@ export function DoranCalendar({
     setPanel('days');
   }
 
-  return (
-    <div className={cn('doran-calendar', className)} dir="rtl">
-      <CalendarHeader
+  // Not memoized: `useCalendar` hands back a fresh object every render, so a memo
+  // would recompute anyway while making `clear`'s capture of `emit` easy to stale.
+  const context: DoranCalendarContextValue = {
+    year: calendar.year,
+    month: calendar.month,
+    today: calendar.today,
+    locale,
+    selected,
+    range: null,
+    isSelected: calendar.isSelected,
+    isDisabled: calendar.isDisabled,
+    goToPrevMonth: calendar.goToPrevMonth,
+    goToNextMonth: calendar.goToNextMonth,
+    goToPrevYear: calendar.goToPrevYear,
+    goToNextYear: calendar.goToNextYear,
+    goToToday: calendar.goToToday,
+    setMonth: calendar.setMonth,
+    select: calendar.select,
+    // Ranges belong to DoranRangePicker; a single calendar has nothing to set.
+    selectRange: () => {},
+    clear: () => emit(null),
+  };
+
+  const monthView = (
+    <DoranMonthView
+      grid={calendar.grid}
+      locale={locale}
+      onSelect={calendar.select}
+      onMonthChange={calendar.setMonth}
+      isSelected={calendar.isSelected}
+      isDisabled={calendar.isDisabled}
+      isOutOfBounds={calendar.isOutOfBounds}
+      {...(isHoliday ? { isHoliday } : {})}
+      {...(dayContent ? { dayContent } : {})}
+      {...(dayProps ? { dayProps } : {})}
+      {...(dayData ? { dayData } : {})}
+      {...(weekends ? { weekends } : {})}
+      {...(showOutsideDays !== undefined ? { showOutsideDays } : {})}
+    />
+  );
+
+  const panelContent =
+    panel === 'days' ? (
+      monthView
+    ) : (
+      <MonthYearPanel
+        panel={panel}
         year={calendar.year}
         month={calendar.month}
         locale={locale}
-        mode={headerMode}
-        panel={panel}
-        onPrevMonth={calendar.goToPrevMonth}
-        onNextMonth={calendar.goToNextMonth}
-        onTogglePanel={togglePanel}
+        yearRange={yearRange}
         onSelectMonth={selectMonth}
         onSelectYear={selectYear}
-        yearRange={yearRange}
-        {...(arrows ? { arrows } : {})}
       />
+    );
 
-      {panel === 'days' ? (
-        <DoranMonthView
-          grid={calendar.grid}
-          locale={locale}
-          onSelect={calendar.select}
-          onMonthChange={calendar.setMonth}
-          isSelected={calendar.isSelected}
-          isDisabled={calendar.isDisabled}
-          {...(isHoliday ? { isHoliday } : {})}
-          {...(weekends ? { weekends } : {})}
-          {...(showOutsideDays !== undefined ? { showOutsideDays } : {})}
-        />
-      ) : (
-        <MonthYearPanel
-          panel={panel}
+  const showFooter = resolvedFooterActions.length > 0 || Boolean(slots?.footer);
+
+  return (
+    <DoranCalendarProvider value={context}>
+      <div className={cn('doran-calendar', className)} dir="rtl">
+        <CalendarHeader
           year={calendar.year}
           month={calendar.month}
           locale={locale}
-          yearRange={yearRange}
+          mode={headerMode}
+          panel={panel}
+          onPrevMonth={calendar.goToPrevMonth}
+          onNextMonth={calendar.goToNextMonth}
+          onTogglePanel={togglePanel}
           onSelectMonth={selectMonth}
           onSelectYear={selectYear}
+          yearRange={yearRange}
+          {...(arrows ? { arrows } : {})}
         />
-      )}
 
-      {withTime && panel === 'days' && (
-        <DoranTimePicker
-          value={time}
-          onChange={handleTimeChange}
-          minuteStep={minuteStep}
-          locale={locale}
-        />
-      )}
+        {slots?.legend && <div className="doran-calendar__legend">{slots.legend}</div>}
 
-      {resolvedFooterActions.length > 0 && (
-        <div className="doran-calendar__footer">
-          {resolvedFooterActions.map((action, index) =>
-            action === 'today' ? (
-              <Button
-                key={`${action}-${index}`}
-                variant="outline"
-                className="doran-calendar__footer-action doran-calendar__footer-action--today"
-                data-footer-action={action}
-                disabled={calendar.isDisabled(calendar.today)}
-                onClick={calendar.selectToday}
-              >
-                {labels.today}
-              </Button>
-            ) : (
-              <Button
-                key={`${action}-${index}`}
-                variant="outline"
-                className="doran-calendar__footer-action doran-calendar__footer-action--clear"
-                data-footer-action={action}
-                onClick={() => emit(null)}
-              >
-                {labels.clear}
-              </Button>
-            ),
-          )}
-        </div>
-      )}
-    </div>
+        {/* The row wrapper only appears when there's an aside to place, so the default
+          DOM (and anyone's CSS targeting it) is untouched. */}
+        {slots?.aside ? (
+          <div className="doran-calendar__body">
+            <div className="doran-calendar__aside">{slots.aside}</div>
+            <div className="doran-calendar__main">{panelContent}</div>
+          </div>
+        ) : (
+          panelContent
+        )}
+
+        {withTime && panel === 'days' && (
+          <DoranTimePicker
+            value={time}
+            onChange={handleTimeChange}
+            minuteStep={minuteStep}
+            locale={locale}
+          />
+        )}
+
+        {showFooter && (
+          <div className="doran-calendar__footer">
+            {slots?.footer && <div className="doran-calendar__footer-slot">{slots.footer}</div>}
+            {resolvedFooterActions.map((action, index) =>
+              action === 'today' ? (
+                <Button
+                  key={`${action}-${index}`}
+                  variant="outline"
+                  className="doran-calendar__footer-action doran-calendar__footer-action--today"
+                  data-footer-action={action}
+                  disabled={calendar.isDisabled(calendar.today)}
+                  onClick={calendar.selectToday}
+                >
+                  {labels.today}
+                </Button>
+              ) : (
+                <Button
+                  key={`${action}-${index}`}
+                  variant="outline"
+                  className="doran-calendar__footer-action doran-calendar__footer-action--clear"
+                  data-footer-action={action}
+                  onClick={() => emit(null)}
+                >
+                  {labels.clear}
+                </Button>
+              ),
+            )}
+          </div>
+        )}
+      </div>
+    </DoranCalendarProvider>
   );
 }
 

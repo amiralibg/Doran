@@ -12,10 +12,12 @@ import {
   ViewChild,
 } from '@angular/core';
 import { type ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { type DoranDate } from '@doranjs/core';
+import { type DayDataMap, type DoranDate } from '@doranjs/core';
 import { type AgendaEvent } from '@doranjs/wc';
 import {
   applyDatePickerAttributes,
+  applyDayWidgets,
+  type DayWidgetInputs,
   type FooterActionsInput,
   setAttr,
   setBool,
@@ -84,6 +86,10 @@ export class DoranDatePicker implements ControlValueAccessor, AfterViewInit, OnC
   @Input() disabled?: boolean;
   /** Hide the trigger icon. Project a custom one instead via `<svg slot="icon">…`. */
   @Input() hideIcon?: boolean;
+  /** Per-day annotations keyed by Jalali `YYYY-M-D`, forwarded to the pop-over calendar. */
+  @Input() dayData?: DayDataMap | null;
+  /** Blocks individual days beyond `min`/`max`. */
+  @Input() disabledDates?: (day: DoranDate) => boolean;
 
   private value: DoranDate | null = null;
   private formDisabled = false;
@@ -112,6 +118,7 @@ export class DoranDatePicker implements ControlValueAccessor, AfterViewInit, OnC
     const el = this.el.nativeElement;
     applyLocale(el, this.locale, this.defaults);
     applyDatePickerAttributes(el, this, this.formDisabled);
+    applyDayWidgets(el, this as DayWidgetInputs);
     el.value = this.value;
   }
 
@@ -149,7 +156,9 @@ export class DoranDatePicker implements ControlValueAccessor, AfterViewInit, OnC
   selector: 'dr-calendar',
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  template: `<doran-calendar #el (change)="onChange($event)"></doran-calendar>`,
+  template: `<doran-calendar #el (change)="onChange($event)"
+    ><ng-content></ng-content
+  ></doran-calendar>`,
   providers: [
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DoranCalendar), multi: true },
   ],
@@ -166,6 +175,10 @@ export class DoranCalendar implements ControlValueAccessor, AfterViewInit, OnCha
   @Input() hideFooter?: boolean;
   @Input() footerActions?: FooterActionsInput;
   @Input() yearSpan?: number;
+  /** Per-day annotations keyed by Jalali `YYYY-M-D` — a fare, a count, a sold-out flag. */
+  @Input() dayData?: DayDataMap | null;
+  /** Blocks individual days beyond `min`/`max`. */
+  @Input() disabledDates?: (day: DoranDate) => boolean;
 
   private value: DoranDate | null = null;
   private ready = false;
@@ -196,6 +209,7 @@ export class DoranCalendar implements ControlValueAccessor, AfterViewInit, OnCha
     setBool(el, 'hide-footer', this.hideFooter);
     setFooterActions(el, this.footerActions);
     setAttr(el, 'year-span', this.yearSpan);
+    applyDayWidgets(el, this as DayWidgetInputs);
     el.value = this.value;
   }
 
@@ -231,7 +245,9 @@ export class DoranCalendar implements ControlValueAccessor, AfterViewInit, OnCha
   selector: 'dr-range-picker',
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  template: `<doran-rangepicker #el (change)="onChange($event)"></doran-rangepicker>`,
+  template: `<doran-rangepicker #el (change)="onChange($event)"
+    ><ng-content></ng-content
+  ></doran-rangepicker>`,
   providers: [
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DoranRangePicker), multi: true },
   ],
@@ -248,6 +264,10 @@ export class DoranRangePicker implements ControlValueAccessor, AfterViewInit, On
   @Input() months?: number;
   @Input() footerActions?: FooterActionsInput;
   @Input() yearSpan?: number;
+  /** Per-day annotations keyed by Jalali `YYYY-M-D` — a fare, a count, a sold-out flag. */
+  @Input() dayData?: DayDataMap | null;
+  /** Blocks individual days beyond `min`/`max`. */
+  @Input() disabledDates?: (day: DoranDate) => boolean;
 
   private value: DoranDateRange = { start: null, end: null };
   private ready = false;
@@ -278,6 +298,7 @@ export class DoranRangePicker implements ControlValueAccessor, AfterViewInit, On
     setAttr(el, 'months', this.months);
     setFooterActions(el, this.footerActions);
     setAttr(el, 'year-span', this.yearSpan);
+    applyDayWidgets(el, this as DayWidgetInputs);
     el.value = this.value;
   }
 

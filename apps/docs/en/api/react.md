@@ -151,6 +151,112 @@ Shows a live autocomplete dropdown and a resolved-date hint pinned to the opposi
 (LTR) end of the field. The headless `useNlpSuggest(text, options)` hook returns
 `{ result, suggestions }` for building your own UI.
 
+## Day widgets
+
+Put your own content under each day — a fare, a seat count, an availability badge.
+
+| Prop            | Type                                                | Description                                                            |
+| --------------- | --------------------------------------------------- | ---------------------------------------------------------------------- |
+| `dayContent`    | `(day: DoranDate, meta: DayMeta) => ReactNode`      | Content rendered beneath the day number. Must be non-interactive.      |
+| `dayProps`      | `(day: DoranDate, meta: DayMeta) => DayPropsResult` | Attributes merged onto the day button — `className`, `style`, `data-*` |
+| `dayData`       | `Record<string, DayDatum>`                          | Serializable annotations keyed by Jalali `YYYY-M-D`                    |
+| `disabledDates` | `(day: DoranDate) => boolean`                       | Blocks individual days on top of `min`/`max`                           |
+
+```tsx
+import { DoranDatePicker, dayKey } from '@doranjs/react';
+
+<DoranDatePicker
+  dayContent={(day) => <span>{fares[dayKey(day)]}</span>}
+  dayProps={(day) => ({
+    'data-cheapest': isCheapest(day) || undefined,
+    label: `${fares[dayKey(day)]} toman`,
+  })}
+  disabledDates={(day) => soldOut(day)}
+/>;
+```
+
+Two rules keep this accessible. **`dayContent` must be non-interactive** — the day
+cell is itself a `<button>`, so a nested button or link is invalid HTML and breaks the
+grid's keyboard model; put interactive content in a slot. And **announce what you
+render** — a day's `aria-label` replaces its text rather than adding to it, so custom
+content is invisible to screen readers unless you return a `label` from `dayProps`.
+`dayData` text is used automatically.
+
+### dayData
+
+A render function can't cross an HTML boundary, so there is also a serializable map.
+It survives JSON, so it can come straight from an API response, and the same shape
+works in Vue, Svelte, Angular, and plain HTML.
+
+```tsx
+<DoranDatePicker
+  dayData={{
+    '1404-5-12': { text: '1,200,000', tone: 'low' },
+    '1404-5-14': { disabled: true, disabledReason: 'Sold out' },
+  }}
+/>
+```
+
+`DayDatum` accepts `text`, `tone`, `label`, `title`, `disabled`, and `disabledReason`.
+Keys are Jalali `YYYY-M-D`; zero-padded and Persian-digit forms resolve to the same
+day. `dayContent` wins where both supply content for one day.
+
+Tones become `data-tone`: `low`/`positive` and `high`/`negative` are styled out of the
+box, and any other value passes through for your own CSS.
+
+### Blocked days
+
+A blocked day carries `aria-disabled` rather than the `disabled` attribute, so it stays
+focusable and can explain itself. Arrow navigation skips `min`/`max` gaps, which can
+span decades, but lands on individually blocked days so the `disabledReason` is heard.
+
+## Slots
+
+`legend`, `aside`, and `footer` take your own content. Unlike `dayContent`, slot
+content sits outside the day grid, so it may be fully interactive.
+
+```tsx
+<DoranCalendar
+  slots={{
+    legend: <FareLegend />,
+    aside: <FlexibleDatesPanel />,
+    footer: <SelectedFareSummary />,
+  }}
+/>
+```
+
+`useDoranCalendar()` gives that content the calendar's state and navigation — which is
+what makes a slot more than decoration:
+
+```tsx
+function JumpThreeMonths() {
+  const { year, month, setMonth } = useDoranCalendar();
+  return <button onClick={() => setMonth({ year, month: month + 3 })}>+3 months</button>;
+}
+```
+
+It exposes `year`, `month`, `today`, `locale`, `selected`, `range`, `isSelected`,
+`isDisabled`, `select`, `selectRange`, `clear`, `setMonth`, and the `goTo*` helpers.
+Calling it outside a Doran calendar throws.
+
+## Iranian holidays
+
+```tsx
+import { useHolidays } from '@doranjs/react/holidays';
+
+const holidays = useHolidays();
+
+<DoranDatePicker isHoliday={holidays.isHoliday} dayProps={holidays.dayProps} />;
+```
+
+A subpath export, so the holiday dataset only enters bundles that import it. It also
+indexes each year once — `getHolidaysOn()` re-resolves a whole year per call, which a
+month grid would do 42 times per render.
+
+`isHoliday` counts only official public holidays by default; pass `officialOnly: false`
+for observances. Lunar dates outside the years Iran has officially announced are
+computed arithmetically and may land a day either side — those carry `data-approximate`.
+
 ## Theming
 
 Every part reads its own CSS variable, so you can restyle a single instance without

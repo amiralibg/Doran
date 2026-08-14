@@ -1,7 +1,8 @@
-import { type DoranDate } from '@doranjs/core';
+import { type DayDataMap, type DoranDate } from '@doranjs/core';
 import { type DoranCalendarElement } from './calendar-element';
 import { calendarIcon } from './icons';
 import { trackPopoverPosition } from './popover-position';
+import { captureSlots, type SlotName } from './slots';
 import { boolAttr, esc, parseJalaliAttr, resolveLocaleAttr } from './util';
 
 /**
@@ -56,11 +57,43 @@ export class DoranDatePickerElement extends HTMLElement {
   #stopTracking: (() => void) | null = null;
   /** A user-supplied `[slot="icon"]` child, captured before the first render. */
   #customIcon: Element | null = null;
+  /** `[slot="legend"|"aside"|"footer"]` children, forwarded to the pop-over calendar. */
+  #slots: Map<SlotName, Element> = new Map();
+  #dayData: DayDataMap | null = null;
+  #disabledDates: ((day: DoranDate) => boolean) | null = null;
+
+  /**
+   * Per-day annotations keyed by Jalali `YYYY-M-D`, forwarded to the pop-over
+   * calendar. Set as a JS property:
+   *
+   * ```js
+   * picker.dayData = { '1404-5-12': { text: '۱٬۲۰۰٬۰۰۰', tone: 'low' } };
+   * ```
+   */
+  get dayData(): DayDataMap | null {
+    return this.#dayData;
+  }
+
+  set dayData(value: DayDataMap | null) {
+    this.#dayData = value;
+    if (this.#open) this.#render();
+  }
+
+  /** Blocks individual days beyond `min`/`max`, forwarded to the pop-over calendar. */
+  get disabledDates(): ((day: DoranDate) => boolean) | null {
+    return this.#disabledDates;
+  }
+
+  set disabledDates(value: ((day: DoranDate) => boolean) | null) {
+    this.#disabledDates = value;
+    if (this.#open) this.#render();
+  }
 
   connectedCallback(): void {
     if (!this.#initialized) {
       this.#selected = parseJalaliAttr(this.getAttribute('value'));
       this.#customIcon = this.querySelector('[slot="icon"]');
+      this.#slots = captureSlots(this);
       this.#initialized = true;
     }
     this.addEventListener('click', this.#onClick);
@@ -116,12 +149,16 @@ export class DoranDatePickerElement extends HTMLElement {
     }
   };
 
+  /** Closes the pop-over, optionally returning focus to the trigger. */
+  #close(restoreFocus: boolean): void {
+    if (!this.#open) return;
+    this.#open = false;
+    this.#focusTriggerOnRender = restoreFocus;
+    this.#render();
+  }
+
   #onKey = (event: KeyboardEvent): void => {
-    if (event.key === 'Escape' && this.#open) {
-      this.#open = false;
-      this.#focusTriggerOnRender = true;
-      this.#render();
-    }
+    if (event.key === 'Escape' && this.#open) this.#close(true);
   };
 
   #onClick = (event: Event): void => {
@@ -134,8 +171,14 @@ export class DoranDatePickerElement extends HTMLElement {
     }
   };
 
-  /** Keeps Tab focus cycling within the open dialog. */
-  #trapTab = (event: KeyboardEvent): void => {
+  /**
+   * Tabbing past either end of the pop-over closes it and moves on.
+   *
+   * The pop-over is `aria-modal="false"`, which promises assistive technology that
+   * the rest of the page is still reachable. A focus trap broke that promise: the
+   * keyboard could never leave. Escape still closes and restores focus.
+   */
+  #onPopoverKeyDown = (event: KeyboardEvent): void => {
     if (event.key !== 'Tab') return;
     const popover = this.#popover;
     if (!popover) return;
@@ -147,11 +190,12 @@ export class DoranDatePickerElement extends HTMLElement {
     const last = focusable[focusable.length - 1]!;
     const active = document.activeElement;
     if (event.shiftKey && active === first) {
+      // Backwards out of the pop-over lands on the trigger, where Tab began.
       event.preventDefault();
-      last.focus();
+      this.#close(true);
     } else if (!event.shiftKey && active === last) {
-      event.preventDefault();
-      first.focus();
+      // Forwards out continues into the page; let the browser pick the next stop.
+      this.#close(false);
     }
   };
 
@@ -176,6 +220,15 @@ export class DoranDatePickerElement extends HTMLElement {
       ? esc(this.#selected.withLocale(locale).format(this.#format))
       : esc(placeholder);
     const labelClass = `doran-datepicker__value${this.#selected ? '' : ' doran-datepicker__placeholder'}`;
+    // `aria-label` replaces the button's text rather than adding to it, so naming the
+    // field must not cost the value: the description says what the control is, the
+    // value says what it holds. An explicit `aria-label` attribute wins.
+    const describedAs = this.getAttribute('aria-label') ?? placeholder;
+    const triggerLabel = esc(
+      this.#selected
+        ? `${describedAs}: ${this.#selected.withLocale(locale).format(this.#format)}`
+        : describedAs,
+    );
 
     this.classList.add('doran-datepicker');
     this.classList.toggle('doran-datepicker--icon-left', iconPosition === 'left');
@@ -200,7 +253,7 @@ export class DoranDatePickerElement extends HTMLElement {
 
     this.#destroyPopover();
     this.innerHTML =
-      `<button type="button" class="doran-datepicker__input" data-action="toggle" data-icon-position="${iconPosition}" data-text-align="${textAlign}" aria-haspopup="dialog" aria-expanded="${this.#open}" ${boolAttr(this, 'disabled') ? 'disabled' : ''}>` +
+      `<button type="button" class="doran-datepicker__input" data-action="toggle" data-icon-position="${iconPosition}" data-text-align="${textAlign}" aria-haspopup="dialog" aria-expanded="${this.#open}" aria-label="${triggerLabel}" ${boolAttr(this, 'disabled') ? 'disabled' : ''}>` +
       labelHtml +
       icon +
       `</button>`;
@@ -228,7 +281,7 @@ export class DoranDatePickerElement extends HTMLElement {
       popover.setAttribute('aria-modal', 'false');
       popover.setAttribute('aria-label', 'تقویم');
       popover.setAttribute('dir', 'rtl');
-      popover.addEventListener('keydown', this.#trapTab);
+      popover.addEventListener('keydown', this.#onPopoverKeyDown);
 
       const calendar = document.createElement('doran-calendar') as DoranCalendarElement;
       for (const attr of [
@@ -252,6 +305,16 @@ export class DoranDatePickerElement extends HTMLElement {
           'value',
           `${s.year}/${String(s.month).padStart(2, '0')}/${String(s.day).padStart(2, '0')}`,
         );
+      }
+      // Properties, not attributes — a day map and a predicate can't cross HTML.
+      // Set before appending so the calendar's first render already has them.
+      if (this.#dayData) calendar.dayData = this.#dayData;
+      if (this.#disabledDates) calendar.disabledDates = this.#disabledDates;
+      // Move the author's slot children into the calendar for as long as it lives,
+      // so `<doran-datepicker><div slot="legend">` lands inside the popover.
+      for (const [name, node] of this.#slots) {
+        node.setAttribute('slot', name);
+        calendar.appendChild(node);
       }
       calendar.addEventListener('change', (e) => {
         const detail = (e as CustomEvent).detail as {

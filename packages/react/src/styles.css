@@ -117,6 +117,41 @@
   padding-top: var(--doran-space-xs);
 }
 
+/* --- Slot regions -------------------------------------------------------
+   Filled through the `slots` prop. Each region is intentionally unstyled beyond
+   placement and spacing: whatever you drop in should look like your app, not
+   like Doran. `__body` only exists when an `aside` is present. */
+
+.doran-calendar__legend {
+  padding: var(--doran-calendar-legend-padding, var(--doran-space-xs) 0);
+  font-size: var(--doran-calendar-legend-font-size, 0.72rem);
+  color: var(--doran-calendar-legend-color, var(--doran-text-muted));
+}
+
+.doran-calendar__body {
+  display: flex;
+  gap: var(--doran-calendar-gap, 0.75rem);
+  align-items: flex-start;
+}
+
+.doran-calendar__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--doran-calendar-aside-gap, 0.35rem);
+  flex-shrink: 0;
+}
+
+.doran-calendar__main {
+  min-width: 0;
+}
+
+.doran-calendar__footer-slot {
+  display: flex;
+  align-items: center;
+  gap: var(--doran-space-sm);
+  margin-inline-end: auto;
+}
+
 /* --- Header pickers (month / year / time) ------------------------------- */
 
 .doran-calendar__heading-btn {
@@ -215,7 +250,7 @@
   justify-content: center;
   gap: var(--doran-space-xs);
   padding-top: var(--doran-space-sm);
-  border-top: 1px solid var(--doran-border);
+  border-top: 1px solid var(--doran-time-border-color, var(--doran-border));
   margin-top: var(--doran-space-xs);
 }
 
@@ -229,37 +264,44 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.75rem;
-  height: 1.25rem;
+  width: var(--doran-time-btn-width, 1.75rem);
+  height: var(--doran-time-btn-height, 1.25rem);
   border: none;
   background: transparent;
-  color: var(--doran-text-muted);
-  border-radius: var(--doran-radius-sm);
+  color: var(--doran-time-btn-color, var(--doran-text-muted));
+  border-radius: var(--doran-time-btn-radius, var(--doran-radius-sm));
   cursor: pointer;
 }
 
 .doran-time__btn:hover {
-  background: var(--doran-surface-muted);
-  color: var(--doran-text);
+  background: var(--doran-time-btn-hover-bg, var(--doran-surface-muted));
+  color: var(--doran-time-btn-hover-color, var(--doran-text));
+}
+
+.doran-time__btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--doran-focus-ring);
 }
 
 .doran-time__btn svg {
-  width: 0.8em;
-  height: 0.8em;
+  width: var(--doran-time-btn-icon-size, 0.8em);
+  height: var(--doran-time-btn-icon-size, 0.8em);
 }
 
 .doran-time__value {
   font-variant-numeric: tabular-nums;
-  font-size: 1.1rem;
-  font-weight: var(--doran-font-weight-semibold, 600);
+  font-size: var(--doran-time-font-size, 1.1rem);
+  font-weight: var(--doran-time-font-weight, var(--doran-font-weight-semibold, 600));
+  color: var(--doran-time-color, var(--doran-text));
   min-width: 2ch;
   text-align: center;
   padding: 0.1rem 0;
 }
 
 .doran-time__sep {
-  font-size: 1.1rem;
-  font-weight: var(--doran-font-weight-semibold, 600);
+  font-size: var(--doran-time-font-size, 1.1rem);
+  font-weight: var(--doran-time-font-weight, var(--doran-font-weight-semibold, 600));
+  color: var(--doran-time-color, var(--doran-text));
   padding: 0 0.1rem;
 }
 
@@ -271,6 +313,22 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+/* Announces the focused day during keyboard navigation, including when arrowing
+   past a month edge re-renders the grid. Visually hidden, never display:none —
+   that would take it out of the accessibility tree entirely. */
+.doran-month__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 .doran-month__weekdays,
@@ -329,7 +387,7 @@
     box-shadow var(--doran-transition, 0.12s ease);
 }
 
-.doran-day:not(:disabled):hover {
+.doran-day:not([aria-disabled='true']):hover {
   background: var(--doran-day-hover-bg, var(--doran-surface-muted));
 }
 
@@ -338,10 +396,66 @@
   box-shadow: 0 0 0 3px var(--doran-focus-ring);
 }
 
-.doran-day:disabled {
+/* Unavailable days are marked with `aria-disabled`, not the `disabled` attribute, so
+   they stay focusable and can announce why they cannot be picked. */
+.doran-day[aria-disabled='true'] {
   color: var(--doran-text-muted);
-  opacity: 0.4;
+  opacity: var(--doran-day-disabled-opacity, 0.4);
   cursor: not-allowed;
+}
+
+/* Rich days -----------------------------------------------------------------
+   `.doran-month--rich` is set automatically when `dayContent` or `dayData` can
+   supply a second line. Plain grids keep the square pill; rich grids let the cell
+   grow and stack the number above its annotation. */
+.doran-month--rich .doran-month__cell {
+  aspect-ratio: auto;
+}
+
+.doran-month--rich .doran-day {
+  flex-direction: column;
+  gap: var(--doran-day-content-gap, 1px);
+  width: 100%;
+  height: auto;
+  min-height: var(--doran-day-rich-size, 2.75rem);
+  padding: var(--doran-day-rich-padding, 0.22rem 0.15rem);
+  border-radius: var(--doran-day-rich-radius, var(--doran-radius-md));
+}
+
+.doran-day__number {
+  line-height: 1.15;
+}
+
+.doran-day__content {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--doran-day-content-font-size, 0.62rem);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--doran-day-content-color, var(--doran-text-muted));
+}
+
+/* Tones are conventions, not a closed set: any other `data-tone` value passes
+   through untouched for your own stylesheet to pick up. */
+.doran-day__content[data-tone='low'],
+.doran-day__content[data-tone='positive'] {
+  color: var(--doran-day-tone-low, var(--doran-success));
+}
+
+.doran-day__content[data-tone='high'],
+.doran-day__content[data-tone='negative'] {
+  color: var(--doran-day-tone-high, var(--doran-danger));
+}
+
+/* Selected days invert their background, so the annotation follows the contrast
+   rather than keeping a tone colour that would fail against the fill. */
+.doran-day--selected .doran-day__content,
+.doran-day--range-start .doran-day__content,
+.doran-day--range-end .doran-day__content {
+  color: inherit;
+  opacity: 0.85;
 }
 
 .doran-day--outside {
@@ -383,9 +497,9 @@
   box-shadow: none;
 }
 
-.doran-day--selected:not(:disabled):hover,
-.doran-day--range-start:not(:disabled):hover,
-.doran-day--range-end:not(:disabled):hover {
+.doran-day--selected:not([aria-disabled='true']):hover,
+.doran-day--range-start:not([aria-disabled='true']):hover,
+.doran-day--range-end:not([aria-disabled='true']):hover {
   background: var(--doran-day-selected-hover-bg, var(--doran-primary-hover));
   color: var(--doran-day-selected-color, var(--doran-primary-contrast));
 }
@@ -467,7 +581,8 @@
   border: 1px solid var(--doran-input-border-color, var(--doran-border));
   border-radius: var(--doran-input-radius, var(--doran-radius-md));
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: var(--doran-input-font-size, 0.9rem);
+  box-shadow: var(--doran-input-shadow, none);
   cursor: pointer;
   box-sizing: border-box;
   transition:
@@ -499,8 +614,8 @@
 .doran-datepicker__input:focus-visible,
 .doran-datepicker__input[aria-expanded='true'] {
   outline: none;
-  border-color: var(--doran-primary);
-  box-shadow: 0 0 0 3px var(--doran-focus-ring);
+  border-color: var(--doran-input-focus-border-color, var(--doran-primary));
+  box-shadow: var(--doran-input-focus-shadow, 0 0 0 3px var(--doran-focus-ring));
 }
 
 .doran-datepicker__value {
@@ -520,18 +635,18 @@
 }
 
 .doran-datepicker__placeholder {
-  color: var(--doran-text-muted);
+  color: var(--doran-placeholder-color, var(--doran-text-muted));
 }
 
 .doran-datepicker__icon {
   display: inline-flex;
   flex-shrink: 0;
-  color: var(--doran-text-muted);
+  color: var(--doran-icon-color, var(--doran-text-muted));
 }
 
 .doran-datepicker__icon svg {
-  width: 1.05rem;
-  height: 1.05rem;
+  width: var(--doran-icon-size, 1.05rem);
+  height: var(--doran-icon-size, 1.05rem);
 }
 
 /*
@@ -596,6 +711,14 @@
   gap: 0.35rem;
   padding-inline-end: 0.75rem;
   border-inline-end: 1px solid var(--doran-calendar-border-color, var(--doran-border));
+}
+
+/* The preset buttons keep their own group so `slots.aside` can share the sidebar
+   above them without joining the group's accessible name. */
+.doran-rangepicker__preset-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .doran-rangepicker__preset {
