@@ -4,8 +4,16 @@
   "type": "registry:ui",
   "title": "Persian Date Picker",
   "description": "A Jalali date picker built from your own shadcn/ui Button, Input, and Popover. Type a date or pick one; Doran supplies the calendar engine, your theme supplies every visual.",
-  "dependencies": ["@doranjs/core", "@doranjs/react", "lucide-react"],
-  "registryDependencies": ["button", "input", "popover"],
+  "dependencies": [
+    "@doranjs/core",
+    "@doranjs/react",
+    "lucide-react"
+  ],
+  "registryDependencies": [
+    "button",
+    "input",
+    "popover"
+  ],
   "files": [
     {
       "path": "components/ui/doran-date-picker.tsx",
