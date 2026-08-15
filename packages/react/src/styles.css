@@ -321,7 +321,9 @@
   width: var(--doran-time-field-width, 2.4ch);
   border: none;
   background: transparent;
-  padding: 0.1rem 0.15rem;
+  /* No horizontal padding: the calendar sets `box-sizing: border-box`, so side
+     padding would come out of the 2.4ch rather than sitting outside it. */
+  padding: 0.1rem 0;
   font-family: inherit;
   font-variant-numeric: tabular-nums;
   font-size: var(--doran-time-font-size, 1.1rem);
