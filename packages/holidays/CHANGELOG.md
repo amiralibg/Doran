@@ -1,5 +1,69 @@
 # @doranjs/holidays
 
+## 0.1.0
+
+### Minor Changes
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Report holiday coverage, and make the components usable without the stylesheet.
+
+  **Holiday coverage.** Iran announces its religious holidays by moon sighting, so no
+  library can compute them exactly in advance — authoritative dates are on file for 1404
+  and 1405, and every other year falls back to a tabular approximation that can land a
+  day either side. Rather than invent the missing years, this exposes which ones are
+  announced:
+
+  ```ts
+  const { official, approximate } = getHolidayCoverage(1410);
+  if (!official) showNotice('Religious holidays for this year are estimates.');
+  ```
+
+  New in `@doranjs/holidays`: `getHolidayCoverage`, `getOfficialLunarYears`, and
+  `hasOfficialLunarDates`. Surfaced in React as `useHolidays().coverage(year)`. Feed your
+  own announced dates with the existing `registerOfficialLunarYear`.
+
+  **Unstyled usage.** Skipping `@doranjs/react/styles.css` already gave you the markup,
+  keyboard model, and ARIA with no visual opinions — except that the day-navigation live
+  region's visually-hidden styling lived only in the stylesheet, so an app that skipped
+  the CSS printed every announcement on screen. That is behaviour rather than
+  decoration, so it is now inlined.
+
+  `classNames` also reaches further: `DoranCalendar` takes `{ root, footer, footerAction,
+month }`, and `DoranMonthView` takes `{ grid, weekdays, weekday, week, cell, day }`.
+  Your classes merge with Doran's rather than replacing them.
+
+  **Not shipped: a `@doranjs/react/nlp` subpath.** Measured rather than assumed —
+  esbuild produces 15.96 kB gzipped without `DoranNlpInput` and 22.24 kB with it, and
+  Rollup agrees. `@doranjs/nlp` already tree-shakes, costing 6.3 kB gzipped only when
+  imported, so a subpath would add an entry point and a migration for no gain. CJS
+  consumers do not tree-shake and will still pull it in.
+
+### Patch Changes
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Survive two installed copies of `@doranjs/core`.
+
+  Published packages pinned `@doranjs/core` to an exact version, because pnpm rewrites
+  `workspace:*` that way. When a consumer upgraded one Doran package without the others,
+  their pins diverged and npm installed two copies — at which point
+  `value instanceof DoranDate` returned `false` for a date built by the other copy, and
+  `@doranjs/zod` silently rejected perfectly valid dates as unparseable.
+
+  `DoranDate` now carries a `Symbol.for('doran.date')` brand. Registered symbols live in
+  a global registry shared by every copy of a module, so the new `isDoranDate()` guard
+  recognizes instances across copies where `instanceof` cannot. It replaces the
+  cross-boundary `instanceof` checks in `@doranjs/zod` and in core's own `toDoranDate`.
+
+  Internal `@doranjs/*` ranges also move from `workspace:*` to `workspace:^`, so they
+  publish as caret ranges rather than exact pins. This is strictly a widening — existing
+  lockfiles are untouched and new installs can only dedupe better.
+
+  One limit worth knowing: below 1.0, `^0.2.0` does not admit `0.3.0`, so carets prevent
+  duplicates only within a minor line. Fully solving cross-minor divergence needs a 1.0,
+  where a caret spans every minor. The brand makes the remaining cases degrade gracefully
+  rather than silently.
+
+- Updated dependencies [[`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e)]:
+  - @doranjs/core@0.2.0
+
 ## 0.0.8
 
 ### Patch Changes
