@@ -1,4 +1,5 @@
 import {
+  applyFormatMask,
   parseJalali,
   resolveCalendarLabels,
   resolveDirection,
@@ -22,7 +23,8 @@ type Endpoint = 'start' | 'end';
  * Attributes: `locale`, `min`, `max`, `format`, `start-placeholder`,
  * `end-placeholder`, `disabled`, `readonly`, `mode` (`popover`|`sheet`|`auto`),
  * `presets`, `months`, `show-holidays`, `weekends`, `year-span`, `header-mode`, and
- * `input-width`.
+ * `input-width`. `format` (default `YYYY/MM/DD`) sets the display pattern of both
+ * fields; typed digits are masked into that shape as they are entered.
  *
  * Emits a `change` CustomEvent with `{ start, end }` whenever either end changes.
  * Both ends are kept in order: an end before the start swaps them.
@@ -172,6 +174,18 @@ export class DoranRangeDatePickerElement extends HTMLElement {
     const endpoint = field.dataset.endpoint as Endpoint | undefined;
     if (!endpoint) return;
 
+    const locale = resolveLocaleAttr(this.getAttribute('locale'));
+    // Mask typed digits into the configured format as they go, in place.
+    const masked = applyFormatMask(field.value, this.#format, {
+      locale,
+      caret: field.selectionStart ?? field.value.length,
+      previous: this.#text[endpoint],
+    });
+    if (masked.text !== field.value) {
+      field.value = masked.text;
+      field.setSelectionRange(masked.caret, masked.caret);
+    }
+
     this.#typing = endpoint;
     this.#text[endpoint] = field.value;
 
@@ -183,7 +197,11 @@ export class DoranRangeDatePickerElement extends HTMLElement {
       return;
     }
 
-    const parsed = parseJalali(field.value);
+    // The developer's format wins so the field parses what it displays; the common
+    // defaults stay as a fallback so loose input keeps working.
+    const parsed =
+      parseJalali(field.value, this.#format, { locale }) ??
+      parseJalali(field.value, undefined, { locale });
     if (!parsed || !this.#withinBounds(parsed)) return;
 
     const day = parsed.startOf('day');

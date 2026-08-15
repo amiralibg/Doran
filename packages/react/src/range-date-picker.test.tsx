@@ -50,6 +50,23 @@ describe('DoranRangeDatePicker', () => {
     expect(range.end).toBeNull();
   });
 
+  it('masks typed digits into the format as they go', () => {
+    render(<DoranRangeDatePicker />);
+    type(startField(), '14050310');
+    expect(startField()).toHaveValue('۱۴۰۵/۰۳/۱۰');
+  });
+
+  it('masks and parses a developer-supplied format', () => {
+    const onChange = vi.fn();
+    render(<DoranRangeDatePicker format="MM-DD-YYYY" onChange={onChange} />);
+
+    type(startField(), '03101405');
+
+    expect(startField()).toHaveValue('۰۳-۱۰-۱۴۰۵');
+    const [range] = onChange.mock.calls[0] as [DateRange];
+    expect([range.start?.year, range.start?.month, range.start?.day]).toEqual([1405, 3, 10]);
+  });
+
   // Nothing previously enforced ordering, so a backwards range was simply accepted.
   it('swaps a range typed backwards', () => {
     const onChange = vi.fn();

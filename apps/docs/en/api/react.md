@@ -28,34 +28,34 @@ import { DoranCalendar, DoranDatePicker } from '@doranjs/react';
 
 ## `DoranDatePicker` props
 
-| Prop              | Type                                                         | Default              | Description                                                                      |
-| ----------------- | ------------------------------------------------------------ | -------------------- | -------------------------------------------------------------------------------- |
-| `value`           | `DoranDate \| null`                                          | —                    | Controlled value                                                                 |
-| `defaultValue`    | `DoranDate \| null`                                          | —                    | Uncontrolled initial value                                                       |
-| `onChange`        | `(date: DoranDate \| null, gregorian: Date \| null) => void` | —                    | Called on selection or Clear; second arg is the native `Date` for backend use    |
-| `locale`          | `Locale \| string`                                           | `getDefaultLocale()` | Formatting locale — falls back to the global default set by `setDefaultLocale()` |
-| `format`          | `string`                                                     | `'YYYY/MM/DD'`       | Display pattern (`+ 'HH:mm'` when `withTime`)                                    |
-| `placeholder`     | `string`                                                     | `'انتخاب تاریخ'`     | Input placeholder                                                                |
-| `footerActions`   | `readonly ('today' \| 'clear')[]`                            | `['today']`          | Ordered footer actions; an empty array hides the footer                          |
-| `hideFooter`      | `boolean`                                                    | `false`              | Deprecated; use `footerActions={[]}`                                             |
-| `iconPosition`    | `'left' \| 'right'`                                          | `'left'`             | Trigger icon position                                                            |
-| `textAlign`       | `'left' \| 'right'`                                          | `'right'`            | Trigger text alignment                                                           |
-| `inputWidth`      | `CSSProperties['width']`                                     | —                    | Trigger width; numbers are interpreted as pixels                                 |
-| `dropdownWidth`   | `'auto' \| 'trigger' \| CSSProperties['width']`              | `'auto'`             | Intrinsic, trigger-matched, or custom CSS popover width                          |
-| `min`             | `DoranDate`                                                  | —                    | Earliest selectable date                                                         |
-| `max`             | `DoranDate`                                                  | —                    | Latest selectable date                                                           |
-| `disabled`        | `boolean`                                                    | `false`              | Disables the input                                                               |
-| `className`       | `string`                                                     | —                    | Added to the root element                                                        |
-| `style`           | `CSSProperties`                                              | —                    | Inline style forwarded to the root element                                       |
-| `id`              | `string`                                                     | —                    | `id` forwarded to the root element                                               |
-| `size`            | `'sm' \| 'md' \| 'lg'`                                       | —                    | Preset heights: 32 / 40 / 48 px                                                  |
-| `withTime`        | `boolean`                                                    | `false`              | Show a time picker and carry the time on the value                               |
-| `headerMode`      | `'dropdown' \| 'separate'`                                   | `'dropdown'`         | In-place month/year panels, or native `<select>`s                                |
-| `minuteStep`      | `number`                                                     | `1`                  | Minute increment for the time stepper                                            |
-| `isHoliday`       | `(day: DoranDate) => boolean`                                | —                    | Mark holiday days (dot + holiday color)                                          |
-| `weekends`        | `number[]`                                                   | `[6]`                | Weekday indices treated as weekend (0 = Saturday)                                |
-| `arrows`          | `{ prev, next }`                                             | chevrons             | Custom navigation arrow nodes                                                    |
-| `showOutsideDays` | `boolean`                                                    | —                    | Show days from adjacent months in the grid                                       |
+| Prop              | Type                                                         | Default              | Description                                                                                                                                   |
+| ----------------- | ------------------------------------------------------------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `value`           | `DoranDate \| null`                                          | —                    | Controlled value                                                                                                                              |
+| `defaultValue`    | `DoranDate \| null`                                          | —                    | Uncontrolled initial value                                                                                                                    |
+| `onChange`        | `(date: DoranDate \| null, gregorian: Date \| null) => void` | —                    | Called on selection or Clear; second arg is the native `Date` for backend use                                                                 |
+| `locale`          | `Locale \| string`                                           | `getDefaultLocale()` | Formatting locale — falls back to the global default set by `setDefaultLocale()`                                                              |
+| `format`          | `string`                                                     | `'YYYY/MM/DD'`       | Display pattern (`+ 'HH:mm'` when `withTime`); typed digits are masked into this shape as they are entered, and the text is parsed against it |
+| `placeholder`     | `string`                                                     | `'انتخاب تاریخ'`     | Input placeholder                                                                                                                             |
+| `footerActions`   | `readonly ('today' \| 'clear')[]`                            | `['today']`          | Ordered footer actions; an empty array hides the footer                                                                                       |
+| `hideFooter`      | `boolean`                                                    | `false`              | Deprecated; use `footerActions={[]}`                                                                                                          |
+| `iconPosition`    | `'left' \| 'right'`                                          | `'left'`             | Trigger icon position                                                                                                                         |
+| `textAlign`       | `'left' \| 'right'`                                          | `'right'`            | Trigger text alignment                                                                                                                        |
+| `inputWidth`      | `CSSProperties['width']`                                     | —                    | Trigger width; numbers are interpreted as pixels                                                                                              |
+| `dropdownWidth`   | `'auto' \| 'trigger' \| CSSProperties['width']`              | `'auto'`             | Intrinsic, trigger-matched, or custom CSS popover width                                                                                       |
+| `min`             | `DoranDate`                                                  | —                    | Earliest selectable date                                                                                                                      |
+| `max`             | `DoranDate`                                                  | —                    | Latest selectable date                                                                                                                        |
+| `disabled`        | `boolean`                                                    | `false`              | Disables the input                                                                                                                            |
+| `className`       | `string`                                                     | —                    | Added to the root element                                                                                                                     |
+| `style`           | `CSSProperties`                                              | —                    | Inline style forwarded to the root element                                                                                                    |
+| `id`              | `string`                                                     | —                    | `id` forwarded to the root element                                                                                                            |
+| `size`            | `'sm' \| 'md' \| 'lg'`                                       | —                    | Preset heights: 32 / 40 / 48 px                                                                                                               |
+| `withTime`        | `boolean`                                                    | `false`              | Show a time picker and carry the time on the value                                                                                            |
+| `headerMode`      | `'dropdown' \| 'separate'`                                   | `'dropdown'`         | In-place month/year panels, or native `<select>`s                                                                                             |
+| `minuteStep`      | `number`                                                     | `1`                  | Minute increment for the time stepper                                                                                                         |
+| `isHoliday`       | `(day: DoranDate) => boolean`                                | —                    | Mark holiday days (dot + holiday color)                                                                                                       |
+| `weekends`        | `number[]`                                                   | `[6]`                | Weekday indices treated as weekend (0 = Saturday)                                                                                             |
+| `arrows`          | `{ prev, next }`                                             | chevrons             | Custom navigation arrow nodes                                                                                                                 |
+| `showOutsideDays` | `boolean`                                                    | —                    | Show days from adjacent months in the grid                                                                                                    |
 
 ```tsx
 // Minimal usage
@@ -153,8 +153,20 @@ Shows a live autocomplete dropdown and a resolved-date hint pinned to the opposi
 
 ## Typing a date
 
-The trigger is a real text field, so a date can be typed as well as picked —
-`1402/5/12`, `1402-5-12`, and `۱۴۰۲/۰۵/۱۲` all parse.
+The trigger is a real text field, so a date can be typed as well as picked.
+Typed digits are masked into the `format` pattern as they go: typing `14020512`
+shows `۱۴۰۲/۰۵/۱۲` without typing separators, and backspace deletes through
+separators. `1402/5/12`, `1402-5-12`, and `۱۴۰۲/۰۵/۱۲` all parse too.
+
+Fields advance the way a native date input does. A digit that cannot fit the field
+being typed moves on: `95` is no month, so the `9` becomes month `09` and the `5`
+starts the day. Typing a separator yourself closes the field early, which is what
+keeps `1402-1-2` as month 1 / day 2 instead of month 12.
+
+With a custom `format`, display and typing follow the same pattern —
+`format="MM-DD-YYYY"` accepts `05-12-1402`-style input. A `format` built from text
+tokens (`MMMM`, `dddd`) cannot be masked, so those fields stay free-typing and
+settle on blur.
 
 Errors surface on blur rather than per keystroke: en route to `1402/05/12` the value
 passes through `1`, `14`, `140`, and flagging each would leave the field red the whole

@@ -85,7 +85,8 @@ describe('typing into <doran-datepicker>', () => {
 
     control(el).dispatchEvent(new Event('blur', { bubbles: true }));
     expect(control(el).getAttribute('aria-invalid')).toBe('true');
-    expect(control(el).value).toBe('140');
+    // Partial input is kept — rendered in the locale's numerals by the live mask.
+    expect(control(el).value).toBe('۱۴۰');
   });
 
   it('normalizes parseable text back to the display format on blur', () => {
@@ -132,6 +133,95 @@ describe('typing into <doran-datepicker>', () => {
     expect(el.querySelector('.doran-datepicker__icon')!.getAttribute('aria-label')).toBe(
       'باز کردن تقویم',
     );
+  });
+});
+
+describe('live format masking', () => {
+  /** Types one character at a time from the caret, the way a keyboard does. */
+  function typeKeys(el: HTMLElement, keys: string) {
+    const field = control(el);
+    for (const key of keys) {
+      const caret = field.selectionStart ?? field.value.length;
+      field.value = field.value.slice(0, caret) + key + field.value.slice(caret);
+      field.setSelectionRange(caret + 1, caret + 1);
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  it('keeps the caret at the end while a date is typed key by key', () => {
+    const el = mount();
+
+    typeKeys(el, '14020512');
+
+    expect(control(el).value).toBe('۱۴۰۲/۰۵/۱۲');
+    expect(control(el).selectionStart).toBe(10);
+  });
+
+  it('backspaces through an auto-inserted separator', () => {
+    const el = mount();
+    typeKeys(el, '14020512');
+
+    const field = control(el);
+    for (const expected of ['۱۴۰۲/۰۵/۱', '۱۴۰۲/۰۵/', '۱۴۰۲/۰۵', '۱۴۰۲/۰']) {
+      field.value = field.value.slice(0, -1);
+      field.setSelectionRange(field.value.length, field.value.length);
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      expect(field.value).toBe(expected);
+    }
+  });
+
+  it('flows typed digits into the display format as they go', () => {
+    const el = mount();
+    const onChange = vi.fn();
+    el.addEventListener('change', onChange);
+
+    type(el, '14020512');
+
+    expect(control(el).value).toBe('۱۴۰۲/۰۵/۱۲');
+    const detail = onChange.mock.calls[0]![0].detail as { date: DoranDate };
+    expect([detail.date.year, detail.date.month, detail.date.day]).toEqual([1402, 5, 12]);
+  });
+
+  it('normalizes typed separators to the format’s own', () => {
+    const el = mount();
+    type(el, '1402-5-12');
+    expect(control(el).value).toBe('۱۴۰۲/۰۵/۱۲');
+  });
+
+  it('treats a typed separator as the end of its field', () => {
+    // `1-2` is month 1 and day 2, not the month 12 the bare digits would read as.
+    const el = mount();
+    type(el, '1402-1-2');
+    expect(control(el).value).toBe('۱۴۰۲/۰۱/۲');
+  });
+
+  it('masks into a developer-supplied format', () => {
+    const el = mount({ format: 'MM-DD-YYYY' });
+    const onChange = vi.fn();
+    el.addEventListener('change', onChange);
+
+    type(el, '05121402');
+
+    expect(control(el).value).toBe('۰۵-۱۲-۱۴۰۲');
+    const detail = onChange.mock.calls[0]![0].detail as { date: DoranDate };
+    expect([detail.date.year, detail.date.month, detail.date.day]).toEqual([1402, 5, 12]);
+  });
+
+  it('parses typed text against the developer-supplied format', () => {
+    const el = mount({ format: 'MM-DD-YYYY' });
+    const onChange = vi.fn();
+    el.addEventListener('change', onChange);
+
+    type(el, '05-12-1402');
+
+    const detail = onChange.mock.calls[0]![0].detail as { date: DoranDate };
+    expect([detail.date.year, detail.date.month, detail.date.day]).toEqual([1402, 5, 12]);
+  });
+
+  it('leaves free text alone for formats that are not maskable', () => {
+    const el = mount({ format: 'D MMMM YYYY' });
+    type(el, '12 خرداد');
+    expect(control(el).value).toBe('12 خرداد');
   });
 });
 

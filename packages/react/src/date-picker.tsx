@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  applyFormatMask,
   formatValue,
   parseJalali,
   resolveCalendarLabels,
@@ -17,6 +18,7 @@ import {
   forwardRef,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ChangeEvent,
@@ -81,7 +83,12 @@ export interface DoranDatePickerProps<F extends ValueFormat = 'doran'> extends P
   onChange?: (value: FormattedValue<F> | null, gregorian: Date | null) => void;
   /** Formatting locale. Falls back to the global default set by `setDefaultLocale()`. */
   locale?: Locale;
-  /** Format pattern for the input display. Defaults to `YYYY/MM/DD` (`+ HH:mm` with time). */
+  /**
+   * Format pattern for the input display. Defaults to `YYYY/MM/DD` (`+ HH:mm` with
+   * time). Typed digits are masked into this shape as they are entered — typing
+   * `14020512` shows `1402/05/12` — and the text is parsed back against it, so a
+   * custom pattern like `MM-DD-YYYY` accepts `05-12-1402`-style input.
+   */
   format?: string;
   placeholder?: string;
   /** Earliest selectable date. Accepts the same loose forms as `value`. */
@@ -316,6 +323,17 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
       if (!typing) setText(valueText);
     }, [valueText, typing]);
 
+    // Where the caret belongs after the mask rewrites the text; applied once React
+    // commits the new value, since a controlled input drops the caret on re-render.
+    const pendingCaret = useRef<number | null>(null);
+    useLayoutEffect(() => {
+      const node = inputRef.current;
+      if (pendingCaret.current !== null && node && document.activeElement === node) {
+        node.setSelectionRange(pendingCaret.current, pendingCaret.current);
+      }
+      pendingCaret.current = null;
+    }, [text]);
+
     /** Keeps the internal ref working while still honouring a forwarded one. */
     function setInputRef(node: HTMLInputElement | null) {
       inputRef.current = node;
@@ -350,7 +368,10 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
 
     /** Parses `raw`, returning the date only if it is complete and in range. */
     function readDate(raw: string): DoranDate | null {
-      const parsed = parseJalali(raw, undefined, { locale });
+      // The developer's format wins so `format="MM-DD-YYYY"` parses what it displays;
+      // the common defaults stay as a fallback so loose input keeps working.
+      const parsed =
+        parseJalali(raw, resolvedFormat, { locale }) ?? parseJalali(raw, undefined, { locale });
       if (!parsed || !withinBounds(parsed)) return null;
       return withTime ? parsed : parsed.startOf('day');
     }
@@ -365,18 +386,33 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
      */
     function handleInput(event: ChangeEvent<HTMLInputElement>) {
       const raw = event.target.value;
+      // Flow typed digits into the developer's format as they go — `14020512` becomes
+      // `1402/05/12` without the user typing separators.
+      const masked = applyFormatMask(raw, resolvedFormat, {
+        locale,
+        caret: event.target.selectionStart ?? raw.length,
+        previous: text,
+      });
       setTyping(true);
-      setText(raw);
+      if (masked.text !== raw) {
+        // Write through to the DOM as well as to state: when the mask swallows a
+        // keystroke the new state equals the old one, React skips the re-render, and
+        // the field would otherwise be left showing the unmasked text.
+        event.target.value = masked.text;
+        event.target.setSelectionRange(masked.caret, masked.caret);
+        pendingCaret.current = masked.caret;
+      }
+      setText(masked.text);
 
-      if (raw.trim() === '') {
-        markUnparseable(false, raw);
+      if (masked.text.trim() === '') {
+        markUnparseable(false, masked.text);
         commit(null);
         return;
       }
 
-      const parsed = readDate(raw);
+      const parsed = readDate(masked.text);
       if (parsed) {
-        markUnparseable(false, raw);
+        markUnparseable(false, masked.text);
         commit(parsed);
       }
     }
