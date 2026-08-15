@@ -133,3 +133,19 @@ Svelte و Angular بدون هیچ پشتیبانیِ اضافه‌ای پرشا�
 <doran-calendar style="--doran-day-selected-bg: #e11d48; --doran-calendar-radius: 22px">
 </doran-calendar>
 ```
+
+## انتخاب بازه با ورودی
+
+```html
+<doran-rangedatepicker presets months="2"></doran-rangedatepicker>
+```
+
+یک تریگر با دو فیلد که هم تایپ می‌شوند و هم از جدول پر، با حفظ ترتیب دو سر. `dayData`
+و `disabledDates` را به‌صورت پراپرتی می‌گیرد و همان اسلات‌های `legend`/`aside`/`footer`
+را دارد. `<doran-rangepicker>` همان نسخهٔ inline است.
+
+## انتخاب زمان
+
+`hour-step` و `minute-step` تعیین می‌کنند یک فشار فلش هر واحد را چقدر جابه‌جا کند و
+پیش‌فرضِ هر دو `1` است. هر فیلد را می‌شود تایپ هم کرد، و `readonly` تایپ را می‌بندد
+بدون اینکه فلش‌ها را از کار بیندازد.

@@ -133,3 +133,19 @@ The elements reuse the same class names and CSS variables as the React component
 <doran-calendar style="--doran-day-selected-bg: #e11d48; --doran-calendar-radius: 22px">
 </doran-calendar>
 ```
+
+## Range picker with a trigger
+
+```html
+<doran-rangedatepicker presets months="2"></doran-rangedatepicker>
+```
+
+One trigger holding two fields, either typable or fillable from the grid, with the
+ends kept in order. Accepts `dayData` and `disabledDates` as properties and the same
+`legend`/`aside`/`footer` slots. `<doran-rangepicker>` remains the inline version.
+
+## Time picker
+
+`hour-step` and `minute-step` control how far one arrow press moves each unit, both
+defaulting to `1`. Every field can be typed into as well as stepped, and `readonly`
+stops typing while leaving the steppers usable.

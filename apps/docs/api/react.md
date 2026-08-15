@@ -337,3 +337,41 @@ const grid = buildMonthGrid(1405, 3); // خالص، بدون React
 
 همهٔ کامپوننت‌ها از ناوبریِ کیبورد (فلش‌ها، Home/End، Enter/Space)، semanticهای گریدِ ARIA،
 dark mode و چیدمان‌های موبایل پشتیبانی می‌کنند.
+
+## انتخاب بازه با ورودی
+
+`DoranRangeDatePicker` یک تریگر با دو فیلد است که هم تایپ می‌شوند و هم از جدول پر:
+
+```tsx
+<DoranRangeDatePicker value={range} onChange={setRange} numberOfMonths={2} presets />
+```
+
+ترتیب دو سر حفظ می‌شود — پایانِ قبل از شروع جابه‌جا می‌شود. `startName` و `endName`
+فیلدهای مخفی با تاریخ لاتین برای ارسال فرم نیتیو می‌سازند. `DoranRangePicker` همان
+نسخهٔ inline بدون تریگر است.
+
+## انتخاب زمان
+
+هر فیلد هم تایپ می‌شود و هم با فلش جابه‌جا، و هر واحد گام خودش را دارد که پیش‌فرض
+همه `1` است:
+
+```tsx
+<DoranDatePicker withTime withSeconds hourCycle={12} minuteStep={15} />
+```
+
+| Prop          | پیش‌فرض | توضیح                                   |
+| ------------- | ------- | --------------------------------------- |
+| `hourStep`    | `1`     | یک فشار فلش چقدر ساعت را جابه‌جا می‌کند |
+| `minuteStep`  | `1`     | …دقیقه                                  |
+| `secondStep`  | `1`     | …ثانیه                                  |
+| `withSeconds` | `false` | فیلد ثانیه اضافه می‌کند                 |
+| `hourCycle`   | `24`    | با `12` کلید صبح/عصر از locale می‌آید   |
+| `readOnly`    | —       | تایپ را می‌بندد، فلش‌ها کار می‌کنند     |
+
+## نحوهٔ نمایش
+
+```tsx
+<DoranDatePicker mode="auto" />
+```
+
+`auto` زیر ۶۴۰ پیکسل به شیت پایینی می‌رود، `sheet` همیشه، و `popover` (پیش‌فرض) هرگز.

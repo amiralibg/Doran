@@ -346,3 +346,43 @@ const grid = buildMonthGrid(1405, 3); // pure, no React
 
 All components support keyboard navigation (arrows, Home/End, Enter/Space), ARIA grid
 semantics, dark mode, and mobile layouts.
+
+## Range picker with a trigger
+
+`DoranRangeDatePicker` is one trigger holding two fields, either typable or fillable
+from the grid:
+
+```tsx
+<DoranRangeDatePicker value={range} onChange={setRange} numberOfMonths={2} presets />
+```
+
+The ends are kept in order — an end before the start swaps them. `startName` and
+`endName` emit hidden fields carrying Latin-digit dates for native form submission.
+`DoranRangePicker` remains the inline version with no trigger.
+
+## Time picker
+
+Every field is typable as well as steppable, and each unit has its own step, all
+defaulting to `1`:
+
+```tsx
+<DoranDatePicker withTime withSeconds hourCycle={12} minuteStep={15} />
+```
+
+| Prop          | Default | Description                                 |
+| ------------- | ------- | ------------------------------------------- |
+| `hourStep`    | `1`     | How far one arrow press moves the hour      |
+| `minuteStep`  | `1`     | …the minute                                 |
+| `secondStep`  | `1`     | …the second                                 |
+| `withSeconds` | `false` | Adds a seconds field                        |
+| `hourCycle`   | `24`    | `12` adds a meridiem toggle from the locale |
+| `readOnly`    | —       | Stops typing, keeps the steppers            |
+
+## Presentation
+
+```tsx
+<DoranDatePicker mode="auto" />
+```
+
+`auto` switches to a bottom sheet under 640px, `sheet` forces it, `popover` (the
+default) never uses it.

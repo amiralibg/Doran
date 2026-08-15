@@ -132,3 +132,29 @@ import { DoranProvider, DoranDatePicker } from '@doranjs/angular';
 
 کامپوننت‌ها locale را به‌ترتیبِ **inputِ صریح → provider** resolve می‌کنند. راهنمای
 [SSR](/guide/ssr) را ببینید.
+
+## ویجت روزها و اسلات‌ها
+
+`dayData` و `disabledDates` از نوع `@Input()` هستند و به‌صورت پراپرتیِ المنت ست
+می‌شوند، چون نگاشت و تابع از مرز attribute رد نمی‌شوند.
+
+```html
+<dr-calendar [(ngModel)]="value" [dayData]="dayData" [disabledDates]="isBooked">
+  <span slot="legend">ظرفیت باقی‌مانده</span>
+</dr-calendar>
+```
+
+`legend`، `aside` و `footer` به المنت projection می‌شوند.
+
+## انتخاب بازه با ورودی
+
+```html
+<dr-range-date-picker [(ngModel)]="range" [presets]="true" [months]="2" />
+```
+
+`dr-range-picker` همان نسخهٔ inline است.
+
+## انتخاب زمان و نحوهٔ نمایش
+
+`[hourStep]`، `[minuteStep]`، `[withTime]`، `[readOnly]` و `[mode]` همگی input هستند.
+گامِ همهٔ واحدها پیش‌فرض `1` است؛ `mode="auto"` زیر ۶۴۰ پیکسل به شیت (sheet) پایینی می‌رود.

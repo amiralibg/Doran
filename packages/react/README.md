@@ -158,7 +158,9 @@ the tab order.
 ```
 
 `hourCycle={12}` adds a meridiem toggle labelled from the locale's `meridiem` pair;
-the value stays 24-hour either way.
+the value stays 24-hour either way. Every field can be typed into as well as stepped,
+and each unit has its own step — `hourStep`, `minuteStep`, and `secondStep` — all
+defaulting to `1`, so `minuteStep={15}` leaves the hour moving one at a time.
 
 ## Mobile
 

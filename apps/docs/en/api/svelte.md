@@ -108,3 +108,34 @@ Svelte context, request-scoped (no mutable global):
 ```
 
 Components resolve locale as **explicit attr → provider**. See the [SSR guide](/en/guide/ssr).
+
+## Day widgets and slots
+
+`dayData` and `disabledDates` are declared props, because a map and a predicate cannot
+travel as HTML attributes. Everything else passes through as an attribute.
+
+```svelte
+<DoranCalendar bind:value {dayData} disabledDates={isBooked}>
+  <span slot="legend">Remaining capacity</span>
+</DoranCalendar>
+```
+
+`legend`, `aside`, and `footer` are light-DOM slots forwarded straight to the element.
+
+## Range picker with a trigger
+
+```svelte
+<DoranRangeDatePicker bind:value={range} presets months="2" />
+```
+
+One trigger holding two fields, either typable or fillable from the grid; the ends are
+kept in order. `DoranRangePicker` remains the inline version.
+
+## Time picker
+
+`hour-step`, `minute-step`, `with-time`, and `readonly` are attributes. Every step
+defaults to `1`, and each field can be typed into as well as stepped.
+
+## Presentation
+
+`mode="sheet"` — or `"auto"` under 640px — switches the pop-over to a bottom sheet.

@@ -103,3 +103,34 @@ import { DoranProvider, DoranDatePicker } from '@doranjs/vue';
 
 کامپوننت‌ها locale را به‌ترتیبِ **attrِ صریح → provider** resolve می‌کنند. برای قطعیتِ
 locale/timezone [راهنمای SSR](/guide/ssr) را ببینید.
+
+## ویجت روزها و اسلات‌ها
+
+`dayData` و `disabledDates` propهای صریح‌اند، چون نگاشت و تابع از مرز attribute رد
+نمی‌شوند. بقیه به‌صورت attribute عبور می‌کنند.
+
+```vue
+<DoranCalendar v-model="value" :day-data="dayData" :disabled-dates="isBooked">
+  <span slot="legend">ظرفیت باقی‌مانده</span>
+</DoranCalendar>
+```
+
+`legend`، `aside` و `footer` اسلات‌های light-DOM هستند که مستقیم به المنت می‌روند.
+
+## انتخاب بازه با ورودی
+
+```vue
+<DoranRangeDatePicker v-model="range" presets months="2" />
+```
+
+یک تریگر با دو فیلد که هم تایپ می‌شوند و هم از جدول پر؛ ترتیب دو سر حفظ می‌شود.
+`DoranRangePicker` همان نسخهٔ inline است.
+
+## انتخاب زمان
+
+`hour-step`، `minute-step`، `with-time` و `readonly` attribute هستند. گامِ همهٔ واحدها
+پیش‌فرض `1` است و هر فیلد را می‌شود تایپ هم کرد.
+
+## نحوهٔ نمایش
+
+`mode="sheet"` — یا `"auto"` زیر ۶۴۰ پیکسل — پاپ‌اور را به شیت پایینی تبدیل می‌کند.

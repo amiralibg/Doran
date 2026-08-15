@@ -29,12 +29,13 @@ import '@doranjs/wc/styles.css'; // design tokens + component styles
 
 ## Elements
 
-| Tag                   | Description                                     |
-| --------------------- | ----------------------------------------------- |
-| `<doran-calendar>`    | Month calendar with month/year/time pickers     |
-| `<doran-datepicker>`  | Input with a pop-over calendar                  |
-| `<doran-rangepicker>` | Two-click date-range selection                  |
-| `<doran-nlp-input>`   | Natural-language input with autocomplete + hint |
+| Tag                       | Description                                     |
+| ------------------------- | ----------------------------------------------- |
+| `<doran-calendar>`        | Month calendar with month/year/time pickers     |
+| `<doran-datepicker>`      | Input with a pop-over calendar                  |
+| `<doran-rangepicker>`     | Two-click date-range selection                  |
+| `<doran-rangedatepicker>` | Range input with a pop-over grid                |
+| `<doran-nlp-input>`       | Natural-language input with autocomplete + hint |
 
 Listen for `change` (and `resolve` on the NLP input) `CustomEvent`s:
 
@@ -87,3 +88,9 @@ calendar.
 
 See the [documentation](https://amiralibg.github.io/Doran/api/wc) for all attributes,
 events, and theming options.
+
+## Time picker
+
+`hour-step` and `minute-step` set how far one arrow press moves each unit; both default
+to `1`. Every field can be typed into as well as stepped, and `readonly` stops typing
+while leaving the steppers usable.

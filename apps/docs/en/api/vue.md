@@ -104,3 +104,34 @@ import { DoranProvider, DoranDatePicker } from '@doranjs/vue';
 
 Components resolve locale as **explicit attr → provider**. See the [SSR guide](/en/guide/ssr) for
 locale/timezone determinism.
+
+## Day widgets and slots
+
+`dayData` and `disabledDates` are declared props, because a map and a predicate cannot
+travel as HTML attributes. Everything else passes through as an attribute.
+
+```vue
+<DoranCalendar v-model="value" :day-data="dayData" :disabled-dates="isBooked">
+  <span slot="legend">Remaining capacity</span>
+</DoranCalendar>
+```
+
+`legend`, `aside`, and `footer` are light-DOM slots forwarded straight to the element.
+
+## Range picker with a trigger
+
+```vue
+<DoranRangeDatePicker v-model="range" presets months="2" />
+```
+
+One trigger holding two fields, either typable or fillable from the grid; the ends are
+kept in order. `DoranRangePicker` remains the inline version.
+
+## Time picker
+
+`hour-step`, `minute-step`, `with-time`, and `readonly` are attributes. Every step
+defaults to `1`, and each field can be typed into as well as stepped.
+
+## Presentation
+
+`mode="sheet"` — or `"auto"` under 640px — switches the pop-over to a bottom sheet.
