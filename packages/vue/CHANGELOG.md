@@ -1,5 +1,97 @@
 # @doranjs/vue
 
+## 0.3.0
+
+### Minor Changes
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Add day widgets and calendar slots.
+
+  Days can now carry your own content — a fare, a seat count, an availability badge —
+  and the regions around the grid can be filled with your own components. Closes #52.
+
+  **Per-day content.** React gets two render functions; every framework gets a
+  serializable map that also works from plain HTML.
+
+  ```tsx
+  <DoranDatePicker
+    dayContent={(day) => <Fare value={fares[dayKey(day)]} />}
+    dayProps={(day, meta) => ({ 'data-cheapest': isCheapest(day) || undefined })}
+  />
+  ```
+
+  ```js
+  picker.dayData = { '1404-5-12': { text: '۱٬۲۰۰٬۰۰۰', tone: 'low' } };
+  ```
+
+  `dayData` keys are Jalali `YYYY-M-D`, and zero-padded or Persian-digit forms resolve
+  to the same day.
+
+  **`disabledDates`.** Days could previously only be blocked by `min`/`max`. Blackout
+  dates, booked nights, and sold-out departures are now expressible, with a
+  `disabledReason` that becomes both a tooltip and part of the day's accessible name.
+
+  **Slots.** `legend`, `aside`, and `footer` accept your own content — via a `slots`
+  prop in React, and light-DOM `<div slot="…">` children everywhere else, which Vue,
+  Svelte, and Angular templates fill natively. `useDoranCalendar()` gives that content
+  the calendar's state and navigation, so a slot widget can drive the calendar rather
+  than just decorate it.
+
+  **Holidays in React.** `@doranjs/react/holidays` exports `useHolidays()` and
+  `createHolidayHelpers()`, closing the gap where `@doranjs/wc` had Iranian holidays
+  built in and React did not. It ships as a subpath, so the dataset only enters bundles
+  that import it, and it indexes each year once instead of re-resolving per day.
+
+  **Accessibility.** Unavailable days now use `aria-disabled` rather than the `disabled`
+  attribute, so they stay focusable and can announce why they cannot be picked; arrow
+  navigation skips `min`/`max` gaps but lands on individually blocked days. A polite
+  live region announces the focused day, including when navigation crosses a month
+  boundary and the grid re-renders.
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Bring the range trigger to every framework.
+
+  React gained `DoranRangeDatePicker` — a range picker with an input trigger — but web
+  components only had the inline `<doran-rangepicker>`, so Vue, Svelte, Angular, and
+  plain-HTML users had no way to get one.
+
+  `<doran-rangedatepicker>` closes that: one trigger holding two fields, either typable
+  or fillable from the grid, with the same ordering guarantee (an end before the start
+  swaps them), the same `mode="sheet"` presentation, and the same `dayData`,
+  `disabledDates`, and slot support. It is exposed as `DoranRangeDatePicker` from
+  `@doranjs/vue` and `@doranjs/svelte`, and as `<dr-range-date-picker>` from
+  `@doranjs/angular`.
+
+  Also fixed: `DoranDatePicker` in `@doranjs/svelte` forwarded only its default slot, so
+  `legend`, `aside`, and `footer` never reached the element the way they did on the
+  calendar and range picker.
+
+### Patch Changes
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Survive two installed copies of `@doranjs/core`.
+
+  Published packages pinned `@doranjs/core` to an exact version, because pnpm rewrites
+  `workspace:*` that way. When a consumer upgraded one Doran package without the others,
+  their pins diverged and npm installed two copies — at which point
+  `value instanceof DoranDate` returned `false` for a date built by the other copy, and
+  `@doranjs/zod` silently rejected perfectly valid dates as unparseable.
+
+  `DoranDate` now carries a `Symbol.for('doran.date')` brand. Registered symbols live in
+  a global registry shared by every copy of a module, so the new `isDoranDate()` guard
+  recognizes instances across copies where `instanceof` cannot. It replaces the
+  cross-boundary `instanceof` checks in `@doranjs/zod` and in core's own `toDoranDate`.
+
+  Internal `@doranjs/*` ranges also move from `workspace:*` to `workspace:^`, so they
+  publish as caret ranges rather than exact pins. This is strictly a widening — existing
+  lockfiles are untouched and new installs can only dedupe better.
+
+  One limit worth knowing: below 1.0, `^0.2.0` does not admit `0.3.0`, so carets prevent
+  duplicates only within a minor line. Fully solving cross-minor divergence needs a 1.0,
+  where a caret spans every minor. The brand makes the remaining cases degrade gracefully
+  rather than silently.
+
+- Updated dependencies [[`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e)]:
+  - @doranjs/core@0.2.0
+  - @doranjs/wc@0.3.0
+
 ## 0.2.5
 
 ### Patch Changes

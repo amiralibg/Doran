@@ -1,5 +1,317 @@
 # @doranjs/react
 
+## 0.5.0
+
+### Minor Changes
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Report holiday coverage, and make the components usable without the stylesheet.
+
+  **Holiday coverage.** Iran announces its religious holidays by moon sighting, so no
+  library can compute them exactly in advance — authoritative dates are on file for 1404
+  and 1405, and every other year falls back to a tabular approximation that can land a
+  day either side. Rather than invent the missing years, this exposes which ones are
+  announced:
+
+  ```ts
+  const { official, approximate } = getHolidayCoverage(1410);
+  if (!official) showNotice('Religious holidays for this year are estimates.');
+  ```
+
+  New in `@doranjs/holidays`: `getHolidayCoverage`, `getOfficialLunarYears`, and
+  `hasOfficialLunarDates`. Surfaced in React as `useHolidays().coverage(year)`. Feed your
+  own announced dates with the existing `registerOfficialLunarYear`.
+
+  **Unstyled usage.** Skipping `@doranjs/react/styles.css` already gave you the markup,
+  keyboard model, and ARIA with no visual opinions — except that the day-navigation live
+  region's visually-hidden styling lived only in the stylesheet, so an app that skipped
+  the CSS printed every announcement on screen. That is behaviour rather than
+  decoration, so it is now inlined.
+
+  `classNames` also reaches further: `DoranCalendar` takes `{ root, footer, footerAction,
+month }`, and `DoranMonthView` takes `{ grid, weekdays, weekday, week, cell, day }`.
+  Your classes merge with Doran's rather than replacing them.
+
+  **Not shipped: a `@doranjs/react/nlp` subpath.** Measured rather than assumed —
+  esbuild produces 15.96 kB gzipped without `DoranNlpInput` and 22.24 kB with it, and
+  Rollup agrees. `@doranjs/nlp` already tree-shakes, costing 6.3 kB gzipped only when
+  imported, so a subpath would add an entry point and a migration for no gain. CJS
+  consumers do not tree-shake and will still pull it in.
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Add day widgets and calendar slots.
+
+  Days can now carry your own content — a fare, a seat count, an availability badge —
+  and the regions around the grid can be filled with your own components. Closes #52.
+
+  **Per-day content.** React gets two render functions; every framework gets a
+  serializable map that also works from plain HTML.
+
+  ```tsx
+  <DoranDatePicker
+    dayContent={(day) => <Fare value={fares[dayKey(day)]} />}
+    dayProps={(day, meta) => ({ 'data-cheapest': isCheapest(day) || undefined })}
+  />
+  ```
+
+  ```js
+  picker.dayData = { '1404-5-12': { text: '۱٬۲۰۰٬۰۰۰', tone: 'low' } };
+  ```
+
+  `dayData` keys are Jalali `YYYY-M-D`, and zero-padded or Persian-digit forms resolve
+  to the same day.
+
+  **`disabledDates`.** Days could previously only be blocked by `min`/`max`. Blackout
+  dates, booked nights, and sold-out departures are now expressible, with a
+  `disabledReason` that becomes both a tooltip and part of the day's accessible name.
+
+  **Slots.** `legend`, `aside`, and `footer` accept your own content — via a `slots`
+  prop in React, and light-DOM `<div slot="…">` children everywhere else, which Vue,
+  Svelte, and Angular templates fill natively. `useDoranCalendar()` gives that content
+  the calendar's state and navigation, so a slot widget can drive the calendar rather
+  than just decorate it.
+
+  **Holidays in React.** `@doranjs/react/holidays` exports `useHolidays()` and
+  `createHolidayHelpers()`, closing the gap where `@doranjs/wc` had Iranian holidays
+  built in and React did not. It ships as a subpath, so the dataset only enters bundles
+  that import it, and it indexes each year once instead of re-resolving per day.
+
+  **Accessibility.** Unavailable days now use `aria-disabled` rather than the `disabled`
+  attribute, so they stay focusable and can announce why they cannot be picked; arrow
+  navigation skips `min`/`max` gaps but lands on individually blocked days. A polite
+  live region announces the focused day, including when navigation crosses a month
+  boundary and the grid re-renders.
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Make locales actually localize.
+
+  `setDefaultLocale(enUS)` previously still produced a right-to-left widget whose
+  pop-over announced «تقویم». Direction and every user-visible string were hardcoded,
+  which is what `iconPosition` and `textAlign` were really working around.
+
+  **`Locale` gains `direction`.** Components read it instead of hardcoding `dir`, so a
+  Latin locale yields a genuinely left-to-right widget. Arrow-key navigation follows —
+  `ArrowLeft` advances in RTL and goes back in LTR — and the default navigation chevrons
+  flip to match. An explicit `dir` prop overrides, and a locale omitting `direction`
+  still resolves to `'rtl'`, so nothing written before this field changes behaviour.
+
+  **`CalendarLabels` grows from two fields to twenty-two**, covering everything the
+  components render or announce: the input placeholder, the pop-over and open-calendar
+  names, previous/next month, the month and year selectors, the time picker's fields and
+  steppers, the range summary separator and presets, the natural-language placeholder
+  and its unresolved state, and the separator joining a day's date to its annotation.
+
+  Every field is optional and `resolveCalendarLabels` now _merges_ with the Persian
+  defaults rather than replacing them, so a locale defining only `today` and `clear` —
+  as every locale written before these fields existed does — still gets a complete set.
+
+  **Range presets are localized.** `defaultRangePresets()` hardcoded Persian digits, so
+  even a consumer supplying custom presets got `'۷ روز اخیر'` under an English locale. It
+  now takes a locale and builds labels through `formatNumber`, with `lastDays` as a
+  `{count}` template. Calling it with no argument uses the ambient default, so existing
+  calls are unchanged.
+
+  **Web components honour `setDefaultLocale` too.** `resolveLocaleAttr` fell back to a
+  hardcoded `faIR` when the `locale` attribute was absent, so the global default never
+  reached them. It now falls back to the default locale and consults the locale registry
+  first, which also makes `registerLocale()` usable from plain HTML.
+
+  New in `@doranjs/core`: `resolveDirection(locale)` and the `ResolvedCalendarLabels`
+  type. New on the React components: a `dir` prop.
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Add per-part class names, a portal target, and the typable trigger in web components.
+
+  **`classNames`** reaches the parts `className` on the root can't: `root`, `trigger`,
+  `input`, `icon`, `popover`, and `calendar`. The calendar inside the pop-over
+  previously received no class name at all, so it was unreachable by props — styling it
+  meant writing element-level CSS.
+
+  ```tsx
+  <DoranDatePicker classNames={{ trigger: 'h-9', popover: 'shadow-xl' }} />
+  ```
+
+  **`portalContainer`** moves the pop-over out of `document.body`. Pass the dialog's own
+  element when the picker lives inside a focus-trapping dialog (shadcn, Radix, Headless
+  UI) — a body-level pop-over sits outside the trap, so the trap pulls focus straight
+  back out of the calendar.
+
+  **`<doran-datepicker>` gets the same typable trigger** as React, along with a
+  `readonly` attribute and a `parseerror` event. The element re-renders through
+  `innerHTML`, which would have wiped the caret and selection on every keystroke, so the
+  trigger is now left alone whenever the field has focus and only the pop-over
+  re-renders. The Angular wrapper gains a matching `readOnly` input; Vue and Svelte
+  already pass the attribute through.
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Add a range trigger, fix the time picker's keyboard, and add a mobile sheet mode.
+
+  **`DoranRangeDatePicker`** gives the range picker the trigger it never had: one
+  bordered field holding two inputs, either typable or fillable from the grid, with the
+  pop-over, positioning, and non-modal keyboard behaviour the single picker already had.
+  Both ends are kept in order — a backwards range is a slip, not an instruction, so
+  picking or typing an end before the start swaps them. Nothing checked that before.
+  `startName`/`endName` emit hidden fields for native submission.
+
+  **The time picker had no keyboard handler at all.** The only way to change the time was
+  to Tab onto a chevron and press Enter, which made 00:00 → 23:45 a long afternoon. Each
+  field is now a `spinbutton`: a tab stop answering to arrows, PageUp/PageDown, and
+  Home/End. The chevrons drop out of the tab order, since three fields' worth would put
+  six extra stops between the grid and the footer. `withSeconds` and `hourCycle={12}`
+  come along with it, the latter finally using `Locale.meridiem`, which had sat unused.
+
+  **`mode="sheet"`, or `"auto"` under 640px**, stops the calendar trying to anchor itself
+  to a trigger near the bottom of a phone viewport, where flip-and-clamp positioning
+  leaves it squeezed against an edge under the on-screen keyboard. The stylesheet
+  previously contained exactly one media query, and it was `prefers-reduced-motion`.
+
+  Also fixed: **`DoranRangePicker` never accepted `min`/`max`.** The props were being
+  passed by callers and silently dropped, because a JSX spread skips excess-property
+  checking.
+
+  New labels on `CalendarLabels`: `second`, `meridiem`, `rangeStart`, `rangeEnd`. New
+  React exports: `usePopover` and `usePresentation`, the shared pop-over shell the two
+  pickers now both use rather than keeping separate copies that had drifted.
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Make the time picker typable, give every unit its own step, and fix day-widget layout.
+
+  **Type the time.** Each field is a real input as well as a spinbutton: type `14`, or
+  step with the arrows. Persian and Arabic numerals are accepted. Partial input is left
+  alone — halfway to `15` the field reads `1`, and committing that would fight the user
+  mid-keystroke.
+
+  **Per-unit steps.** `hourStep`, `minuteStep`, and `secondStep` each default to `1`, so
+  `minuteStep={15}` leaves the hour moving one at a time. In web components,
+  `hour-step` and `minute-step`.
+
+  **Layout fixes for day widgets**, all visible with real content:
+  - Day grids used `repeat(7, 1fr)`, and `1fr` floors at min-content — so one long
+    annotation widened its column and pushed the whole grid out of alignment, spilling
+    text into neighbouring days. Now `minmax(0, 1fr)`, which lets the column clip.
+  - `slots.aside` squeezed the month grid instead of widening the calendar, because
+    `.doran-calendar` is a fixed-width column. It now sizes to content when an aside is
+    present, matching what the range picker already did for its presets.
+  - Rich rows now share a `min-height`, so a row of annotated days is the same height as
+    a row without them.
+  - The legend and footer slots have real layout rather than sitting flush against the
+    grid, and the holiday dot moves clear of the second line.
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Make the date picker's trigger a real text input.
+
+  **You can type a date now.** `DoranDatePicker`'s trigger was a `<button>`, so the
+  calendar was the only way in — an operator filtering orders had to click through
+  panels, and a birthdate in 1360 meant paging a year panel sixty entries wide.
+  Typing `1402/5/12`, `1402-5-12`, or `۱۴۰۲/۰۵/۱۲` now just works, using core's
+  existing `parseJalali`. Pass `readOnly` where a date must come from the grid.
+
+  Errors surface on blur, not per keystroke — en route to `1402/05/12` the value
+  passes through `1`, `14`, `140`, and flagging each would leave the field red the
+  whole time it is in use. Text that doesn't parse is kept and marked
+  `aria-invalid` rather than silently discarded.
+
+  **Form association.** `forwardRef` (to the input), `name`, `required`, `readOnly`,
+  `invalid`, `onBlur`, `onFocus`, `aria-describedby`, and `onParseError`. A named
+  picker submits through a hidden input carrying a Latin-digit machine value, since
+  the Persian-digit text on screen is not something a backend can read. This is what
+  `register()` from react-hook-form needs.
+
+  **Loose value types.** `value`, `defaultValue`, `min`, and `max` now accept a
+  `DoranDate`, a native `Date`, epoch milliseconds, or a string — Jalali or Gregorian,
+  Latin or Persian digits. New `valueFormat` controls what comes back:
+
+  ```tsx
+  <DoranDatePicker valueFormat="YYYY-MM-DD" onChange={setQueryParam} />
+  ```
+
+  The generic flows through, so `onChange` there is typed as receiving a string. Every
+  consumer keeping a `"YYYY-MM-DD"` string for a query param can delete their
+  conversion wrapper.
+
+  `@doranjs/core` gains `toDoranDate`, `formatValue`, and the `DateInput` /
+  `ValueFormat` / `FormattedValue` types behind this. Note that the two calendars'
+  strings are ambiguous on shape alone — `parseJalali('2025-08-03')` reads a Jalali
+  year 2025 — so `toDoranDate` splits them on year magnitude, treating a leading year
+  at or above 1700 as Gregorian.
+
+  **Behaviour changes worth knowing.** The trigger is an `<input>`, so tests querying
+  `getByRole('button')` for it should query `getByRole('textbox')`; the calendar icon
+  is now its own button. The calendar no longer takes focus when it opens, which would
+  have pulled the caret out of the field mid-typing. And `.doran-datepicker__input` is
+  now the bordered wrapper around `.doran-datepicker__control`, the bare text field —
+  `:focus-visible` on it became `:focus-within`, and `:disabled` became
+  `[data-disabled]`.
+
+### Patch Changes
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Survive two installed copies of `@doranjs/core`.
+
+  Published packages pinned `@doranjs/core` to an exact version, because pnpm rewrites
+  `workspace:*` that way. When a consumer upgraded one Doran package without the others,
+  their pins diverged and npm installed two copies — at which point
+  `value instanceof DoranDate` returned `false` for a date built by the other copy, and
+  `@doranjs/zod` silently rejected perfectly valid dates as unparseable.
+
+  `DoranDate` now carries a `Symbol.for('doran.date')` brand. Registered symbols live in
+  a global registry shared by every copy of a module, so the new `isDoranDate()` guard
+  recognizes instances across copies where `instanceof` cannot. It replaces the
+  cross-boundary `instanceof` checks in `@doranjs/zod` and in core's own `toDoranDate`.
+
+  Internal `@doranjs/*` ranges also move from `workspace:*` to `workspace:^`, so they
+  publish as caret ranges rather than exact pins. This is strictly a widening — existing
+  lockfiles are untouched and new installs can only dedupe better.
+
+  One limit worth knowing: below 1.0, `^0.2.0` does not admit `0.3.0`, so carets prevent
+  duplicates only within a minor line. Fully solving cross-minor divergence needs a 1.0,
+  where a caret spans every minor. The brand makes the remaining cases degrade gracefully
+  rather than silently.
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Fix date-picker accessibility and fill in missing theme variables.
+
+  **The pop-over no longer traps the keyboard.** It declares `aria-modal="false"`,
+  promising assistive technology that the rest of the page stays reachable, but a focus
+  trap meant Tab could never leave. Tabbing past either end now closes it and moves on;
+  Shift+Tab returns to the trigger, and Escape still closes and restores focus.
+
+  **The trigger has an accessible name.** It previously announced as just its digits —
+  "۱۴۰۵/۰۳/۱۵, button" — with nothing saying it was a date field. It now announces the
+  field and its value together, defaulting to the placeholder as the description, and
+  accepting `aria-label` or `aria-labelledby` to override.
+
+  **New theme variables**, so these no longer need element-level CSS to change:
+  `--doran-input-font-size`, `--doran-input-shadow`, `--doran-input-focus-shadow`,
+  `--doran-input-focus-border-color`, `--doran-placeholder-color`, `--doran-icon-color`,
+  `--doran-icon-size`, `--doran-day-disabled-opacity`, and a full set of
+  `--doran-time-*` variables for the time picker, which was previously styled almost
+  entirely with literals. Every one falls back to the current value, so nothing changes
+  visually unless you set them.
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Publish a shadcn/ui registry entry.
+
+  ```bash
+  npx shadcn@latest add https://amiralibg.github.io/Doran/r/doran-date-picker.json
+  ```
+
+  This installs a Jalali date picker built from the consumer's **own** Button, Input,
+  and Popover — no Doran stylesheet, no `doran-*` class names, nothing to theme around.
+  Doran supplies only the engine: `useCalendar` for month state and bounds,
+  `buildMonthGrid` for the Saturday-first grid, `navigateFocus` for arrow-key date maths,
+  and `parseJalali` so `1402/5/12` and `۱۴۰۲/۰۵/۱۲` both parse.
+
+  The installed component keeps the parts that are easy to get wrong: a `role="grid"`
+  with a roving tabindex, arrow keys that follow the writing direction, `aria-disabled`
+  on blocked days so they stay reachable, and a locale that drives direction as well as
+  month names.
+
+  The registry payload is generated from a real `.tsx` source that is type-checked in CI
+  against the published Doran types, so the shipped JSON cannot drift from a component
+  that no longer compiles.
+
+- [#53](https://github.com/amiralibg/Doran/pull/53) [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e) Thanks [@amiralibg](https://github.com/amiralibg)! - Loosen the `@doranjs/ui` peer range so patch releases don't strand consumers.
+
+  The peer was declared `workspace:*`, which pnpm rewrites to an exact version on
+  publish — so `@doranjs/react` demanded precisely `@doranjs/ui@0.0.4` and every `ui`
+  patch forced a coordinated bump. It is now `workspace:^`, publishing as a caret range.
+
+- Updated dependencies [[`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e), [`631c7e5`](https://github.com/amiralibg/Doran/commit/631c7e5928f2eeb5c721f902a6efd4e1ffbcee6e)]:
+  - @doranjs/holidays@0.1.0
+  - @doranjs/core@0.2.0
+  - @doranjs/nlp@0.1.5
+
 ## 0.4.4
 
 ### Patch Changes
