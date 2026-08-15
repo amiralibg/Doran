@@ -316,9 +316,9 @@
 
 .doran-time__value {
   /* A real input now, so it needs its chrome stripped back to the bare number.
-     Sized in rem rather than ch: `ch` measures the font's "0", and Persian digits
-     are wider than that, so a ch-based width clipped two-digit values. */
-  width: var(--doran-time-field-width, 2.5rem);
+     `ch` tracks the font, so the field scales with whatever face you set; 2.4 leaves
+     enough room for two Persian digits, which are wider than the "0" ch measures. */
+  width: var(--doran-time-field-width, 2.4ch);
   border: none;
   background: transparent;
   padding: 0.1rem 0.15rem;
