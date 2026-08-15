@@ -68,6 +68,9 @@ importers:
       '@doranjs/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@doranjs/react':
+        specifier: workspace:*
+        version: link:../../packages/react
       '@doranjs/wc':
         specifier: workspace:*
         version: link:../../packages/wc
@@ -75,6 +78,12 @@ importers:
       '@fontsource/vazirmatn':
         specifier: ^5.2.8
         version: 5.2.8
+      '@types/react':
+        specifier: ^18.3.18
+        version: 18.3.29
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
       vitepress:
         specifier: ^1.5.0
         version: 1.6.4(@algolia/client-search@5.53.0)(@types/node@22.19.19)(@types/react@18.3.29)(postcss@8.5.15)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.90.0)(search-insights@2.17.3)(typescript@5.9.3)

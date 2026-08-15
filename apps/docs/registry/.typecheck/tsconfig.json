@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/lib/utils": ["./lib/utils.ts"],
+      "@/components/ui/button": ["./components/ui/button.tsx"],
+      "@/components/ui/input": ["./components/ui/input.tsx"],
+      "@/components/ui/popover": ["./components/ui/popover.tsx"],
+      "lucide-react": ["./lucide-react.ts"],
+      "@doranjs/core": ["../../node_modules/@doranjs/core/dist/index.d.ts"],
+      "@doranjs/react": ["../../node_modules/@doranjs/react/dist/index.d.ts"]
+    }
+  },
+  "include": ["../doran-date-picker.tsx", "./**/*.ts", "./**/*.tsx"]
+}

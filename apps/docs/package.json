@@ -5,16 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "vitepress dev",
-    "build": "vitepress build",
+    "build": "node scripts/build-registry.mjs && vitepress build",
     "preview": "vitepress preview",
-    "clean": "rm -rf .vitepress/dist .vitepress/cache .turbo"
+    "clean": "rm -rf .vitepress/dist .vitepress/cache .turbo",
+    "build:registry": "node scripts/build-registry.mjs",
+    "typecheck": "tsc --noEmit -p registry/.typecheck/tsconfig.json"
   },
   "dependencies": {
     "@doranjs/core": "workspace:*",
-    "@doranjs/wc": "workspace:*"
+    "@doranjs/wc": "workspace:*",
+    "@doranjs/react": "workspace:*"
   },
   "devDependencies": {
     "@fontsource/vazirmatn": "^5.2.8",
-    "vitepress": "^1.5.0"
+    "vitepress": "^1.5.0",
+    "@types/react": "^18.3.18",
+    "typescript": "^5.7.3"
   }
 }

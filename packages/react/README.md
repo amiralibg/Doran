@@ -282,6 +282,35 @@ Two caveats worth knowing: `isHoliday` counts only official public holidays by d
 has officially announced are computed arithmetically and may land a day either side —
 those carry `data-approximate`.
 
+Iran announces religious holidays by moon sighting, so no library can compute them
+exactly in advance. Ask which years are announced rather than presenting an estimate
+as fact:
+
+```tsx
+const { official } = holidays.coverage(year);
+if (!official) return <p>تعطیلات مذهبی این سال تخمینی است.</p>;
+```
+
+Feed your own announced dates with `registerOfficialLunarYear` from
+`@doranjs/holidays`.
+
+## Using it without the stylesheet
+
+Skip the `@doranjs/react/styles.css` import and you keep the markup, the keyboard
+model, and the ARIA with no visual opinions attached. Style the parts with
+`classNames`, which `DoranDatePicker`, `DoranCalendar`, and `DoranMonthView` all
+accept:
+
+```tsx
+<DoranCalendar classNames={{ root: 'rounded-xl border', month: { day: 'size-8 rounded-md' } }} />
+```
+
+Or install a picker built entirely from your own shadcn/ui components:
+
+```bash
+npx shadcn@latest add https://amiralibg.github.io/Doran/r/doran-date-picker.json
+```
+
 ## Headless support
 
 Every component is built on pure, headless primitives you can use directly to build
