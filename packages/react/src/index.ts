@@ -56,8 +56,18 @@ export {
 } from '@doranjs/core';
 
 // Components.
-export { DoranMonthView, type DayPropsResult, type DoranMonthViewProps } from './month-view';
-export { DoranCalendar, type CalendarFooterAction, type DoranCalendarProps } from './calendar';
+export {
+  DoranMonthView,
+  type DayPropsResult,
+  type DoranMonthViewProps,
+  type MonthViewClassNames,
+} from './month-view';
+export {
+  DoranCalendar,
+  type CalendarClassNames,
+  type CalendarFooterAction,
+  type DoranCalendarProps,
+} from './calendar';
 export {
   DoranDatePicker,
   type DatePickerClassNames,

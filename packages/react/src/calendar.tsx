@@ -23,8 +23,20 @@ import {
   type DoranCalendarContextValue,
 } from './calendar-context';
 import { useCalendar, type UseCalendarOptions } from './hooks';
-import { DoranMonthView, type DayPropsResult } from './month-view';
+import { DoranMonthView, type DayPropsResult, type MonthViewClassNames } from './month-view';
 import { DoranTimePicker, type TimeValue } from './time-picker';
+
+/** Per-part class names for {@link DoranCalendar}. */
+export interface CalendarClassNames {
+  /** The calendar root. */
+  root?: string;
+  /** The footer holding Today/Clear and the footer slot. */
+  footer?: string;
+  /** Each footer action button. */
+  footerAction?: string;
+  /** Forwarded to the month grid. */
+  month?: MonthViewClassNames;
+}
 
 /** Actions that can be rendered in a calendar footer. */
 export type CalendarFooterAction = 'today' | 'clear';
@@ -70,6 +82,8 @@ export interface DoranCalendarProps extends Omit<UseCalendarOptions, 'onChange'>
   slots?: CalendarSlots;
   /** Writing direction. Defaults to the locale's. */
   dir?: 'rtl' | 'ltr';
+  /** Class names for individual parts, for styling without Doran's stylesheet. */
+  classNames?: CalendarClassNames;
   /** Weekday indices treated as weekend (0 = Saturday). Defaults to `[6]` (Friday). */
   weekends?: number[];
   /** How many years to offer around the current view in the year picker. */
@@ -112,6 +126,7 @@ export function DoranCalendar({
   dayData,
   slots,
   dir,
+  classNames,
   weekends,
   yearSpan = 60,
   arrows,
@@ -205,6 +220,7 @@ export function DoranCalendar({
       isDisabled={calendar.isDisabled}
       isOutOfBounds={calendar.isOutOfBounds}
       dir={direction}
+      {...(classNames?.month ? { classNames: classNames.month } : {})}
       {...(isHoliday ? { isHoliday } : {})}
       {...(dayContent ? { dayContent } : {})}
       {...(dayProps ? { dayProps } : {})}
@@ -233,7 +249,7 @@ export function DoranCalendar({
 
   return (
     <DoranCalendarProvider value={context}>
-      <div className={cn('doran-calendar', className)} dir={direction}>
+      <div className={cn('doran-calendar', classNames?.root, className)} dir={direction}>
         <CalendarHeader
           year={calendar.year}
           month={calendar.month}
@@ -275,14 +291,17 @@ export function DoranCalendar({
         )}
 
         {showFooter && (
-          <div className="doran-calendar__footer">
+          <div className={cn('doran-calendar__footer', classNames?.footer)}>
             {slots?.footer && <div className="doran-calendar__footer-slot">{slots.footer}</div>}
             {resolvedFooterActions.map((action, index) =>
               action === 'today' ? (
                 <Button
                   key={`${action}-${index}`}
                   variant="outline"
-                  className="doran-calendar__footer-action doran-calendar__footer-action--today"
+                  className={cn(
+                    'doran-calendar__footer-action doran-calendar__footer-action--today',
+                    classNames?.footerAction,
+                  )}
                   data-footer-action={action}
                   disabled={calendar.isDisabled(calendar.today)}
                   onClick={calendar.selectToday}
@@ -293,7 +312,10 @@ export function DoranCalendar({
                 <Button
                   key={`${action}-${index}`}
                   variant="outline"
-                  className="doran-calendar__footer-action doran-calendar__footer-action--clear"
+                  className={cn(
+                    'doran-calendar__footer-action doran-calendar__footer-action--clear',
+                    classNames?.footerAction,
+                  )}
                   data-footer-action={action}
                   onClick={() => emit(null)}
                 >

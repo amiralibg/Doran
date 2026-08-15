@@ -1,7 +1,13 @@
 'use client';
 
 import { dayKey, type DayMeta, type DoranDate } from '@doranjs/core';
-import { getHolidays, type GetHolidaysOptions, type Holiday } from '@doranjs/holidays';
+import {
+  getHolidayCoverage,
+  getHolidays,
+  type GetHolidaysOptions,
+  type Holiday,
+  type HolidayCoverage,
+} from '@doranjs/holidays';
 import { useMemo } from 'react';
 import type { DayPropsResult } from './month-view';
 
@@ -26,6 +32,18 @@ export interface HolidayHelpers {
    * accessible name, plus `data-holiday` and `data-approximate` styling hooks.
    */
   dayProps: (day: DoranDate, meta: DayMeta) => DayPropsResult | undefined;
+  /**
+   * Whether a year's religious holidays come from Iran's announcements or from the
+   * tabular calendar, which can be a day out.
+   *
+   * Iran announces these by moon sighting, so no library can compute them exactly in
+   * advance. Surface this rather than presenting an estimate as fact:
+   *
+   * ```tsx
+   * {!holidays.coverage(year).official && <p>تعطیلات مذهبی این سال تخمینی است.</p>}
+   * ```
+   */
+  coverage: (year: number) => HolidayCoverage;
 }
 
 /** Groups a year's holidays by day, so a month render is 42 map lookups. */
@@ -72,6 +90,7 @@ export function createHolidayHelpers(options: HolidayHelperOptions = {}): Holida
 
   return {
     holidaysOn,
+    coverage: (year) => getHolidayCoverage(year, getOptions),
     isHoliday: (day) => matching(day).length > 0,
     dayProps: (day) => {
       const found = matching(day);
@@ -128,4 +147,4 @@ export function useHolidays(options: HolidayHelperOptions = {}): HolidayHelpers 
   );
 }
 
-export type { Holiday };
+export type { Holiday, HolidayCoverage };

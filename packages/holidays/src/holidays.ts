@@ -1,7 +1,7 @@
 import { type DoranDate, jalaliToJdn, jdnToJalali } from '@doranjs/core';
 import { LUNAR_HOLIDAYS, SOLAR_HOLIDAYS } from './data';
 import { hijriMonthLength, hijriToJdn, jdnToHijri } from './hijri';
-import { getOfficialLunarDates } from './official';
+import { getOfficialLunarDates, hasOfficialLunarDates } from './official';
 import type { GetHolidaysOptions, Holiday, LunarHolidayDef, SolarHolidayDef } from './types';
 
 const customSolar: SolarHolidayDef[] = [];
@@ -169,6 +169,40 @@ export function getHolidaysOn(date: DoranDate, options?: GetHolidaysOptions): Ho
   return getHolidays(date.year, options).filter(
     (h) => h.month === date.month && h.day === date.day,
   );
+}
+
+/** How trustworthy a year's holiday dates are. */
+export interface HolidayCoverage {
+  year: number;
+  /**
+   * Whether Iran's announced lunar dates are on file. When `false`, lunar holidays
+   * are computed from the tabular calendar and can land a day either side.
+   */
+  official: boolean;
+  /** How many of the year's holidays are arithmetically approximated. */
+  approximate: number;
+  /** Total holidays resolved for the year. */
+  total: number;
+}
+
+/**
+ * Reports whether a year's dates are announced or approximated, so an application can
+ * say so rather than presenting a guess as fact.
+ *
+ * @example
+ * ```ts
+ * const { official } = getHolidayCoverage(1410);
+ * if (!official) showNotice('Religious holidays for this year are estimates.');
+ * ```
+ */
+export function getHolidayCoverage(year: number, options?: GetHolidaysOptions): HolidayCoverage {
+  const holidays = getHolidays(year, options);
+  return {
+    year,
+    official: hasOfficialLunarDates(year),
+    approximate: holidays.filter((holiday) => holiday.approximate).length,
+    total: holidays.length,
+  };
 }
 
 /** Returns `true` if the given date is an official public holiday. */

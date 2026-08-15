@@ -150,3 +150,14 @@ describe('useHolidays', () => {
     expect(ordinary).not.toHaveAttribute('data-holiday');
   });
 });
+
+describe('coverage', () => {
+  it('reports whether a year is announced or estimated', () => {
+    const { coverage } = createHolidayHelpers();
+
+    expect(coverage(1405).official).toBe(true);
+    const estimated = coverage(1410);
+    expect(estimated.official).toBe(false);
+    expect(estimated.approximate).toBeGreaterThan(0);
+  });
+});

@@ -105,8 +105,44 @@ export interface DoranMonthViewProps {
   multiselectable?: boolean;
   /** Writing direction. Defaults to the locale's. */
   dir?: 'rtl' | 'ltr';
+  /** Class names for individual parts, for styling without Doran's stylesheet. */
+  classNames?: MonthViewClassNames;
   className?: string;
 }
+
+/** Per-part class names for {@link DoranMonthView}. */
+export interface MonthViewClassNames {
+  /** The `role="grid"` root. */
+  grid?: string;
+  /** The weekday header row. */
+  weekdays?: string;
+  /** A single weekday header cell. */
+  weekday?: string;
+  /** A week row. */
+  week?: string;
+  /** A `role="gridcell"` wrapper. */
+  cell?: string;
+  /** The day button itself. */
+  day?: string;
+}
+
+/**
+ * Hides an element from sight while leaving it in the accessibility tree.
+ *
+ * Inline because it is behaviour, not decoration: a consumer styling the calendar
+ * themselves must not end up with the live region's announcements printed on screen.
+ */
+const VISUALLY_HIDDEN: CSSProperties = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  margin: -1,
+  padding: 0,
+  overflow: 'hidden',
+  clipPath: 'inset(50%)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
 
 /** The day that should be focusable when the grid is first tabbed into. */
 function defaultFocusDate(grid: MonthGrid, isSelected?: (day: DoranDate) => boolean): DoranDate {
@@ -175,6 +211,7 @@ export function DoranMonthView({
   showOutsideDays = true,
   multiselectable,
   dir,
+  classNames,
   className,
 }: DoranMonthViewProps) {
   const locale = useResolvedLocale(localeProp);
@@ -348,7 +385,12 @@ export function DoranMonthView({
   return (
     <div
       ref={gridRef}
-      className={cn('doran-month', hasDayContent && 'doran-month--rich', className)}
+      className={cn(
+        'doran-month',
+        hasDayContent && 'doran-month--rich',
+        classNames?.grid,
+        className,
+      )}
       role="grid"
       aria-label={gridLabel}
       {...(multiselectable ? { 'aria-multiselectable': true } : {})}
@@ -357,17 +399,25 @@ export function DoranMonthView({
       onFocus={() => setIsFocusWithin(true)}
       onBlur={() => setIsFocusWithin(false)}
     >
-      <span className="doran-month__live" role="status" aria-live="polite">
+      <span
+        className="doran-month__live"
+        role="status"
+        aria-live="polite"
+        // Inlined rather than left to the stylesheet: this text must never be seen,
+        // and the components are usable without importing Doran's CSS at all.
+        style={VISUALLY_HIDDEN}
+      >
         {liveMessage}
       </span>
 
-      <div className="doran-month__weekdays" role="row">
+      <div className={cn('doran-month__weekdays', classNames?.weekdays)} role="row">
         {locale.weekdaysMin.map((name, i) => (
           <div
             key={i}
             className={cn(
               'doran-month__weekday',
               weekends.includes(i) && 'doran-month__weekday--weekend',
+              classNames?.weekday,
             )}
             role="columnheader"
             aria-label={locale.weekdays[i]}
@@ -378,7 +428,7 @@ export function DoranMonthView({
       </div>
 
       {grid.weeks.map((week, wi) => (
-        <div key={wi} className="doran-month__week" role="row">
+        <div key={wi} className={cn('doran-month__week', classNames?.week)} role="row">
           {week.map((cell, ci) => {
             const day = resolved.get(dayKey(cell))!;
             const { meta } = day;
@@ -389,7 +439,7 @@ export function DoranMonthView({
             return (
               <div
                 key={`${wi}-${ci}`}
-                className="doran-month__cell"
+                className={cn('doran-month__cell', classNames?.cell)}
                 role="gridcell"
                 aria-selected={meta.selected}
               >
@@ -410,6 +460,7 @@ export function DoranMonthView({
                       meta.inRange && 'doran-day--in-range',
                       meta.rangeStart && 'doran-day--range-start',
                       meta.rangeEnd && 'doran-day--range-end',
+                      classNames?.day,
                       day.className,
                     )}
                     {...(day.style ? { style: day.style } : {})}

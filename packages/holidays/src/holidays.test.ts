@@ -3,12 +3,18 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { hijriMonthLength, hijriToJdn, jdnToHijri } from './hijri';
 import {
   clearCustomHolidays,
+  getHolidayCoverage,
   getHolidays,
   getHolidaysOn,
   isHoliday,
   registerSolarHoliday,
 } from './holidays';
-import { registerOfficialLunarYear, resetOfficialLunarYears } from './official';
+import {
+  getOfficialLunarYears,
+  hasOfficialLunarDates,
+  registerOfficialLunarYear,
+  resetOfficialLunarYears,
+} from './official';
 
 afterEach(() => {
   clearCustomHolidays();
@@ -190,5 +196,43 @@ describe('official lunar dates', () => {
     const ghadir = getHolidays(1410).find((h) => h.titleEn === 'Eid al-Ghadir');
     expect(ghadir).toMatchObject({ month: 2, day: 25 });
     expect(ghadir?.approximate).toBeFalsy();
+  });
+});
+
+describe('coverage reporting', () => {
+  // Iran announces religious holidays by moon sighting, so no library can compute
+  // them exactly in advance. Applications need to be able to say which is which.
+  it('reports the years with announced dates on file', () => {
+    const years = getOfficialLunarYears();
+    expect(years).toContain(1404);
+    expect(years).toContain(1405);
+    expect(years).toEqual([...years].sort((a, b) => a - b));
+  });
+
+  it('distinguishes an announced year from an approximated one', () => {
+    expect(hasOfficialLunarDates(1405)).toBe(true);
+    expect(hasOfficialLunarDates(1410)).toBe(false);
+  });
+
+  it('summarizes how trustworthy a year is', () => {
+    const announced = getHolidayCoverage(1405);
+    expect(announced.official).toBe(true);
+    expect(announced.total).toBeGreaterThan(0);
+
+    const estimated = getHolidayCoverage(1410);
+    expect(estimated.official).toBe(false);
+    // An unannounced year leans on the tabular calendar, which can be a day out.
+    expect(estimated.approximate).toBeGreaterThan(0);
+  });
+
+  it('follows a year registered at runtime', () => {
+    expect(hasOfficialLunarDates(1412)).toBe(false);
+
+    registerOfficialLunarYear(1412, [{ titleEn: 'Eid al-Fitr', month: 1, day: 20 }]);
+    expect(hasOfficialLunarDates(1412)).toBe(true);
+    expect(getHolidayCoverage(1412).official).toBe(true);
+
+    resetOfficialLunarYears();
+    expect(hasOfficialLunarDates(1412)).toBe(false);
   });
 });

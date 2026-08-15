@@ -76,6 +76,24 @@ export function getOfficialLunarDates(year: number): OfficialLunarDate[] | undef
   return overrides[year];
 }
 
+/**
+ * The Jalali years with authoritative dates on file, ascending.
+ *
+ * Iran announces its religious holidays by moon sighting, so no library can compute
+ * them exactly in advance. Use this to tell a user when the dates they are looking at
+ * are announced rather than arithmetic.
+ */
+export function getOfficialLunarYears(): number[] {
+  return Object.keys(overrides)
+    .map(Number)
+    .sort((a, b) => a - b);
+}
+
+/** Whether a year's lunar dates come from Iran's announcements rather than arithmetic. */
+export function hasOfficialLunarDates(year: number): boolean {
+  return overrides[year] !== undefined;
+}
+
 /** Resets the official-date overrides to the built-in set (mainly for tests). */
 export function resetOfficialLunarYears(): void {
   for (const key of Object.keys(overrides)) delete overrides[Number(key)];
