@@ -1,6 +1,6 @@
 {
   "name": "@doranjs/nlp",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Persian natural-language date parsing for the Solar Hijri calendar.",
   "license": "MIT",
   "author": "Doran Contributors",

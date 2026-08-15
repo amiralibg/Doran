@@ -1,5 +1,13 @@
 # @doranjs/angular
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [[`e9e9e0e`](https://github.com/amiralibg/Doran/commit/e9e9e0e73e2700e5e7daed58878dd3212cea9f35)]:
+  - @doranjs/core@0.3.0
+  - @doranjs/wc@0.4.0
+
 ## 0.5.0
 
 ### Minor Changes
