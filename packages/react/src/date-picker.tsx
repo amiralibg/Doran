@@ -36,6 +36,7 @@ export interface DoranDatePickerProps<F extends ValueFormat = 'doran'> extends P
   DoranCalendarProps,
   | 'headerMode'
   | 'withTime'
+  | 'hourStep'
   | 'minuteStep'
   | 'withSeconds'
   | 'secondStep'
@@ -244,6 +245,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
       dropdownWidth = 'auto',
       withTime,
       headerMode,
+      hourStep,
       minuteStep,
       withSeconds,
       secondStep,
@@ -618,6 +620,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
                 {...(maxDate ? { max: maxDate } : {})}
                 {...(withTime ? { withTime } : {})}
                 {...(headerMode ? { headerMode } : {})}
+                {...(hourStep !== undefined ? { hourStep } : {})}
                 {...(minuteStep !== undefined ? { minuteStep } : {})}
                 {...(withSeconds !== undefined ? { withSeconds } : {})}
                 {...(secondStep !== undefined ? { secondStep } : {})}

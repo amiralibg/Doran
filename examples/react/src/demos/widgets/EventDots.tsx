@@ -26,7 +26,8 @@ export default function EventDots({ locale }: { locale: Locale }) {
     ] as const) {
       const day = today.addDays(offset);
       data[dayKey(day)] = {
-        text: `${locale.formatNumber(String(count))} جلسه`,
+        // A bare count reads better in a 7-column grid than "N جلسه" does.
+        text: locale.formatNumber(String(count)),
         // Busy days read as a warning; quiet ones stay neutral.
         tone: count >= 5 ? 'high' : 'neutral',
       };
@@ -34,5 +35,13 @@ export default function EventDots({ locale }: { locale: Locale }) {
     return data;
   }, [today, locale]);
 
-  return <DoranCalendar value={value} onChange={setValue} locale={locale} dayData={dayData} />;
+  return (
+    <DoranCalendar
+      value={value}
+      onChange={setValue}
+      locale={locale}
+      dayData={dayData}
+      slots={{ legend: <span>عدد زیر هر روز، تعداد جلسه‌های آن روز است</span> }}
+    />
+  );
 }

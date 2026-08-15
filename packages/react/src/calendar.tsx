@@ -57,7 +57,9 @@ export interface DoranCalendarProps extends Omit<UseCalendarOptions, 'onChange'>
   headerMode?: HeaderMode;
   /** Show a time picker and carry the time-of-day on the selected value. */
   withTime?: boolean;
-  /** Minute increment for the time picker. Defaults to `1`. */
+  /** How much one arrow press moves the hour. Defaults to `1`. */
+  hourStep?: number;
+  /** How much one arrow press moves the minute. Defaults to `1`. */
   minuteStep?: number;
   /** Show a seconds field on the time picker. */
   withSeconds?: boolean;
@@ -115,6 +117,7 @@ export function DoranCalendar({
   showOutsideDays,
   headerMode = 'dropdown',
   withTime = false,
+  hourStep,
   minuteStep = 1,
   withSeconds,
   secondStep,
@@ -284,6 +287,7 @@ export function DoranCalendar({
             onChange={handleTimeChange}
             minuteStep={minuteStep}
             locale={locale}
+            {...(hourStep !== undefined ? { hourStep } : {})}
             {...(withSeconds !== undefined ? { withSeconds } : {})}
             {...(secondStep !== undefined ? { secondStep } : {})}
             {...(hourCycle !== undefined ? { hourCycle } : {})}

@@ -149,7 +149,8 @@ const fa: Dict = {
   tpDefaultTitle: 'پیش‌فرض',
   tpDefaultDesc: 'انتخابِ ساعت و دقیقه با کلیدهای بالا/پایین یا کلیدهای جهت‌نما.',
   tpStepTitle: 'پلهٔ دقیقه',
-  tpStepDesc: 'با minuteStep گامِ تغییرِ دقیقه را تعیین می‌کنید (مثلاً ۱۵ دقیقه‌ای).',
+  tpStepDesc:
+    'هر واحد گام خودش را دارد و پیش‌فرض همه ۱ است. اینجا دقیقه ۱۵تایی جابه‌جا می‌شود ولی ساعت همچنان یکی‌یکی. هر فیلد را می‌شود تایپ هم کرد.',
 
   // ── Theming ────────────────────────────────────────────────────────
   thIntro:
@@ -295,7 +296,8 @@ const en: Dict = {
   tpDefaultTitle: 'Default',
   tpDefaultDesc: 'Pick hour and minute with the up/down buttons or the arrow keys.',
   tpStepTitle: 'Minute step',
-  tpStepDesc: 'minuteStep sets the minute increment (15-minute steps, for example).',
+  tpStepDesc:
+    'Each unit has its own step and every one defaults to 1. Here the minutes jump in 15s while the hour still moves one at a time. Any field can also be typed into.',
 
   // ── Theming ────────────────────────────────────────────────────────
   thIntro:

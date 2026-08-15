@@ -10,13 +10,59 @@ import { useMemo, useState } from 'react';
  * content sits outside the day grid, so it may be fully interactive.
  */
 
-/** A legend explaining what the tones under each day mean. */
+/** A key to what the tones under each day mean. */
 function ToneLegend() {
   return (
-    <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.72rem' }}>
-      <span style={{ color: 'var(--doran-success)' }}>● ظرفیت خوب</span>
-      <span style={{ color: 'var(--doran-danger)' }}>● رو به اتمام</span>
-    </div>
+    <>
+      <Swatch color="var(--doran-success)" label="ظرفیت خوب" />
+      <Swatch color="var(--doran-danger)" label="رو به اتمام" />
+    </>
+  );
+}
+
+function Swatch({ color, label }: { color: string; label: string }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+      <span
+        aria-hidden
+        style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }}
+      />
+      {label}
+    </span>
+  );
+}
+
+/** Buttons that look like the rest of the app rather than raw browser chrome. */
+function AsideButton({
+  children,
+  onClick,
+  disabled,
+}: {
+  children: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        font: 'inherit',
+        fontSize: '0.78rem',
+        textAlign: 'start',
+        whiteSpace: 'nowrap',
+        padding: '0.35rem 0.55rem',
+        borderRadius: 'var(--doran-radius-md)',
+        border: '1px solid var(--doran-border)',
+        background: 'var(--doran-surface)',
+        color: disabled ? 'var(--doran-text-subtle)' : 'var(--doran-text)',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.6 : 1,
+      }}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -32,34 +78,52 @@ function MonthJumper() {
   const isThisMonth = year === today.year && month === today.month;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', minWidth: '7rem' }}>
-      <strong style={{ fontSize: '0.75rem' }}>
+    <>
+      <div
+        style={{
+          fontSize: '0.7rem',
+          fontWeight: 600,
+          color: 'var(--doran-text-muted)',
+          padding: '0 0.15rem 0.15rem',
+        }}
+      >
         {locale.months[month - 1]} {locale.formatNumber(String(year))}
-      </strong>
-      <button type="button" onClick={() => jump(1)}>
-        ماه بعد
-      </button>
-      <button type="button" onClick={() => jump(3)}>
-        ۳ ماه بعد
-      </button>
-      <button type="button" onClick={goToToday} disabled={isThisMonth}>
+      </div>
+      <AsideButton onClick={() => jump(1)}>ماه بعد</AsideButton>
+      <AsideButton onClick={() => jump(3)}>۳ ماه بعد</AsideButton>
+      <AsideButton onClick={goToToday} disabled={isThisMonth}>
         برگرد به امروز
-      </button>
-    </div>
+      </AsideButton>
+    </>
   );
 }
 
 /** A footer that reflects the current selection. */
 function SelectionSummary() {
   const { selected, locale, clear } = useDoranCalendar();
-  if (!selected) return <span style={{ fontSize: '0.78rem' }}>تاریخی انتخاب نشده</span>;
+
+  if (!selected) return <span>تاریخی انتخاب نشده</span>;
+
   return (
-    <span style={{ fontSize: '0.78rem' }}>
-      انتخاب شده: {selected.withLocale(locale).format('dddd D MMMM')}{' '}
-      <button type="button" onClick={clear}>
+    <>
+      <span>{selected.withLocale(locale).format('dddd D MMMM')}</span>
+      <button
+        type="button"
+        onClick={clear}
+        style={{
+          font: 'inherit',
+          fontSize: '0.75rem',
+          padding: '0.15rem 0.4rem',
+          borderRadius: 'var(--doran-radius-sm)',
+          border: 'none',
+          background: 'transparent',
+          color: 'var(--doran-primary)',
+          cursor: 'pointer',
+        }}
+      >
         حذف
       </button>
-    </span>
+    </>
   );
 }
 
@@ -73,7 +137,7 @@ export default function LegendAside({ locale }: { locale: Locale }) {
       const day = today.addDays(offset);
       const seats = (offset * 5) % 12;
       data[dayKey(day)] = {
-        text: locale.formatNumber(String(seats)),
+        text: `${locale.formatNumber(String(seats))} جا`,
         tone: seats <= 3 ? 'high' : 'low',
       };
     }

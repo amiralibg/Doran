@@ -175,13 +175,35 @@ describe('time picker keyboard', () => {
     return document.querySelector('doran-calendar')!;
   }
 
-  it('exposes each field as a spinbutton', () => {
+  it('exposes each field as a typable spinbutton', () => {
     const el = mountCalendar();
-    const hour = spin(el, 'hour');
+    const hour = spin(el, 'hour') as HTMLInputElement;
 
+    // An input, so it is a tab stop by nature and can be typed into as well as stepped.
+    expect(hour.tagName).toBe('INPUT');
     expect(hour.getAttribute('role')).toBe('spinbutton');
-    expect(hour.getAttribute('tabindex')).toBe('0');
     expect(hour.getAttribute('aria-valuemax')).toBe('23');
+  });
+
+  it('commits a typed value', () => {
+    const el = mountCalendar();
+    const minute = spin(el, 'minute') as HTMLInputElement;
+
+    minute.value = '45';
+    minute.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(spin(el, 'minute').getAttribute('aria-valuenow')).toBe('45');
+  });
+
+  it('moves every unit by one by default', () => {
+    const el = mountCalendar();
+    const before = Number(spin(el, 'minute').getAttribute('aria-valuenow'));
+
+    spin(el, 'minute').dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }),
+    );
+
+    expect(Number(spin(el, 'minute').getAttribute('aria-valuenow'))).toBe((before + 1) % 60);
   });
 
   it('adjusts the value with the arrow keys', () => {

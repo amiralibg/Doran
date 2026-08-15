@@ -41,7 +41,7 @@ describe('setDefaultLocale(enUS)', () => {
     expect(screen.getByRole('button', { name: 'Next month' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Today' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument();
-    expect(screen.getByRole('group', { name: 'Hour' })).toBeInTheDocument();
+    expect(screen.getByRole('spinbutton', { name: 'Hour' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Increase Hour' })).toBeInTheDocument();
   });
 

@@ -5,8 +5,8 @@ import { DoranTimePicker, type TimeValue } from './time-picker';
 describe('DoranTimePicker', () => {
   it('displays the hour and minute with Persian digits', () => {
     render(<DoranTimePicker value={{ hour: 9, minute: 5 }} onChange={() => {}} />);
-    expect(screen.getByText('۰۹')).toBeInTheDocument();
-    expect(screen.getByText('۰۵')).toBeInTheDocument();
+    expect(screen.getByRole('spinbutton', { name: 'ساعت' })).toHaveValue('۰۹');
+    expect(screen.getByRole('spinbutton', { name: 'دقیقه' })).toHaveValue('۰۵');
   });
 
   it('increments and decrements the hour', () => {
@@ -46,11 +46,14 @@ describe('keyboard', () => {
     return screen.getByRole('spinbutton', { name });
   }
 
-  it('exposes each field as a focusable spinbutton', () => {
+  it('exposes each field as a typable spinbutton', () => {
     render(<DoranTimePicker value={{ hour: 9, minute: 30 }} onChange={() => {}} />);
 
     const hour = spin('ساعت');
-    expect(hour).toHaveAttribute('tabindex', '0');
+
+    // An input, so it is a tab stop by nature and can be typed into as well as stepped.
+    expect(hour.tagName).toBe('INPUT');
+    expect(hour).toHaveValue('۰۹');
     expect(hour).toHaveAttribute('aria-valuenow', '9');
     expect(hour).toHaveAttribute('aria-valuemin', '0');
     expect(hour).toHaveAttribute('aria-valuemax', '23');
@@ -179,5 +182,115 @@ describe('seconds and 12-hour mode', () => {
       'aria-valuetext',
       '۱۲',
     );
+  });
+});
+
+describe('typing the time', () => {
+  const field = (name: string) => screen.getByRole('spinbutton', { name }) as HTMLInputElement;
+  const type = (name: string, text: string) =>
+    fireEvent.change(field(name), { target: { value: text } });
+
+  it('commits a typed hour', () => {
+    const onChange = vi.fn();
+    render(<DoranTimePicker value={{ hour: 9, minute: 30 }} onChange={onChange} />);
+
+    type('ساعت', '14');
+    expect(onChange).toHaveBeenCalledWith({ hour: 14, minute: 30 });
+  });
+
+  it('accepts Persian numerals, which is what a Persian keyboard produces', () => {
+    const onChange = vi.fn();
+    render(<DoranTimePicker value={{ hour: 9, minute: 30 }} onChange={onChange} />);
+
+    type('دقیقه', '۴۵');
+    expect(onChange).toHaveBeenCalledWith({ hour: 9, minute: 45 });
+  });
+
+  // Halfway to "15" the field reads "1"; committing that and reformatting would
+  // fight the user mid-keystroke.
+  it('keeps partial input while it is being typed', () => {
+    const onChange = vi.fn();
+    render(<DoranTimePicker value={{ hour: 9, minute: 30 }} onChange={onChange} />);
+
+    type('دقیقه', '1');
+    expect(field('دقیقه')).toHaveValue('1');
+  });
+
+  it('ignores a value beyond the field range', () => {
+    const onChange = vi.fn();
+    render(<DoranTimePicker value={{ hour: 9, minute: 30 }} onChange={onChange} />);
+
+    type('دقیقه', '99');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('settles back to the real value on blur', () => {
+    render(<DoranTimePicker value={{ hour: 9, minute: 30 }} onChange={() => {}} />);
+
+    type('دقیقه', '9');
+    fireEvent.blur(field('دقیقه'));
+    expect(field('دقیقه')).toHaveValue('۳۰');
+  });
+
+  it('reads a typed hour as 12-hour when the cycle says so', () => {
+    const onChange = vi.fn();
+    render(<DoranTimePicker value={{ hour: 15, minute: 0 }} hourCycle={12} onChange={onChange} />);
+
+    // Typing 3 in the afternoon means 15:00, not 03:00.
+    type('ساعت', '3');
+    expect(onChange).toHaveBeenCalledWith({ hour: 15, minute: 0 });
+  });
+
+  it('stops typing when readOnly, but keeps the steppers', () => {
+    const onChange = vi.fn();
+    render(<DoranTimePicker value={{ hour: 9, minute: 30 }} readOnly onChange={onChange} />);
+
+    expect(field('ساعت')).toHaveAttribute('readonly');
+    fireEvent.keyDown(field('ساعت'), { key: 'ArrowUp' });
+    expect(onChange).toHaveBeenCalledWith({ hour: 10, minute: 30 });
+  });
+});
+
+describe('per-unit steps', () => {
+  const field = (name: string) => screen.getByRole('spinbutton', { name });
+
+  // The default must be 1 for every unit; a picker that jumps 5 minutes per arrow
+  // press cannot express 09:03.
+  it('moves every unit by one by default', () => {
+    const onChange = vi.fn();
+    render(
+      <DoranTimePicker
+        value={{ hour: 9, minute: 30, second: 10 }}
+        withSeconds
+        onChange={onChange}
+      />,
+    );
+
+    fireEvent.keyDown(field('ساعت'), { key: 'ArrowUp' });
+    expect(onChange).toHaveBeenLastCalledWith({ hour: 10, minute: 30, second: 10 });
+
+    fireEvent.keyDown(field('دقیقه'), { key: 'ArrowUp' });
+    expect(onChange).toHaveBeenLastCalledWith({ hour: 9, minute: 31, second: 10 });
+
+    fireEvent.keyDown(field('ثانیه'), { key: 'ArrowUp' });
+    expect(onChange).toHaveBeenLastCalledWith({ hour: 9, minute: 30, second: 11 });
+  });
+
+  it('steps each unit independently', () => {
+    const onChange = vi.fn();
+    render(
+      <DoranTimePicker
+        value={{ hour: 9, minute: 30 }}
+        hourStep={2}
+        minuteStep={15}
+        onChange={onChange}
+      />,
+    );
+
+    fireEvent.keyDown(field('ساعت'), { key: 'ArrowUp' });
+    expect(onChange).toHaveBeenLastCalledWith({ hour: 11, minute: 30 });
+
+    fireEvent.keyDown(field('دقیقه'), { key: 'ArrowUp' });
+    expect(onChange).toHaveBeenLastCalledWith({ hour: 9, minute: 45 });
   });
 });

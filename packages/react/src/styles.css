@@ -117,14 +117,26 @@
   padding-top: var(--doran-space-xs);
 }
 
+/* A fixed-width column cannot also hold a sidebar: without this the aside squeezes
+   the month grid instead of widening the calendar. Mirrors what the range picker
+   already does for its presets. */
+.doran-calendar:has(.doran-calendar__body) {
+  width: auto;
+}
+
 /* --- Slot regions -------------------------------------------------------
    Filled through the `slots` prop. Each region is intentionally unstyled beyond
    placement and spacing: whatever you drop in should look like your app, not
    like Doran. `__body` only exists when an `aside` is present. */
 
 .doran-calendar__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--doran-space-sm);
   padding: var(--doran-calendar-legend-padding, var(--doran-space-xs) 0);
-  font-size: var(--doran-calendar-legend-font-size, 0.72rem);
+  border-bottom: 1px solid var(--doran-calendar-border-color, var(--doran-border));
+  font-size: var(--doran-calendar-legend-font-size, 0.7rem);
   color: var(--doran-calendar-legend-color, var(--doran-text-muted));
 }
 
@@ -139,17 +151,31 @@
   flex-direction: column;
   gap: var(--doran-calendar-aside-gap, 0.35rem);
   flex-shrink: 0;
+  /* Reads as a sidebar rather than as content that wandered into the grid. */
+  padding-inline-end: var(--doran-calendar-aside-gap, 0.75rem);
+  border-inline-end: 1px solid var(--doran-calendar-border-color, var(--doran-border));
 }
 
 .doran-calendar__main {
+  /* The grid keeps the calendar's intended width; the aside adds to it. */
+  width: var(--doran-calendar-width, 17.5rem);
   min-width: 0;
 }
 
 .doran-calendar__footer-slot {
   display: flex;
+  flex: 1;
   align-items: center;
   gap: var(--doran-space-sm);
-  margin-inline-end: auto;
+  min-width: 0;
+  font-size: 0.78rem;
+  color: var(--doran-text-muted);
+}
+
+/* The footer is a row of actions plus, sometimes, a summary that should not push
+   them off the edge. */
+.doran-calendar__footer:has(.doran-calendar__footer-slot) {
+  justify-content: space-between;
 }
 
 /* --- Header pickers (month / year / time) ------------------------------- */
@@ -289,6 +315,12 @@
 }
 
 .doran-time__value {
+  /* A real input now, so it needs its chrome stripped back to the bare number. */
+  width: 2.25ch;
+  border: none;
+  background: transparent;
+  padding: 0.1rem 0;
+  font-family: inherit;
   font-variant-numeric: tabular-nums;
   font-size: var(--doran-time-font-size, 1.1rem);
   font-weight: var(--doran-time-font-weight, var(--doran-font-weight-semibold, 600));
@@ -299,10 +331,15 @@
 }
 
 /* The value is a spinbutton, so it is a tab stop and needs a visible focus ring. */
-.doran-time__value:focus-visible {
+.doran-time__value:focus-visible,
+.doran-time__value:focus {
   outline: none;
   border-radius: var(--doran-radius-sm);
   box-shadow: 0 0 0 3px var(--doran-focus-ring);
+}
+
+.doran-time__value::selection {
+  background: var(--doran-primary-soft);
 }
 
 .doran-time__meridiem {
@@ -362,7 +399,9 @@
 .doran-month__weekdays,
 .doran-month__week {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  /* minmax(0, …) rather than a bare 1fr: `1fr` floors at min-content, so one long
+     day annotation would widen its column and knock the whole grid out of true. */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .doran-month__weekday {
@@ -383,6 +422,7 @@
   justify-content: center;
   aspect-ratio: 1;
   position: relative;
+  min-width: 0;
 }
 
 .doran-month__spacer {
@@ -432,36 +472,45 @@
   cursor: not-allowed;
 }
 
-/* Rich days -----------------------------------------------------------------
+/* Rich days ---------------------------------------------------------------
    `.doran-month--rich` is set automatically when `dayContent` or `dayData` can
-   supply a second line. Plain grids keep the square pill; rich grids let the cell
-   grow and stack the number above its annotation. */
+   supply a second line. Plain grids keep the square pill; rich grids give every
+   cell the same taller box so rows stay level whether or not they carry text. */
 .doran-month--rich .doran-month__cell {
   aspect-ratio: auto;
+  /* Uniform height regardless of annotation, so rows never jump. */
+  min-height: var(--doran-day-rich-size, 3rem);
 }
 
 .doran-month--rich .doran-day {
   flex-direction: column;
-  gap: var(--doran-day-content-gap, 1px);
+  justify-content: center;
+  gap: var(--doran-day-content-gap, 0.1rem);
   width: 100%;
-  height: auto;
-  min-height: var(--doran-day-rich-size, 2.75rem);
-  padding: var(--doran-day-rich-padding, 0.22rem 0.15rem);
+  height: 100%;
+  min-width: 0;
+  padding: var(--doran-day-rich-padding, 0.2rem 0.15rem);
   border-radius: var(--doran-day-rich-radius, var(--doran-radius-md));
+  line-height: 1.15;
 }
 
 .doran-day__number {
   line-height: 1.15;
+  /* The number is the anchor; keep it steady while the annotation varies. */
+  font-variant-numeric: tabular-nums;
 }
 
 .doran-day__content {
+  /* min-width: 0 is what actually lets the ellipsis engage inside a flex column. */
+  min-width: 0;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--doran-day-content-font-size, 0.62rem);
-  line-height: 1.2;
+  font-size: var(--doran-day-content-font-size, 0.625rem);
+  line-height: 1.25;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
   color: var(--doran-day-content-color, var(--doran-text-muted));
 }
 
@@ -477,13 +526,33 @@
   color: var(--doran-day-tone-high, var(--doran-danger));
 }
 
+/* Outside days keep their annotation but recede with the number, so a trailing
+   week does not shout as loudly as the current month. */
+.doran-day--outside .doran-day__content {
+  opacity: 0.55;
+}
+
 /* Selected days invert their background, so the annotation follows the contrast
    rather than keeping a tone colour that would fail against the fill. */
 .doran-day--selected .doran-day__content,
 .doran-day--range-start .doran-day__content,
 .doran-day--range-end .doran-day__content {
   color: inherit;
-  opacity: 0.85;
+  opacity: 0.9;
+}
+
+/* In-range days sit on a tinted band; the annotation needs to stay legible on it
+   without adopting the filled-endpoint treatment. */
+.doran-day--in-range .doran-day__content {
+  color: var(--doran-day-in-range-color, inherit);
+}
+
+/* The holiday dot is positioned for a single-line cell; nudge it clear of the
+   second line so it does not collide with the annotation. */
+.doran-month--rich .doran-day--holiday::after {
+  bottom: auto;
+  top: 0.2rem;
+  inset-inline-end: 0.25rem;
 }
 
 .doran-day--outside {

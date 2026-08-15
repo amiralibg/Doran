@@ -12,7 +12,6 @@ export default function WithTime({ locale = faIR }: { locale?: Locale }) {
         value={value}
         onChange={setValue}
         withTime
-        minuteStep={5}
         defaultTime={{ hour: 9, minute: 0 }}
         locale={locale}
       />

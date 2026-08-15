@@ -58,6 +58,8 @@ export default function FlightFares({ locale }: { locale: Locale }) {
       dayContent={(day) => {
         const fare = fares.get(keyOf(day));
         if (fare == null) return null;
+        // Thousands, so the number fits a 7-column grid; dayProps spells out the
+        // real figure for screen readers.
         return formatToman(Math.round(fare / 1000), locale);
       }}
       dayProps={(day) => {

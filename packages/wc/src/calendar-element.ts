@@ -6,6 +6,7 @@ import {
   type DayDatum,
   type Locale,
   resolveDirection,
+  normalizeDigits,
 } from '@doranjs/core';
 import { isDayBlocked, renderDayCell } from './day-render';
 import { buildMonthGrid, navigateFocus, type GridNav, type MonthGrid } from './grid';
@@ -48,6 +49,8 @@ export class DoranCalendarElement extends HTMLElement {
       'hide-footer',
       'footer-actions',
       'year-span',
+      'hour-step',
+      'minute-step',
     ];
   }
 
@@ -109,6 +112,7 @@ export class DoranCalendarElement extends HTMLElement {
     this.addEventListener('click', this.#onClick);
     this.addEventListener('change', this.#onNativeChange, true);
     this.addEventListener('keydown', this.#onKeyDown);
+    this.addEventListener('input', this.#onTimeInput);
     this.#render();
   }
 
@@ -116,6 +120,7 @@ export class DoranCalendarElement extends HTMLElement {
     this.removeEventListener('click', this.#onClick);
     this.removeEventListener('change', this.#onNativeChange, true);
     this.removeEventListener('keydown', this.#onKeyDown);
+    this.removeEventListener('input', this.#onTimeInput);
   }
 
   attributeChangedCallback(name: string, _old: string | null, value: string | null): void {
@@ -302,10 +307,52 @@ export class DoranCalendarElement extends HTMLElement {
     return (inMonth[0] ?? cells[0]!).date;
   }
 
+  /**
+   * Commits a typed time field.
+   *
+   * Deliberately does not re-render: rebuilding the markup mid-keystroke would drop
+   * the caret. The value is stored and the display catches up on the next render.
+   */
+  #onTimeInput = (event: Event): void => {
+    const input = event.target as HTMLInputElement;
+    if (!input.classList.contains('doran-time__value')) return;
+
+    const field = input.dataset.field ?? 'hour';
+    const max = Number(input.dataset.max ?? 59);
+    // Accept Persian and Arabic numerals, which is what a Persian keyboard produces.
+    const digits = normalizeDigits(input.value).replace(/\D/g, '');
+    if (digits === '') return;
+
+    const parsed = Number(digits);
+    if (!Number.isFinite(parsed) || parsed > max) return;
+
+    if (field === 'hour') this.#time.hour = parsed;
+    else this.#time.minute = parsed;
+
+    // Update the announced value in place. A re-render would keep it in sync too, but
+    // would also rebuild the input and drop the caret mid-keystroke.
+    input.setAttribute('aria-valuenow', String(parsed));
+    input.setAttribute('aria-valuetext', String(parsed).padStart(2, '0'));
+
+    if (this.#selected) {
+      const next = withTime(this.#selected, this.#time);
+      this.#selected = next;
+      this.#emit(next);
+    }
+  };
+
+  /** How much one arrow press moves a unit. Every unit defaults to 1. */
+  #stepFor(field: string): number {
+    const attr = this.getAttribute(field === 'hour' ? 'hour-step' : 'minute-step');
+    const n = Number(attr);
+    return Number.isInteger(n) && n > 0 ? n : 1;
+  }
+
   /** Applies a delta to one time field, wrapping, and re-renders. */
   #stepTime(field: string, delta: number): void {
-    if (field === 'hour') this.#time.hour = (((this.#time.hour + delta) % 24) + 24) % 24;
-    else this.#time.minute = (((this.#time.minute + delta) % 60) + 60) % 60;
+    const step = delta * this.#stepFor(field);
+    if (field === 'hour') this.#time.hour = (((this.#time.hour + step) % 24) + 24) % 24;
+    else this.#time.minute = (((this.#time.minute + step) % 60) + 60) % 60;
     this.#commitTime();
   }
 
@@ -582,8 +629,10 @@ export class DoranCalendarElement extends HTMLElement {
     const field = (label: string, value: number, max: number, fieldName: string) =>
       `<div class="doran-time__field" role="group" aria-label="${esc(label)}">` +
       `<button type="button" class="doran-time__btn" tabindex="-1" data-action="time" data-field="${fieldName}" data-delta="1" aria-label="${esc(`${labels.increase} ${label}`)}">${chevronUp}</button>` +
-      `<span class="doran-time__value" role="spinbutton" tabindex="0" data-field="${fieldName}" data-max="${max}"` +
-      ` aria-label="${esc(label)}" aria-valuenow="${value}" aria-valuemin="0" aria-valuemax="${max}" aria-valuetext="${esc(pad(value))}">${pad(value)}</span>` +
+      `<input type="text" class="doran-time__value" inputmode="numeric" autocomplete="off" size="2"` +
+      ` role="spinbutton" data-field="${fieldName}" data-max="${max}"` +
+      ` aria-label="${esc(label)}" aria-valuenow="${value}" aria-valuemin="0" aria-valuemax="${max}"` +
+      ` aria-valuetext="${esc(pad(value))}" value="${esc(pad(value))}" />` +
       `<button type="button" class="doran-time__btn" tabindex="-1" data-action="time" data-field="${fieldName}" data-delta="-1" aria-label="${esc(`${labels.decrease} ${label}`)}">${chevronDown}</button>` +
       `</div>`;
     return (

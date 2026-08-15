@@ -22,7 +22,8 @@ export default function HotelAvailability({ locale }: { locale: Locale }) {
         rooms === 0
           ? { disabled: true, disabledReason: 'تکمیل ظرفیت' }
           : {
-              text: `${locale.formatNumber(String(rooms))} اتاق`,
+              // Just the count: at two-month width there is no room for a unit word.
+              text: locale.formatNumber(String(rooms)),
               tone: rooms <= 2 ? 'high' : 'low',
             };
     }
@@ -36,6 +37,13 @@ export default function HotelAvailability({ locale }: { locale: Locale }) {
       locale={locale}
       numberOfMonths={2}
       dayData={dayData}
+      slots={{
+        legend: (
+          <>
+            <span>عدد زیر هر روز، اتاق‌های باقی‌مانده است</span>
+          </>
+        ),
+      }}
     />
   );
 }
