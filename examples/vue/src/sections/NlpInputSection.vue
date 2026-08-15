@@ -12,10 +12,18 @@ const app = useApp();
 
 <template>
   <Section id="nlp-input" title="<DoranNlpInput>" :intro="app.t('nlpIntro')">
-    <DemoCard :title="app.t('nlpDefaultTitle')" :description="app.t('nlpDefaultDesc')" :code="DefaultSrc">
+    <DemoCard
+      :title="app.t('nlpDefaultTitle')"
+      :description="app.t('nlpDefaultDesc')"
+      :code="DefaultSrc"
+    >
       <Default :lang="app.lang()" />
     </DemoCard>
-    <DemoCard :title="app.t('nlpResolveTitle')" :description="app.t('nlpResolveDesc')" :code="ResolveSrc">
+    <DemoCard
+      :title="app.t('nlpResolveTitle')"
+      :description="app.t('nlpResolveDesc')"
+      :code="ResolveSrc"
+    >
       <Resolve :lang="app.lang()" />
     </DemoCard>
   </Section>

@@ -16,6 +16,7 @@ export {
   DoranCalendar,
   DoranDatePicker,
   DoranNlpInput,
+  DoranRangeDatePicker,
   DoranRangePicker,
   type DoranDateRange,
   type GregorianDateRange,

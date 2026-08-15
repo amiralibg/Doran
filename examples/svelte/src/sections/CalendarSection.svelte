@@ -19,6 +19,9 @@
 </script>
 
 <Section id="calendar" title="<DoranCalendar>" intro={$t('calIntro')}>
+  <DemoCard title={$t('wgEventsTitle')} description={$t('wgEventsDesc')} code={WidgetsSrc}>
+    <Widgets lang={$lang} />
+  </DemoCard>
   <DemoCard title={$t('calDefaultTitle')} description={$t('calDefaultDesc')} code={DefaultSrc}>
     <Default lang={$lang} />
   </DemoCard>

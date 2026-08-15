@@ -10,7 +10,11 @@ const app = useApp();
 
 <template>
   <Section id="theming" :title="app.t('navTheming')" :intro="app.t('thIntro')">
-    <DemoCard :title="app.t('thTokensTitle')" :description="app.t('thTokensDesc')" :code="TokensSrc">
+    <DemoCard
+      :title="app.t('thTokensTitle')"
+      :description="app.t('thTokensDesc')"
+      :code="TokensSrc"
+    >
       <Tokens :lang="app.lang()" />
     </DemoCard>
   </Section>

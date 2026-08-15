@@ -336,6 +336,105 @@ export class DoranRangePicker implements ControlValueAccessor, AfterViewInit, On
 }
 
 /**
+ * `<doran-range-picker>` — start/end picker.
+ * Reactive-forms ready; the model is `{ start, end }` of `DoranDate`; `(change)`
+ * also emits the Gregorian range.
+ */
+@Component({
+  selector: 'dr-range-date-picker',
+  standalone: true,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  template: `<doran-rangedatepicker #el (change)="onChange($event)"
+    ><ng-content></ng-content
+  ></doran-rangedatepicker>`,
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DoranRangeDatePicker),
+      multi: true,
+    },
+  ],
+})
+export class DoranRangeDatePicker implements ControlValueAccessor, AfterViewInit, OnChanges {
+  @ViewChild('el') el!: ElementRef<HTMLElement & { value: DoranDateRange }>;
+  @Output() change = new EventEmitter<{ value: DoranDateRange; gregorian: GregorianDateRange }>();
+
+  @Input() locale?: string;
+  @Input() headerMode?: 'dropdown' | 'separate';
+  @Input() showHolidays?: boolean;
+  @Input() weekends?: number[] | string;
+  @Input() presets?: boolean;
+  @Input() months?: number;
+  @Input() footerActions?: FooterActionsInput;
+  @Input() yearSpan?: number;
+  /** Per-day annotations keyed by Jalali `YYYY-M-D` — a fare, a count, a sold-out flag. */
+  @Input() dayData?: DayDataMap | null;
+  /** Blocks individual days beyond `min`/`max`. */
+  @Input() disabledDates?: (day: DoranDate) => boolean;
+
+  private value: DoranDateRange = { start: null, end: null };
+  private ready = false;
+  private cbChange: (v: DoranDateRange) => void = () => {};
+  private cbTouched: Noop = () => {};
+  private defaults = inject(DORAN_DEFAULTS, { optional: true });
+
+  constructor() {
+    ensureElements();
+  }
+
+  ngAfterViewInit(): void {
+    ensureElements().then(() => {
+      this.ready = true;
+      this.syncEl();
+    });
+  }
+  ngOnChanges(): void {
+    if (this.ready) this.syncEl();
+  }
+  private syncEl(): void {
+    const el = this.el.nativeElement;
+    applyLocale(el, this.locale, this.defaults);
+    setAttr(el, 'header-mode', this.headerMode);
+    setBool(el, 'show-holidays', this.showHolidays);
+    setAttr(el, 'weekends', weekendsAttr(this.weekends));
+    setBool(el, 'presets', this.presets);
+    setAttr(el, 'months', this.months);
+    setFooterActions(el, this.footerActions);
+    setAttr(el, 'year-span', this.yearSpan);
+    applyDayWidgets(el, this as DayWidgetInputs);
+    el.value = this.value;
+  }
+
+  writeValue(v: DoranDateRange | null): void {
+    this.value = v ?? { start: null, end: null };
+    if (this.ready) this.el.nativeElement.value = this.value;
+  }
+  registerOnChange(fn: (v: DoranDateRange) => void): void {
+    this.cbChange = fn;
+  }
+  registerOnTouched(fn: Noop): void {
+    this.cbTouched = fn;
+  }
+  setDisabledState(isDisabled: boolean): void {
+    if (this.el) this.el.nativeElement.toggleAttribute('disabled', isDisabled);
+  }
+
+  onChange(e: Event): void {
+    const value = detail<DoranDateRange>(e) ?? { start: null, end: null };
+    this.value = value;
+    this.cbChange(value);
+    this.cbTouched();
+    this.change.emit({
+      value,
+      gregorian: {
+        start: value.start ? value.start.toGregorian() : null,
+        end: value.end ? value.end.toGregorian() : null,
+      },
+    });
+  }
+}
+
+/**
  * `<doran-nlp-input>` — natural-language date input.
  * Reactive-forms ready; the model is the raw text string. `(resolve)` fires when
  * the text parses to a date; `(change)` reports the same result.

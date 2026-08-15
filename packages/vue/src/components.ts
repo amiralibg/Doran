@@ -175,6 +175,44 @@ export const DoranRangePicker = defineComponent({
   },
 });
 
+/** `<doran-rangedatepicker>` — a range input with a pop-over grid. `v-model` is `{ start, end }`. */
+export const DoranRangeDatePicker = defineComponent({
+  name: 'DoranRangeDatePicker',
+  inheritAttrs: false,
+  props: {
+    modelValue: {
+      type: Object as PropType<DoranDateRange>,
+      default: () => ({ start: null, end: null }),
+    },
+    ...dayWidgetProps,
+  },
+  emits: {
+    'update:modelValue': (_r: DoranDateRange) => true,
+    change: (_r: DoranDateRange, _g: GregorianDateRange) => true,
+  },
+  setup(props, { attrs, emit, slots }) {
+    const el = useElement<HTMLElement & { value: DoranDateRange }>(
+      () => props.modelValue,
+      () => ({ dayData: props.dayData, disabledDates: props.disabledDates }),
+    );
+    const defaults = injectDoranDefaults();
+    const onChange = (e: Event) => {
+      const range = detail<DoranDateRange>(e);
+      emit('update:modelValue', range);
+      emit('change', range, {
+        start: range.start ? range.start.toGregorian() : null,
+        end: range.end ? range.end.toGregorian() : null,
+      });
+    };
+    return () =>
+      h(
+        'doran-rangedatepicker',
+        { ref: el, ...mergeDefaults(defaults, attrs), onChange },
+        slots.default?.(),
+      );
+  },
+});
+
 /** `<doran-nlp-input>` — natural-language date input. `v-model` is the text string. */
 export const DoranNlpInput = defineComponent({
   name: 'DoranNlpInput',

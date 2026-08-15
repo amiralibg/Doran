@@ -43,5 +43,20 @@
   }
 </script>
 
-<!-- Children (e.g. a custom `slot="icon"` node) pass through to the element. -->
-<doran-datepicker bind:this={el} on:change={onChange} {...attrs}><slot /></doran-datepicker>
+<!--
+  The default slot carries a custom `slot="icon"` node. Svelte claims `slot="…"` on a
+  component's children for its own slots, so the element's legend/aside/footer regions
+  are re-created here and filled from the Svelte ones.
+-->
+<doran-datepicker bind:this={el} on:change={onChange} {...attrs}>
+  <slot />
+  {#if $$slots.legend}
+    <div slot="legend"><slot name="legend" /></div>
+  {/if}
+  {#if $$slots.aside}
+    <div slot="aside"><slot name="aside" /></div>
+  {/if}
+  {#if $$slots.footer}
+    <div slot="footer"><slot name="footer" /></div>
+  {/if}
+</doran-datepicker>

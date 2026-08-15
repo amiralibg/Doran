@@ -10,10 +10,5 @@ const value = shallowRef<DoranDate | null>(null);
 </script>
 
 <template>
-  <DoranDatePicker
-    v-model="value"
-    :locale="lang"
-    format="YYYY/MM/DD"
-    placeholder="۱۴۰۳/۰۱/۰۱"
-  />
+  <DoranDatePicker v-model="value" :locale="lang" format="YYYY/MM/DD" placeholder="۱۴۰۳/۰۱/۰۱" />
 </template>

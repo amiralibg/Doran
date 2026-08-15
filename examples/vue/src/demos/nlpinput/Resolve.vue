@@ -11,7 +11,11 @@ const result = shallowRef<ParseResult | null>(null);
 </script>
 
 <template>
-  <DoranNlpInput v-model="text" :locale="lang" @resolve="(r) => (result = r as ParseResult | null)" />
+  <DoranNlpInput
+    v-model="text"
+    :locale="lang"
+    @resolve="(r) => (result = r as ParseResult | null)"
+  />
   <p class="result">
     {{ result ? result.date.withLocale(lang).format('dddd D MMMM YYYY — HH:mm') : '—' }}
   </p>

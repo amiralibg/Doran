@@ -13,6 +13,9 @@
 </script>
 
 <Section id="rangepicker" title="<DoranRangePicker>" intro={$t('rpIntro')}>
+  <DemoCard title={$t('rpTriggerTitle')} description={$t('rpTriggerDesc')} code={WithTriggerSrc}>
+    <WithTrigger lang={$lang} />
+  </DemoCard>
   <DemoCard title={$t('rpDefaultTitle')} description={$t('rpDefaultDesc')} code={DefaultSrc}>
     <Default lang={$lang} />
   </DemoCard>

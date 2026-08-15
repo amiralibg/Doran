@@ -547,7 +547,14 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
             inputMode="numeric"
             autoComplete="off"
             dir="auto"
-            className={cn('doran-datepicker__control', classNames?.input)}
+            // `doran-datepicker__value` is kept as an alias: it named the text span
+            // this input replaced, so stylesheets written against the old markup keep
+            // applying rather than silently losing their rules.
+            className={cn(
+              'doran-datepicker__control',
+              'doran-datepicker__value',
+              classNames?.input,
+            )}
             style={{ flex: 1, textAlign }}
             value={text}
             placeholder={resolvedPlaceholder}

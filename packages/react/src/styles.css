@@ -745,6 +745,14 @@
   outline: none;
 }
 
+/* Compatibility with markup from before the trigger became a real input.
+   `.doran-datepicker__value` named the text span the input replaced, and
+   `.doran-datepicker__placeholder` its empty state — both are still honoured so
+   existing stylesheets do not quietly stop applying. */
+.doran-datepicker__placeholder {
+  color: var(--doran-placeholder-color, var(--doran-text-muted));
+}
+
 .doran-datepicker__control:disabled {
   cursor: not-allowed;
   /* The wrapper already dims; dimming twice reads as broken. */
