@@ -280,16 +280,7 @@ export class DoranCalendarElement extends HTMLElement {
         break;
       }
       case 'time': {
-        const field = btn.dataset.field;
-        const delta = Number(btn.dataset.delta);
-        if (field === 'hour') this.#time.hour = (((this.#time.hour + delta) % 24) + 24) % 24;
-        else this.#time.minute = (((this.#time.minute + delta) % 60) + 60) % 60;
-        if (this.#selected) {
-          const next = withTime(this.#selected, this.#time);
-          this.#selected = next;
-          this.#emit(next);
-        }
-        this.#render();
+        this.#stepTime(btn.dataset.field ?? 'hour', Number(btn.dataset.delta));
         break;
       }
       default:
@@ -311,7 +302,72 @@ export class DoranCalendarElement extends HTMLElement {
     return (inMonth[0] ?? cells[0]!).date;
   }
 
+  /** Applies a delta to one time field, wrapping, and re-renders. */
+  #stepTime(field: string, delta: number): void {
+    if (field === 'hour') this.#time.hour = (((this.#time.hour + delta) % 24) + 24) % 24;
+    else this.#time.minute = (((this.#time.minute + delta) % 60) + 60) % 60;
+    this.#commitTime();
+  }
+
+  /** Jumps one time field straight to a value, for Home and End. */
+  #setTime(field: string, value: number): void {
+    if (field === 'hour') this.#time.hour = value;
+    else this.#time.minute = value;
+    this.#commitTime();
+  }
+
+  #commitTime(): void {
+    if (this.#selected) {
+      const next = withTime(this.#selected, this.#time);
+      this.#selected = next;
+      this.#emit(next);
+    }
+    this.#render();
+  }
+
+  /**
+   * Arrow keys on a time spinbutton. Without this the only way to change the time
+   * was to Tab onto a chevron and press Enter.
+   */
+  #onTimeKeyDown(event: KeyboardEvent, spin: HTMLElement): boolean {
+    const field = spin.dataset.field ?? 'hour';
+    const max = Number(spin.dataset.max ?? 59);
+    const PAGE = 5;
+
+    switch (event.key) {
+      case 'ArrowUp':
+        this.#stepTime(field, 1);
+        break;
+      case 'ArrowDown':
+        this.#stepTime(field, -1);
+        break;
+      case 'PageUp':
+        this.#stepTime(field, PAGE);
+        break;
+      case 'PageDown':
+        this.#stepTime(field, -PAGE);
+        break;
+      case 'Home':
+        this.#setTime(field, 0);
+        break;
+      case 'End':
+        this.#setTime(field, max);
+        break;
+      default:
+        return false;
+    }
+    event.preventDefault();
+    // The re-render replaced the node, so put focus back where the user left it.
+    this.querySelector<HTMLElement>(`.doran-time__value[data-field="${field}"]`)?.focus();
+    return true;
+  }
+
   #onKeyDown = (event: KeyboardEvent): void => {
+    const spin = (event.target as HTMLElement).closest<HTMLElement>('.doran-time__value');
+    if (spin) {
+      this.#onTimeKeyDown(event, spin);
+      return;
+    }
     if (this.#panel !== 'days') return;
     if (!(event.target as HTMLElement).closest('.doran-month')) return;
 
@@ -521,17 +577,20 @@ export class DoranCalendarElement extends HTMLElement {
   #renderTime(num: (n: number | string) => string): string {
     const labels = resolveCalendarLabels(this.#locale);
     const pad = (n: number) => num(String(n).padStart(2, '0'));
-    const field = (label: string, value: string, fieldName: string) =>
-      `<div class="doran-time__field" role="group" aria-label="${label}">` +
-      `<button type="button" class="doran-time__btn" data-action="time" data-field="${fieldName}" data-delta="1" aria-label="افزایش ${label}">${chevronUp}</button>` +
-      `<span class="doran-time__value">${value}</span>` +
-      `<button type="button" class="doran-time__btn" data-action="time" data-field="${fieldName}" data-delta="-1" aria-label="کاهش ${label}">${chevronDown}</button>` +
+    // The value is a `spinbutton`, so the field is a tab stop that answers to the
+    // arrow keys. Previously the only route was Tab onto a chevron and press Enter.
+    const field = (label: string, value: number, max: number, fieldName: string) =>
+      `<div class="doran-time__field" role="group" aria-label="${esc(label)}">` +
+      `<button type="button" class="doran-time__btn" tabindex="-1" data-action="time" data-field="${fieldName}" data-delta="1" aria-label="${esc(`${labels.increase} ${label}`)}">${chevronUp}</button>` +
+      `<span class="doran-time__value" role="spinbutton" tabindex="0" data-field="${fieldName}" data-max="${max}"` +
+      ` aria-label="${esc(label)}" aria-valuenow="${value}" aria-valuemin="0" aria-valuemax="${max}" aria-valuetext="${esc(pad(value))}">${pad(value)}</span>` +
+      `<button type="button" class="doran-time__btn" tabindex="-1" data-action="time" data-field="${fieldName}" data-delta="-1" aria-label="${esc(`${labels.decrease} ${label}`)}">${chevronDown}</button>` +
       `</div>`;
     return (
       `<div class="doran-time" dir="ltr">` +
-      field(labels.hour, pad(this.#time.hour), 'hour') +
+      field(labels.hour, this.#time.hour, 23, 'hour') +
       `<span class="doran-time__sep">:</span>` +
-      field(labels.minute, pad(this.#time.minute), 'minute') +
+      field(labels.minute, this.#time.minute, 59, 'minute') +
       `</div>`
     );
   }

@@ -73,6 +73,8 @@ export interface DatePickerAttributeInputs {
   hideIcon?: boolean;
   /** Stops the user typing a date while leaving the calendar usable. */
   readOnly?: boolean;
+  /** How the calendar is presented: anchored, a bottom sheet, or auto by width. */
+  mode?: 'popover' | 'sheet' | 'auto';
 }
 
 /** Apply the date-picker wrapper's explicit inputs to its custom element. */
@@ -97,4 +99,5 @@ export function applyDatePickerAttributes(
   setBool(el, 'disabled', inputs.disabled === true || formDisabled);
   setBool(el, 'hide-icon', inputs.hideIcon);
   setBool(el, 'readonly', inputs.readOnly);
+  setAttr(el, 'mode', inputs.mode);
 }

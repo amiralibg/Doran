@@ -47,6 +47,8 @@ export class DoranDatePickerElement extends HTMLElement {
       'input-width',
       'dropdown-width',
       'disabled',
+      'readonly',
+      'mode',
     ];
   }
 
@@ -145,6 +147,18 @@ export class DoranDatePickerElement extends HTMLElement {
       this.getAttribute('format') ??
       (boolAttr(this, 'with-time') ? 'YYYY/MM/DD HH:mm' : 'YYYY/MM/DD')
     );
+  }
+
+  /**
+   * How the calendar is presented: `popover` (default), `sheet`, or `auto`, which
+   * switches to a sheet under 640px.
+   */
+  get #presentation(): 'popover' | 'sheet' {
+    const mode = this.getAttribute('mode');
+    if (mode === 'sheet') return 'sheet';
+    if (mode !== 'auto') return 'popover';
+    if (typeof window === 'undefined' || !window.matchMedia) return 'popover';
+    return window.matchMedia('(max-width: 639px)').matches ? 'sheet' : 'popover';
   }
 
   get #iconPosition(): 'left' | 'right' {
@@ -415,7 +429,13 @@ export class DoranDatePickerElement extends HTMLElement {
 
     if (this.#open) {
       const popover = document.createElement('div');
-      popover.className = `doran-datepicker__popover doran-datepicker__popover--${dropdownWidthMode}`;
+      // Under the breakpoint the calendar stops trying to anchor to a trigger near
+      // the bottom of a phone viewport and becomes a bottom sheet instead.
+      const presentation = this.#presentation;
+      popover.className =
+        `doran-datepicker__popover doran-datepicker__popover--${dropdownWidthMode}` +
+        (presentation === 'sheet' ? ' doran-datepicker__popover--sheet' : '');
+      popover.dataset.presentation = presentation;
       popover.dataset.dropdownWidth = dropdownWidthMode;
       popover.setAttribute('role', 'dialog');
       popover.setAttribute('aria-modal', 'false');
@@ -482,7 +502,9 @@ export class DoranDatePickerElement extends HTMLElement {
       // Measure the bordered field, not the host: `dropdown-width="trigger"` should
       // match what the user sees.
       const field = this.querySelector<HTMLElement>('.doran-datepicker__input');
-      if (field) {
+      // A sheet is pinned to the viewport, so it needs neither measurement nor a
+      // width match against the trigger.
+      if (field && presentation !== 'sheet') {
         this.#stopTracking = trackPopoverPosition(field, popover, {
           matchTriggerWidth: dropdownWidthMode === 'trigger',
         });

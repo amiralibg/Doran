@@ -132,6 +132,45 @@ are merged with Doran's rather than replacing them.
 when the picker lives inside a focus-trapping dialog (shadcn, Radix, Headless UI),
 since a body-level pop-over sits outside the trap and gets focus pulled back out.
 
+## Range picker with a trigger
+
+`DoranRangeDatePicker` is one trigger holding two fields, either typable or fillable
+from the grid:
+
+```tsx
+<DoranRangeDatePicker value={range} onChange={setRange} numberOfMonths={2} presets />
+```
+
+The ends are kept in order — typing or picking an end before the start swaps them
+rather than producing a backwards range. `startName` and `endName` emit hidden fields
+carrying Latin-digit dates for native form submission.
+
+Use `DoranRangePicker` instead when you want the calendar inline with no trigger.
+
+## Time picker
+
+Each field is a `spinbutton`, so it is a tab stop that answers to the arrow keys,
+PageUp/PageDown, and Home/End. The chevrons are pointer affordances and stay out of
+the tab order.
+
+```tsx
+<DoranDatePicker withTime withSeconds hourCycle={12} minuteStep={15} />
+```
+
+`hourCycle={12}` adds a meridiem toggle labelled from the locale's `meridiem` pair;
+the value stays 24-hour either way.
+
+## Mobile
+
+```tsx
+<DoranDatePicker mode="auto" />
+```
+
+`auto` switches to a bottom sheet under 640px, where a 320px calendar anchored near
+the bottom of a phone viewport would otherwise be squeezed against an edge under the
+on-screen keyboard. `sheet` forces it, `popover` (the default) never uses it. The
+sheet dismisses on Escape and outside-click exactly as the pop-over does.
+
 ## Day widgets
 
 Put your own content under each day — a fare, a seat count, an availability badge.

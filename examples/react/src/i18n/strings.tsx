@@ -110,6 +110,9 @@ const fa: Dict = {
 
   // ── <DoranRangePicker> ─────────────────────────────────────────────
   rpIntro: 'انتخاب بازهٔ تاریخ با همان منطقِ تقویم؛ با میان‌برهای آماده و نمایش چندماهه.',
+  rpTriggerTitle: 'با ورودی — DoranRangeDatePicker',
+  rpTriggerDesc:
+    'یک تریگر با دو فیلد که هم تایپ می‌شوند و هم از جدول پر. ترتیب دو سر حفظ می‌شود: اگر پایان را قبل از شروع بدهید جابه‌جا می‌شوند.',
   rpDefaultTitle: 'پیش‌فرض',
   rpDefaultDesc: 'با کلیک روی روزِ شروع و سپس روزِ پایان، بازه انتخاب می‌شود.',
   rpPresetsTitle: 'میان‌برهای آماده',
@@ -254,6 +257,9 @@ const en: Dict = {
   // ── <DoranRangePicker> ─────────────────────────────────────────────
   rpIntro:
     'Pick a date range with the same calendar logic — with ready-made shortcuts and multi-month view.',
+  rpTriggerTitle: 'With an input — DoranRangeDatePicker',
+  rpTriggerDesc:
+    'One trigger holding two fields, either typable or fillable from the grid. The ends are kept in order: an end before the start swaps them rather than producing a backwards range.',
   rpDefaultTitle: 'Default',
   rpDefaultDesc: 'Click the start day, then the end day, to select a range.',
   rpPresetsTitle: 'Preset shortcuts',

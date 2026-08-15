@@ -4,6 +4,8 @@ import { Section } from '../demo/Section';
 
 import Default from '../demos/rangepicker/Default';
 import DefaultSrc from '../demos/rangepicker/Default?raw';
+import WithTrigger from '../demos/rangepicker/WithTrigger';
+import WithTriggerSrc from '../demos/rangepicker/WithTrigger?raw';
 import Presets from '../demos/rangepicker/Presets';
 import PresetsSrc from '../demos/rangepicker/Presets?raw';
 import MultiMonth from '../demos/rangepicker/MultiMonth';
@@ -15,6 +17,9 @@ export function RangePickerSection() {
   const { t, locale } = useLang();
   return (
     <Section id="rangepicker" title="<DoranRangePicker>" intro={t('rpIntro')}>
+      <DemoCard title={t('rpTriggerTitle')} description={t('rpTriggerDesc')} code={WithTriggerSrc}>
+        <WithTrigger locale={locale} />
+      </DemoCard>
       <DemoCard title={t('rpDefaultTitle')} description={t('rpDefaultDesc')} code={DefaultSrc}>
         <Default locale={locale} />
       </DemoCard>

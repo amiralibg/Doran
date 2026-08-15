@@ -88,6 +88,8 @@ export class DoranDatePicker implements ControlValueAccessor, AfterViewInit, OnC
   @Input() hideIcon?: boolean;
   /** Stops the user typing a date while leaving the calendar usable. */
   @Input() readOnly?: boolean;
+  /** How the calendar is presented: anchored, a bottom sheet, or auto by width. */
+  @Input() mode?: 'popover' | 'sheet' | 'auto';
   /** Per-day annotations keyed by Jalali `YYYY-M-D`, forwarded to the pop-over calendar. */
   @Input() dayData?: DayDataMap | null;
   /** Blocks individual days beyond `min`/`max`. */

@@ -134,3 +134,79 @@ describe('typing into <doran-datepicker>', () => {
     );
   });
 });
+
+describe('presentation mode', () => {
+  const open = (el: HTMLElement) =>
+    el.querySelector<HTMLButtonElement>('.doran-datepicker__icon')!.click();
+
+  it('anchors to the trigger by default', () => {
+    const el = mount();
+    open(el);
+    expect(document.querySelector<HTMLElement>('[role="dialog"]')!.dataset.presentation).toBe(
+      'popover',
+    );
+  });
+
+  it('renders as a bottom sheet when asked', () => {
+    const el = mount({ mode: 'sheet' });
+    open(el);
+
+    const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!;
+    expect(dialog.dataset.presentation).toBe('sheet');
+    expect(dialog.classList.contains('doran-datepicker__popover--sheet')).toBe(true);
+    // Pinned to the viewport, so it carries no measured position.
+    expect(dialog.style.top).toBe('');
+  });
+
+  it('still closes on Escape as a sheet', () => {
+    const el = mount({ mode: 'sheet' });
+    open(el);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
+  });
+});
+
+describe('time picker keyboard', () => {
+  const spin = (el: HTMLElement, field: string) =>
+    el.querySelector<HTMLElement>(`.doran-time__value[data-field="${field}"]`)!;
+
+  function mountCalendar(): HTMLElement {
+    document.body.innerHTML = '<doran-calendar value="1405/03/15" with-time></doran-calendar>';
+    return document.querySelector('doran-calendar')!;
+  }
+
+  it('exposes each field as a spinbutton', () => {
+    const el = mountCalendar();
+    const hour = spin(el, 'hour');
+
+    expect(hour.getAttribute('role')).toBe('spinbutton');
+    expect(hour.getAttribute('tabindex')).toBe('0');
+    expect(hour.getAttribute('aria-valuemax')).toBe('23');
+  });
+
+  it('adjusts the value with the arrow keys', () => {
+    const el = mountCalendar();
+    const before = spin(el, 'hour').getAttribute('aria-valuenow');
+
+    spin(el, 'hour').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+
+    expect(spin(el, 'hour').getAttribute('aria-valuenow')).not.toBe(before);
+  });
+
+  it('jumps to the bounds with Home and End', () => {
+    const el = mountCalendar();
+
+    spin(el, 'hour').dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+    expect(spin(el, 'hour').getAttribute('aria-valuenow')).toBe('0');
+
+    spin(el, 'minute').dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    expect(spin(el, 'minute').getAttribute('aria-valuenow')).toBe('59');
+  });
+
+  it('keeps the chevrons out of the tab order', () => {
+    const el = mountCalendar();
+    for (const btn of el.querySelectorAll('.doran-time__btn')) {
+      expect(btn.getAttribute('tabindex')).toBe('-1');
+    }
+  });
+});
