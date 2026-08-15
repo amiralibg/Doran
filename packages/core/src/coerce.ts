@@ -1,4 +1,4 @@
-import { DoranDate } from './doran-date';
+import { DoranDate, isDoranDate } from './doran-date';
 import { enUS } from './locale';
 import { parseGregorian, parseJalali } from './parse';
 import type { DoranDateOptions } from './types';
@@ -51,7 +51,9 @@ export function toDoranDate(
 ): DoranDate | null {
   if (input === null || input === undefined) return null;
 
-  if (input instanceof DoranDate) return input;
+  // Brand rather than `instanceof`, so a date from another installed copy of core is
+  // still recognized instead of being re-parsed or dropped.
+  if (isDoranDate(input)) return input;
   if (input instanceof Date) {
     return Number.isNaN(input.getTime()) ? null : DoranDate.fromGregorian(input, options);
   }

@@ -52,8 +52,8 @@
     "clean": "rm -rf dist .turbo coverage"
   },
   "dependencies": {
-    "@doranjs/core": "workspace:*",
-    "@doranjs/wc": "workspace:*"
+    "@doranjs/core": "workspace:^",
+    "@doranjs/wc": "workspace:^"
   },
   "peerDependencies": {
     "svelte": "^4.0.0 || ^5.0.0"

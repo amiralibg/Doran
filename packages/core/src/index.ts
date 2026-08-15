@@ -7,6 +7,7 @@
 export {
   DoranDate,
   freeze,
+  isDoranDate,
   type GregorianInput,
   type JalaliInput,
   type NowInput,

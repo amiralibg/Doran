@@ -273,10 +273,10 @@ importers:
   packages/angular:
     dependencies:
       '@doranjs/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       '@doranjs/wc':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../wc
     devDependencies:
       '@angular/common':
@@ -328,25 +328,25 @@ importers:
   packages/holidays:
     dependencies:
       '@doranjs/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
 
   packages/nlp:
     dependencies:
       '@doranjs/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
 
   packages/react:
     dependencies:
       '@doranjs/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       '@doranjs/holidays':
         specifier: workspace:^
         version: link:../holidays
       '@doranjs/nlp':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../nlp
     devDependencies:
       '@doranjs/ui':
@@ -380,10 +380,10 @@ importers:
   packages/svelte:
     dependencies:
       '@doranjs/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       '@doranjs/wc':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../wc
     devDependencies:
       '@sveltejs/package':
@@ -429,10 +429,10 @@ importers:
   packages/vue:
     dependencies:
       '@doranjs/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       '@doranjs/wc':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../wc
     devDependencies:
       jsdom:
@@ -445,13 +445,13 @@ importers:
   packages/wc:
     dependencies:
       '@doranjs/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       '@doranjs/holidays':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../holidays
       '@doranjs/nlp':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../nlp
     devDependencies:
       jsdom:
@@ -461,7 +461,7 @@ importers:
   packages/zod:
     dependencies:
       '@doranjs/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
     devDependencies:
       zod:

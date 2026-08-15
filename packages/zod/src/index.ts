@@ -9,7 +9,7 @@
  *
  * @packageDocumentation
  */
-import { DoranDate } from '@doranjs/core';
+import { DoranDate, isDoranDate } from '@doranjs/core';
 import { z } from 'zod';
 
 /** Anything {@link zDoranDate} knows how to coerce into a `DoranDate`. */
@@ -28,7 +28,10 @@ export interface ZDoranDateOptions {
  * represented (invalid string, non-finite number, invalid `Date`, wrong type).
  */
 export function toDoranDate(value: unknown): DoranDate | null {
-  if (value instanceof DoranDate) return value;
+  // Not `instanceof`: a DoranDate built by another installed copy of @doranjs/core
+  // would fail that check and fall through to the string branch, silently rejecting a
+  // perfectly valid date.
+  if (isDoranDate(value)) return value;
   if (value instanceof Date) return DoranDate.tryFromGregorian(value);
   if (typeof value === 'number') {
     return Number.isFinite(value) ? DoranDate.fromEpochMs(value) : null;

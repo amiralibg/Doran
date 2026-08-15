@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { DoranDate, freeze } from './doran-date';
+import { DoranDate, freeze, isDoranDate } from './doran-date';
 import { enUS } from './locale';
 import type { DoranDateOptions } from './types';
 
@@ -476,5 +476,30 @@ describe('Gregorian output helpers', () => {
 
   it('toMillis returns epoch milliseconds', () => {
     expect(d.toMillis()).toBe(d.epochMs);
+  });
+});
+
+describe('isDoranDate', () => {
+  it('recognizes a DoranDate', () => {
+    expect(isDoranDate(DoranDate.now())).toBe(true);
+  });
+
+  it('rejects other values', () => {
+    expect(isDoranDate(new Date())).toBe(false);
+    expect(isDoranDate(null)).toBe(false);
+    expect(isDoranDate(undefined)).toBe(false);
+    expect(isDoranDate('1404/05/12')).toBe(false);
+    expect(isDoranDate(0)).toBe(false);
+    expect(isDoranDate({})).toBe(false);
+  });
+
+  // `instanceof` compares against one module's class object, so it says `false` for a
+  // date built by another installed copy of @doranjs/core. A registered symbol is
+  // shared across copies, so the brand check survives that — which is the whole point.
+  it('recognizes an instance from a different copy of the module', () => {
+    const fromOtherCopy = { [Symbol.for('doran.date')]: true } as unknown;
+
+    expect(fromOtherCopy instanceof DoranDate).toBe(false);
+    expect(isDoranDate(fromOtherCopy)).toBe(true);
   });
 });

@@ -52,8 +52,8 @@
     "clean": "rm -rf dist .turbo coverage"
   },
   "dependencies": {
-    "@doranjs/core": "workspace:*",
-    "@doranjs/wc": "workspace:*"
+    "@doranjs/core": "workspace:^",
+    "@doranjs/wc": "workspace:^"
   },
   "peerDependencies": {
     "vue": "^3.4.0"

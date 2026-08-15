@@ -50,8 +50,8 @@
     "clean": "rm -rf dist .turbo coverage"
   },
   "dependencies": {
-    "@doranjs/core": "workspace:*",
-    "@doranjs/wc": "workspace:*"
+    "@doranjs/core": "workspace:^",
+    "@doranjs/wc": "workspace:^"
   },
   "peerDependencies": {
     "@angular/common": "^19.0.0 || ^20.0.0",
