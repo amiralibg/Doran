@@ -64,6 +64,11 @@ export {
   type DoranDatePickerProps,
 } from './date-picker';
 export { DoranRangePicker, type DoranRangePickerProps } from './range-picker';
+export {
+  DoranRangeDatePicker,
+  type DateInputRange,
+  type DoranRangeDatePickerProps,
+} from './range-date-picker';
 export { defaultRangePresets, type RangePreset } from './presets';
 export { DoranAgenda, type AgendaEvent, type DoranAgendaProps } from './agenda';
 export { DoranTimePicker, type DoranTimePickerProps, type TimeValue } from './time-picker';

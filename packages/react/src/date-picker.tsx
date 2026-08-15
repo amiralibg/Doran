@@ -30,12 +30,16 @@ import {
 import { createPortal } from 'react-dom';
 import { DoranCalendar, type CalendarFooterAction, type DoranCalendarProps } from './calendar';
 import { usePopoverPosition } from './use-popover-position';
+import { usePresentation, type PickerMode } from './use-presentation';
 
 export interface DoranDatePickerProps<F extends ValueFormat = 'doran'> extends Pick<
   DoranCalendarProps,
   | 'headerMode'
   | 'withTime'
   | 'minuteStep'
+  | 'withSeconds'
+  | 'secondStep'
+  | 'hourCycle'
   | 'defaultTime'
   | 'isHoliday'
   | 'weekends'
@@ -155,6 +159,11 @@ export interface DoranDatePickerProps<F extends ValueFormat = 'doran'> extends P
   portalContainer?: HTMLElement | null;
   /** Writing direction. Defaults to the locale's. */
   dir?: 'rtl' | 'ltr';
+  /**
+   * How the calendar is presented: anchored to the trigger (`popover`, the default),
+   * as a bottom sheet (`sheet`), or `auto` to switch to a sheet on narrow viewports.
+   */
+  mode?: PickerMode;
   /** Explicit trigger width. Numeric values are interpreted as pixels. */
   inputWidth?: CSSProperties['width'];
   /**
@@ -230,11 +239,15 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
       classNames,
       portalContainer,
       dir,
+      mode = 'popover',
       inputWidth,
       dropdownWidth = 'auto',
       withTime,
       headerMode,
       minuteStep,
+      withSeconds,
+      secondStep,
+      hourCycle,
       defaultTime,
       isHoliday,
       dayContent,
@@ -250,6 +263,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
   ) {
     const locale = useResolvedLocale(localeProp);
     const direction = useDirection(locale, dir);
+    const presentation = usePresentation(mode);
     const labels = resolveCalendarLabels(locale);
     const resolvedPlaceholder = placeholder ?? labels.datePlaceholder;
     const isControlled = value !== undefined;
@@ -278,9 +292,14 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
     const normalizedInputWidth = normalizeWidth(inputWidth);
     // The popover is portaled to <body> and positioned `fixed` from the trigger
     // rect, so it can never be clipped by an overflow ancestor (cards, modals, …).
-    const popoverPosition = usePopoverPosition(open, fieldRef, popoverRef, {
-      matchTriggerWidth: matchesTriggerWidth,
-    });
+    const popoverPosition = usePopoverPosition(
+      open && presentation === 'popover',
+      fieldRef,
+      popoverRef,
+      {
+        matchTriggerWidth: matchesTriggerWidth,
+      },
+    );
 
     const valueText = selected ? selected.withLocale(locale).format(resolvedFormat) : '';
 
@@ -580,10 +599,12 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
               className={cn(
                 'doran-datepicker__popover',
                 `doran-datepicker__popover--${dropdownWidthMode}`,
+                presentation === 'sheet' && 'doran-datepicker__popover--sheet',
                 classNames?.popover,
               )}
               data-dropdown-width={dropdownWidthMode}
-              style={resolvedPopoverStyle}
+              data-presentation={presentation}
+              style={presentation === 'sheet' ? undefined : resolvedPopoverStyle}
               onKeyDown={onPopoverKeyDown}
             >
               <DoranCalendar
@@ -598,6 +619,9 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
                 {...(withTime ? { withTime } : {})}
                 {...(headerMode ? { headerMode } : {})}
                 {...(minuteStep !== undefined ? { minuteStep } : {})}
+                {...(withSeconds !== undefined ? { withSeconds } : {})}
+                {...(secondStep !== undefined ? { secondStep } : {})}
+                {...(hourCycle !== undefined ? { hourCycle } : {})}
                 {...(defaultTime ? { defaultTime } : {})}
                 {...(isHoliday ? { isHoliday } : {})}
                 {...(dayContent ? { dayContent } : {})}

@@ -52,6 +52,10 @@ export interface DoranRangePickerProps extends UseDateRangeOptions {
   slots?: CalendarSlots;
   /** Blocks individual days — dates already booked, a sold-out departure. */
   disabledDates?: (day: DoranDate) => boolean;
+  /** Earliest selectable day (inclusive). */
+  min?: DoranDate;
+  /** Latest selectable day (inclusive). */
+  max?: DoranDate;
   /** Weekday indices treated as weekend (0 = Saturday). Defaults to `[6]` (Friday). */
   weekends?: number[];
   arrows?: CalendarArrows;
@@ -90,6 +94,8 @@ export function DoranRangePicker({
   dayData,
   slots,
   disabledDates,
+  min,
+  max,
   weekends,
   arrows,
   dir,
@@ -107,6 +113,8 @@ export function DoranRangePicker({
   const calendar = useCalendar({
     ...(rangeOptions.timeZone ? { timeZone: rangeOptions.timeZone } : {}),
     ...(disabledDates ? { disabledDates } : {}),
+    ...(min ? { min } : {}),
+    ...(max ? { max } : {}),
   });
   const [panel, setPanel] = useState<CalendarPanel>('days');
 

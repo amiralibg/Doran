@@ -298,6 +298,34 @@
   padding: 0.1rem 0;
 }
 
+/* The value is a spinbutton, so it is a tab stop and needs a visible focus ring. */
+.doran-time__value:focus-visible {
+  outline: none;
+  border-radius: var(--doran-radius-sm);
+  box-shadow: 0 0 0 3px var(--doran-focus-ring);
+}
+
+.doran-time__meridiem {
+  margin-inline-start: var(--doran-space-xs);
+  padding: var(--doran-time-meridiem-padding, 0.2rem 0.45rem);
+  border: 1px solid var(--doran-time-meridiem-border-color, var(--doran-border));
+  border-radius: var(--doran-time-meridiem-radius, var(--doran-radius-sm));
+  background: transparent;
+  color: var(--doran-time-color, var(--doran-text));
+  font: inherit;
+  font-size: var(--doran-time-meridiem-font-size, 0.78rem);
+  cursor: pointer;
+}
+
+.doran-time__meridiem:hover {
+  background: var(--doran-time-btn-hover-bg, var(--doran-surface-muted));
+}
+
+.doran-time__meridiem:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--doran-focus-ring);
+}
+
 .doran-time__sep {
   font-size: var(--doran-time-font-size, 1.1rem);
   font-weight: var(--doran-time-font-weight, var(--doran-font-weight-semibold, 600));
@@ -676,6 +704,77 @@
 .doran-datepicker__icon svg {
   width: var(--doran-icon-size, 1.05rem);
   height: var(--doran-icon-size, 1.05rem);
+}
+
+/* --- Sheet presentation -------------------------------------------------
+   Under the breakpoint the calendar stops trying to anchor itself to a trigger
+   near the bottom of a phone viewport and becomes a bottom sheet instead. The
+   backdrop is a pseudo-element so no extra DOM is needed. */
+
+.doran-datepicker__popover--sheet {
+  position: fixed;
+  inset: auto 0 0 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 90dvh;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  padding: var(--doran-sheet-padding, var(--doran-space-md));
+  /* Clear the home indicator and any on-screen keyboard inset. */
+  padding-bottom: calc(var(--doran-space-md) + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--doran-sheet-radius, var(--doran-radius-lg) var(--doran-radius-lg) 0 0);
+  box-shadow: var(--doran-sheet-shadow, var(--doran-shadow-lg));
+  animation: doran-sheet-in var(--doran-transition, 0.15s ease);
+}
+
+@keyframes doran-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .doran-datepicker__popover--sheet {
+    animation: none;
+  }
+}
+
+/* The calendar fills the sheet rather than keeping its desktop width. */
+.doran-datepicker__popover--sheet .doran-calendar {
+  width: 100%;
+  max-width: 22rem;
+  border: none;
+  box-shadow: none;
+}
+
+/* --- Range trigger ------------------------------------------------------
+   Two fields sharing one bordered box, so the pair reads as a single control. */
+
+.doran-rangetrigger__field {
+  gap: var(--doran-space-xs);
+}
+
+.doran-rangetrigger__control {
+  /* Both ends share the width evenly rather than one crowding the other. */
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.doran-rangetrigger__separator {
+  flex-shrink: 0;
+  color: var(--doran-placeholder-color, var(--doran-text-muted));
+  user-select: none;
+}
+
+/* Marks which end the next pick fills — the only cue that the widget has two
+   modes, so it needs to be visible without relying on focus alone. */
+.doran-rangetrigger__field[data-editing='start'] .doran-rangetrigger__control:first-of-type,
+.doran-rangetrigger__field[data-editing='end'] .doran-rangetrigger__control:nth-of-type(2) {
+  font-weight: var(--doran-font-weight-medium, 500);
 }
 
 /*

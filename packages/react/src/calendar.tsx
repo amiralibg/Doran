@@ -47,6 +47,12 @@ export interface DoranCalendarProps extends Omit<UseCalendarOptions, 'onChange'>
   withTime?: boolean;
   /** Minute increment for the time picker. Defaults to `1`. */
   minuteStep?: number;
+  /** Show a seconds field on the time picker. */
+  withSeconds?: boolean;
+  /** Second increment for the time picker. Defaults to `1`. */
+  secondStep?: number;
+  /** `24` (default) or `12`, which adds a meridiem toggle. */
+  hourCycle?: 12 | 24;
   /** Default time-of-day used when `withTime` and no value is selected yet. */
   defaultTime?: TimeValue;
   /** Marks holiday days (dot + holiday color). */
@@ -78,7 +84,11 @@ export interface DoranCalendarProps extends Omit<UseCalendarOptions, 'onChange'>
 }
 
 function combineDayAndTime(day: DoranDate, time: TimeValue): DoranDate {
-  return day.startOf('day').addHours(time.hour).addMinutes(time.minute);
+  return day
+    .startOf('day')
+    .addHours(time.hour)
+    .addMinutes(time.minute)
+    .addSeconds(time.second ?? 0);
 }
 
 /**
@@ -92,6 +102,9 @@ export function DoranCalendar({
   headerMode = 'dropdown',
   withTime = false,
   minuteStep = 1,
+  withSeconds,
+  secondStep,
+  hourCycle,
   defaultTime = { hour: 0, minute: 0 },
   isHoliday,
   dayContent,
@@ -120,7 +133,9 @@ export function DoranCalendar({
   const [panel, setPanel] = useState<CalendarPanel>('days');
   const resolvedFooterActions = hideFooter ? [] : footerActions;
 
-  const time: TimeValue = selected ? { hour: selected.hour, minute: selected.minute } : defaultTime;
+  const time: TimeValue = selected
+    ? { hour: selected.hour, minute: selected.minute, second: selected.second }
+    : defaultTime;
 
   function emit(next: DoranDate | null) {
     if (!isControlled) setInternal(next);
@@ -253,6 +268,9 @@ export function DoranCalendar({
             onChange={handleTimeChange}
             minuteStep={minuteStep}
             locale={locale}
+            {...(withSeconds !== undefined ? { withSeconds } : {})}
+            {...(secondStep !== undefined ? { secondStep } : {})}
+            {...(hourCycle !== undefined ? { hourCycle } : {})}
           />
         )}
 

@@ -429,3 +429,70 @@ describe('classNames and portalContainer', () => {
     expect(screen.getByRole('dialog').parentElement).toBe(document.body);
   });
 });
+
+describe('presentation mode', () => {
+  it('anchors to the trigger by default', () => {
+    render(<DoranDatePicker />);
+    fireEvent.click(screen.getByRole('button', { name: /تقویم/ }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('data-presentation', 'popover');
+    expect(dialog).not.toHaveClass('doran-datepicker__popover--sheet');
+  });
+
+  it('renders as a bottom sheet when asked', () => {
+    render(<DoranDatePicker mode="sheet" />);
+    fireEvent.click(screen.getByRole('button', { name: /تقویم/ }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('data-presentation', 'sheet');
+    expect(dialog).toHaveClass('doran-datepicker__popover--sheet');
+    // A sheet is pinned to the viewport, so it carries no measured position.
+    expect(dialog.style.top).toBe('');
+  });
+
+  it('still dismisses on Escape as a sheet', () => {
+    render(<DoranDatePicker mode="sheet" />);
+    fireEvent.click(screen.getByRole('button', { name: /تقویم/ }));
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('picks the sheet under the breakpoint in auto mode', () => {
+    // jsdom has no layout, so matchMedia is the seam.
+    const spy = vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) =>
+        ({
+          matches: true,
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+
+    render(<DoranDatePicker mode="auto" />);
+    fireEvent.click(screen.getByRole('button', { name: /تقویم/ }));
+
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-presentation', 'sheet');
+    spy.mockRestore();
+  });
+
+  it('picks the popover above the breakpoint in auto mode', () => {
+    const spy = vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) =>
+        ({
+          matches: false,
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+
+    render(<DoranDatePicker mode="auto" />);
+    fireEvent.click(screen.getByRole('button', { name: /تقویم/ }));
+
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-presentation', 'popover');
+    spy.mockRestore();
+  });
+});

@@ -113,6 +113,10 @@ export interface CalendarLabels {
   hour?: string;
   /** Label for the minute field of a time picker. */
   minute?: string;
+  /** Label for the seconds field of a time picker. */
+  second?: string;
+  /** Accessible name of the AM/PM toggle in 12-hour mode. */
+  meridiem?: string;
   /** Prefixes a stepper's accessible name, as `"{increase} {hour}"`. */
   increase?: string;
   /** Prefixes a stepper's accessible name, as `"{decrease} {hour}"`. */
@@ -123,6 +127,10 @@ export interface CalendarLabels {
   rangeSeparator?: string;
   /** Stands in for a range end that has not been picked yet. */
   rangeEmpty?: string;
+  /** Accessible name of the range picker's start field. */
+  rangeStart?: string;
+  /** Accessible name of the range picker's end field. */
+  rangeEnd?: string;
   /** Placeholder for the natural-language input. */
   nlpPlaceholder?: string;
   /** Shown when natural-language text does not resolve to a date. */
