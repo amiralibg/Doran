@@ -279,7 +279,6 @@ function Field({
         aria-valuetext={display}
         value={text}
         readOnly={readOnly}
-        size={2}
         onChange={handleInput}
         onBlur={handleBlur}
         onFocus={handleFocus}

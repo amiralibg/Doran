@@ -315,19 +315,20 @@
 }
 
 .doran-time__value {
-  /* A real input now, so it needs its chrome stripped back to the bare number. */
-  width: 2.25ch;
+  /* A real input now, so it needs its chrome stripped back to the bare number.
+     Sized in rem rather than ch: `ch` measures the font's "0", and Persian digits
+     are wider than that, so a ch-based width clipped two-digit values. */
+  width: var(--doran-time-field-width, 2.5rem);
   border: none;
   background: transparent;
-  padding: 0.1rem 0;
+  padding: 0.1rem 0.15rem;
   font-family: inherit;
   font-variant-numeric: tabular-nums;
   font-size: var(--doran-time-font-size, 1.1rem);
   font-weight: var(--doran-time-font-weight, var(--doran-font-weight-semibold, 600));
   color: var(--doran-time-color, var(--doran-text));
-  min-width: 2ch;
   text-align: center;
-  padding: 0.1rem 0;
+  box-sizing: border-box;
 }
 
 /* The value is a spinbutton, so it is a tab stop and needs a visible focus ring. */
