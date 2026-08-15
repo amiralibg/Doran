@@ -80,7 +80,8 @@ describe('typing a date', () => {
 
     fireEvent.blur(field());
     expect(field()).toHaveAttribute('aria-invalid', 'true');
-    expect(field()).toHaveValue('140');
+    // Partial input is kept — rendered in the locale's numerals by the live mask.
+    expect(field()).toHaveValue('۱۴۰');
   });
 
   it('keeps unparseable text and marks the field invalid', () => {
@@ -130,7 +131,8 @@ describe('typing a date', () => {
     render(<DoranDatePicker defaultValue={DoranDate.fromJalali(1405, 3, 15, UTC)} />);
 
     type('1402/0');
-    expect(field()).toHaveValue('1402/0');
+    // The half-typed date survives — masked into shape, not replaced by the value.
+    expect(field()).toHaveValue('۱۴۰۲/۰');
   });
 
   it('normalizes the text back to the display format on blur', () => {
@@ -167,6 +169,105 @@ describe('typing a date', () => {
     expect(field()).toHaveAttribute('readonly');
     // The calendar still works — readOnly restricts typing, not selection.
     expect(screen.getByRole('button', { name: /تقویم/ })).toBeEnabled();
+  });
+});
+
+describe('live format masking', () => {
+  /** Replays one edit, with the caret where the browser would leave it. */
+  function edit(value: string, caret: number) {
+    const node = field();
+    fireEvent.change(node, { target: { value, selectionStart: caret, selectionEnd: caret } });
+  }
+
+  /** Types one character at a time from the caret, the way a keyboard does. */
+  function typeKeys(keys: string) {
+    const node = field();
+    node.focus();
+    for (const key of keys) {
+      const caret = node.selectionStart ?? node.value.length;
+      edit(node.value.slice(0, caret) + key + node.value.slice(caret), caret + 1);
+    }
+  }
+
+  it('keeps the caret at the end while a date is typed key by key', () => {
+    render(<DoranDatePicker />);
+
+    typeKeys('14020512');
+
+    expect(field()).toHaveValue('۱۴۰۲/۰۵/۱۲');
+    expect(field().selectionStart).toBe(10);
+  });
+
+  it('shows the separator the user types and does not double it', () => {
+    render(<DoranDatePicker />);
+
+    typeKeys('1402//5');
+
+    expect(field()).toHaveValue('۱۴۰۲/۵');
+  });
+
+  it('backspaces through an auto-inserted separator', () => {
+    render(<DoranDatePicker />);
+    typeKeys('14020512');
+
+    const node = field();
+    for (const expected of ['۱۴۰۲/۰۵/۱', '۱۴۰۲/۰۵/', '۱۴۰۲/۰۵', '۱۴۰۲/۰']) {
+      const shortened = node.value.slice(0, -1);
+      edit(shortened, shortened.length);
+      expect(node.value).toBe(expected);
+    }
+  });
+
+  it('flows typed digits into the display format as they go', () => {
+    const onChange = vi.fn();
+    render(<DoranDatePicker onChange={onChange} />);
+
+    type('14020512');
+
+    expect(field()).toHaveValue('۱۴۰۲/۰۵/۱۲');
+    expect(onChange).toHaveBeenCalledTimes(1);
+    const picked = onChange.mock.calls[0]![0] as DoranDate;
+    expect([picked.year, picked.month, picked.day]).toEqual([1402, 5, 12]);
+  });
+
+  it('normalizes typed separators to the format’s own', () => {
+    render(<DoranDatePicker />);
+    type('1402-5-12');
+    expect(field()).toHaveValue('۱۴۰۲/۰۵/۱۲');
+  });
+
+  it('treats a typed separator as the end of its field', () => {
+    // `1-2` is month 1 and day 2, not the month 12 the bare digits would read as.
+    render(<DoranDatePicker />);
+    type('1402-1-2');
+    expect(field()).toHaveValue('۱۴۰۲/۰۱/۲');
+  });
+
+  it('masks into a developer-supplied format', () => {
+    const onChange = vi.fn();
+    render(<DoranDatePicker format="MM-DD-YYYY" onChange={onChange} />);
+
+    type('05121402');
+
+    expect(field()).toHaveValue('۰۵-۱۲-۱۴۰۲');
+    const picked = onChange.mock.calls[0]![0] as DoranDate;
+    expect([picked.year, picked.month, picked.day]).toEqual([1402, 5, 12]);
+  });
+
+  it('parses typed text against the developer-supplied format', () => {
+    const onChange = vi.fn();
+    render(<DoranDatePicker format="MM-DD-YYYY" onChange={onChange} />);
+
+    type('05-12-1402');
+
+    const picked = onChange.mock.calls[0]![0] as DoranDate;
+    expect([picked.year, picked.month, picked.day]).toEqual([1402, 5, 12]);
+  });
+
+  it('leaves free text alone for formats that are not maskable', () => {
+    render(<DoranDatePicker format="D MMMM YYYY" />);
+    type('12 خرداد');
+    expect(field()).toHaveValue('12 خرداد');
   });
 });
 

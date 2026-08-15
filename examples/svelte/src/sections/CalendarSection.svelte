@@ -2,6 +2,8 @@
   import { lang, t } from '../i18n/store';
   import DemoCard from '../demo/DemoCard.svelte';
   import Section from '../demo/Section.svelte';
+  import Widgets from '../demos/calendar/Widgets.svelte';
+  import WidgetsSrc from '../demos/calendar/Widgets.svelte?raw';
   import Default from '../demos/calendar/Default.svelte';
   import DefaultSrc from '../demos/calendar/Default.svelte?raw';
   import SeparateHeader from '../demos/calendar/SeparateHeader.svelte';

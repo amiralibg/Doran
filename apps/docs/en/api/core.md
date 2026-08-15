@@ -328,6 +328,45 @@ before validating or storing it. A number typed on a Persian keyboard arrives as
 `۰۹۱۲…`, which will not match `/[0-9]/` based checks. Both handle the Persian
 ۰-۹ and Arabic-Indic ٠-٩ families, and both leave ASCII input untouched.
 
+## Input masking
+
+The engine behind the date pickers' typable fields. `applyFormatMask` flows typed
+digits into a format pattern so the user never types a separator, and renders them
+in the locale's numerals. The pickers call it for you — reach for it directly only
+when you are building your own field.
+
+```ts
+import { applyFormatMask, isMaskableFormat, faIR } from '@doranjs/core';
+
+applyFormatMask('14020512', 'YYYY/MM/DD'); // { text: "1402/05/12", caret: 10 }
+applyFormatMask('05121402', 'MM-DD-YYYY'); // { text: "05-12-1402", caret: 10 }
+applyFormatMask('14020512', 'YYYY/MM/DD', { locale: faIR }).text; // "۱۴۰۲/۰۵/۱۲"
+```
+
+Three rules make it behave the way a native date field does:
+
+- **A full field advances.** Once `MM` holds two digits the next digit starts `DD`.
+- **A field that cannot take another digit advances too.** `95` is no month, so the
+  `9` becomes month `09` and the `5` starts the day.
+- **A typed separator closes the field early.** `1402-1-2` is month 1 / day 2, not
+  month 12 — and whichever separator you type is normalized to the format's own.
+
+| Argument           | Type               | Description                                                       |
+| ------------------ | ------------------ | ----------------------------------------------------------------- |
+| `value`            | `string`           | Current text, in Latin or Persian/Arabic digits                   |
+| `format`           | `string`           | Format pattern, same tokens as `DoranDate.format`                 |
+| `options.locale`   | `Locale \| string` | Numerals to render with; defaults to the global locale            |
+| `options.caret`    | `number`           | Caret position inside `value`; defaults to the end                |
+| `options.previous` | `string`           | Value before this edit — lets backspace delete through separators |
+
+It returns `{ text, caret }`: the text to show and where to put the caret.
+
+Text that is not digits and separators — prose, a month name being typed — comes
+back untouched, so the field can flag it invalid rather than destroy it. Formats
+containing text tokens (`MMMM`, `dddd`, `A`, `Z`) cannot be masked at all;
+`isMaskableFormat(format)` reports that, and those fields stay free-typing and
+settle on blur.
+
 ## Doran and TC39 Temporal
 
 [TC39 Temporal](https://tc39.es/proposal-temporal/) is the platform's coming

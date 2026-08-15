@@ -28,34 +28,34 @@ import { DoranCalendar, DoranDatePicker } from '@doranjs/react';
 
 ## propهای `DoranDatePicker`
 
-| Prop              | Type                                                         | پیش‌فرض              | توضیح                                                           |
-| ----------------- | ------------------------------------------------------------ | -------------------- | --------------------------------------------------------------- |
-| `value`           | `DoranDate \| null`                                          | —                    | مقدار controlled                                                |
-| `defaultValue`    | `DoranDate \| null`                                          | —                    | مقدار اولیهٔ uncontrolled                                       |
-| `onChange`        | `(date: DoranDate \| null, gregorian: Date \| null) => void` | —                    | هنگام انتخاب یا پاک‌کردن؛ آرگومان دوم `Date` نیتیو برای backend |
-| `locale`          | `Locale \| string`                                           | `getDefaultLocale()` | locale قالب‌بندی — از پیش‌فرض جهانی fallback می‌کند             |
-| `format`          | `string`                                                     | `'YYYY/MM/DD'`       | الگوی نمایش                                                     |
-| `placeholder`     | `string`                                                     | `'انتخاب تاریخ'`     | placeholder ورودی                                               |
-| `footerActions`   | `readonly ('today' \| 'clear')[]`                            | `['today']`          | اکشن‌های مرتبِ فوتر؛ آرایهٔ خالی فوتر را پنهان می‌کند           |
-| `hideFooter`      | `boolean`                                                    | `false`              | منسوخ؛ به‌جای آن `footerActions={[]}` را استفاده کنید           |
-| `iconPosition`    | `'left' \| 'right'`                                          | `'left'`             | جای آیکن در trigger                                             |
-| `textAlign`       | `'left' \| 'right'`                                          | `'right'`            | تراز متن trigger                                                |
-| `inputWidth`      | `CSSProperties['width']`                                     | —                    | عرض trigger؛ عددها برحسب پیکسل‌اند                              |
-| `dropdownWidth`   | `'auto' \| 'trigger' \| CSSProperties['width']`              | `'auto'`             | عرض ذاتی، برابر trigger، یا یک عرض CSS سفارشی                   |
-| `min`             | `DoranDate`                                                  | —                    | زودترین تاریخ قابل انتخاب                                       |
-| `max`             | `DoranDate`                                                  | —                    | دیرترین تاریخ قابل انتخاب                                       |
-| `disabled`        | `boolean`                                                    | `false`              | غیرفعال کردن ورودی                                              |
-| `className`       | `string`                                                     | —                    | کلاس اضافه‌شده به عنصر root                                     |
-| `style`           | `CSSProperties`                                              | —                    | استایل inline فوروارد به root                                   |
-| `id`              | `string`                                                     | —                    | `id` فوروارد به root                                            |
-| `size`            | `'sm' \| 'md' \| 'lg'`                                       | —                    | ارتفاع‌های پیش‌تعریف: 32 / 40 / 48 پیکسل                        |
-| `withTime`        | `boolean`                                                    | `false`              | نمایش انتخابگر ساعت                                             |
-| `headerMode`      | `'dropdown' \| 'separate'`                                   | `'dropdown'`         | پنل‌های ماه/سال یا `<select>`های نیتیو                          |
-| `minuteStep`      | `number`                                                     | `1`                  | گام دقیقه                                                       |
-| `isHoliday`       | `(day: DoranDate) => boolean`                                | —                    | نشانه‌گذاری تعطیل                                               |
-| `weekends`        | `number[]`                                                   | `[6]`                | اندیس‌های آخر هفته (۰ = شنبه)                                   |
-| `arrows`          | `{ prev, next }`                                             | chevron              | گره‌های فلش سفارشی                                              |
-| `showOutsideDays` | `boolean`                                                    | —                    | نمایش روزهای ماه‌های مجاور                                      |
+| Prop              | Type                                                         | پیش‌فرض              | توضیح                                                                                                         |
+| ----------------- | ------------------------------------------------------------ | -------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `value`           | `DoranDate \| null`                                          | —                    | مقدار controlled                                                                                              |
+| `defaultValue`    | `DoranDate \| null`                                          | —                    | مقدار اولیهٔ uncontrolled                                                                                     |
+| `onChange`        | `(date: DoranDate \| null, gregorian: Date \| null) => void` | —                    | هنگام انتخاب یا پاک‌کردن؛ آرگومان دوم `Date` نیتیو برای backend                                               |
+| `locale`          | `Locale \| string`                                           | `getDefaultLocale()` | locale قالب‌بندی — از پیش‌فرض جهانی fallback می‌کند                                                           |
+| `format`          | `string`                                                     | `'YYYY/MM/DD'`       | الگوی نمایش؛ ارقامِ تایپ‌شده همین‌طور که وارد می‌شوند در این قالب mask می‌شوند و متن با همین الگو پارس می‌شود |
+| `placeholder`     | `string`                                                     | `'انتخاب تاریخ'`     | placeholder ورودی                                                                                             |
+| `footerActions`   | `readonly ('today' \| 'clear')[]`                            | `['today']`          | اکشن‌های مرتبِ فوتر؛ آرایهٔ خالی فوتر را پنهان می‌کند                                                         |
+| `hideFooter`      | `boolean`                                                    | `false`              | منسوخ؛ به‌جای آن `footerActions={[]}` را استفاده کنید                                                         |
+| `iconPosition`    | `'left' \| 'right'`                                          | `'left'`             | جای آیکن در trigger                                                                                           |
+| `textAlign`       | `'left' \| 'right'`                                          | `'right'`            | تراز متن trigger                                                                                              |
+| `inputWidth`      | `CSSProperties['width']`                                     | —                    | عرض trigger؛ عددها برحسب پیکسل‌اند                                                                            |
+| `dropdownWidth`   | `'auto' \| 'trigger' \| CSSProperties['width']`              | `'auto'`             | عرض ذاتی، برابر trigger، یا یک عرض CSS سفارشی                                                                 |
+| `min`             | `DoranDate`                                                  | —                    | زودترین تاریخ قابل انتخاب                                                                                     |
+| `max`             | `DoranDate`                                                  | —                    | دیرترین تاریخ قابل انتخاب                                                                                     |
+| `disabled`        | `boolean`                                                    | `false`              | غیرفعال کردن ورودی                                                                                            |
+| `className`       | `string`                                                     | —                    | کلاس اضافه‌شده به عنصر root                                                                                   |
+| `style`           | `CSSProperties`                                              | —                    | استایل inline فوروارد به root                                                                                 |
+| `id`              | `string`                                                     | —                    | `id` فوروارد به root                                                                                          |
+| `size`            | `'sm' \| 'md' \| 'lg'`                                       | —                    | ارتفاع‌های پیش‌تعریف: 32 / 40 / 48 پیکسل                                                                      |
+| `withTime`        | `boolean`                                                    | `false`              | نمایش انتخابگر ساعت                                                                                           |
+| `headerMode`      | `'dropdown' \| 'separate'`                                   | `'dropdown'`         | پنل‌های ماه/سال یا `<select>`های نیتیو                                                                        |
+| `minuteStep`      | `number`                                                     | `1`                  | گام دقیقه                                                                                                     |
+| `isHoliday`       | `(day: DoranDate) => boolean`                                | —                    | نشانه‌گذاری تعطیل                                                                                             |
+| `weekends`        | `number[]`                                                   | `[6]`                | اندیس‌های آخر هفته (۰ = شنبه)                                                                                 |
+| `arrows`          | `{ prev, next }`                                             | chevron              | گره‌های فلش سفارشی                                                                                            |
+| `showOutsideDays` | `boolean`                                                    | —                    | نمایش روزهای ماه‌های مجاور                                                                                    |
 
 ```tsx
 // ارسال تاریخ به backend
@@ -146,8 +146,20 @@ import { DoranNlpInput } from '@doranjs/react';
 
 ## تایپ تاریخ
 
-تریگر یک ورودی متنی واقعی است، پس تاریخ را هم می‌شود تایپ کرد و هم انتخاب —
-`1402/5/12`، `1402-5-12` و `۱۴۰۲/۰۵/۱۲` همه پارس می‌شوند.
+تریگر یک ورودی متنی واقعی است، پس تاریخ را هم می‌شود تایپ کرد و هم انتخاب.
+ارقام همین‌طور که وارد می‌شوند در قالبِ `format` mask می‌شوند: تایپ `14020512`
+بدون زدن جداکننده `۱۴۰۲/۰۵/۱۲` را نشان می‌دهد و backspace از جداکننده‌ها هم رد
+می‌شود. `1402/5/12`، `1402-5-12` و `۱۴۰۲/۰۵/۱۲` هم همه پارس می‌شوند.
+
+فیلدها دقیقاً مثل یک ورودی تاریخ نیتیو جلو می‌روند. رقمی که در فیلد فعلی جا نمی‌شود
+به فیلد بعدی می‌رود: `95` ماه نیست، پس `9` می‌شود ماه `09` و `5` روز را شروع می‌کند.
+اگر خودتان جداکننده تایپ کنید، فیلد زودتر بسته می‌شود — و همین است که `1402-1-2` را
+ماه ۱ و روز ۲ نگه می‌دارد نه ماه ۱۲.
+
+با `format` سفارشی، هم نمایش و هم تایپ همان قالب را دنبال می‌کنند —
+`format="MM-DD-YYYY"` ورودی‌هایی مثل `05-12-1402` را می‌پذیرد. `format`ی که از
+tokenهای متنی ساخته شده (`MMMM`، `dddd`) قابل ماسک‌شدن نیست، پس آن فیلدها آزاد
+می‌مانند و روی blur مرتب می‌شوند.
 
 خطا هنگام خروج از فیلد نمایش داده می‌شود نه با هر کلید: در مسیر رسیدن به `1402/05/12`
 مقدار از `1`، `14` و `140` عبور می‌کند و علامت‌زدن هرکدام یعنی فیلد تمام مدت قرمز باشد.

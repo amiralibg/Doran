@@ -51,6 +51,9 @@ export {
 // Formatting.
 export { formatParts, type DigitStyle, type FormatContext } from './format';
 
+// Live input masking, shared by every typable date-field surface.
+export { applyFormatMask, isMaskableFormat, type MaskOptions, type MaskResult } from './input-mask';
+
 // Digit utilities.
 export { normalizeDigits, toLatinDigits, toPersianDigits } from './digits';
 

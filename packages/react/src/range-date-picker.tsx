@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  applyFormatMask,
   formatValue,
   parseJalali,
   resolveCalendarLabels,
@@ -12,6 +13,7 @@ import {
 import { CalendarIcon, cn } from '@doranjs/ui';
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ChangeEvent,
@@ -60,7 +62,10 @@ export interface DoranRangeDatePickerProps extends Pick<
    */
   onChange?: (range: DateRange, gregorian: GregorianDateRange) => void;
   locale?: Locale;
-  /** Display format for both fields. Defaults to `YYYY/MM/DD`. */
+  /**
+   * Display format for both fields. Defaults to `YYYY/MM/DD`. Typed digits are
+   * masked into this shape as they are entered, and parsed back against it.
+   */
   format?: string;
   /** Placeholders, defaulting to the locale's. */
   startPlaceholder?: string;
@@ -163,6 +168,19 @@ export function DoranRangeDatePicker({
     // format already listed, and adding it would re-run on every render.
   }, [range.start, range.end, typing, format, locale]);
 
+  // Where the caret belongs after the mask rewrites a field; applied once React
+  // commits the new value, since a controlled input drops the caret on re-render.
+  const pendingCaret = useRef<{ endpoint: Endpoint; caret: number } | null>(null);
+  useLayoutEffect(() => {
+    const pending = pendingCaret.current;
+    pendingCaret.current = null;
+    if (!pending) return;
+    const node = pending.endpoint === 'start' ? startRef.current : endRef.current;
+    if (node && document.activeElement === node) {
+      node.setSelectionRange(pending.caret, pending.caret);
+    }
+  }, [startText, endText]);
+
   function withinBounds(date: DoranDate): boolean {
     if (minDate && date.isBefore(minDate.startOf('day'))) return false;
     if (maxDate && date.isAfter(maxDate.endOf('day'))) return false;
@@ -188,16 +206,34 @@ export function DoranRangeDatePicker({
 
   function handleInput(endpoint: Endpoint, event: ChangeEvent<HTMLInputElement>) {
     const raw = event.target.value;
+    // Flow typed digits into the configured format as they go.
+    const masked = applyFormatMask(raw, format, {
+      locale,
+      caret: event.target.selectionStart ?? raw.length,
+      previous: endpoint === 'start' ? startText : endText,
+    });
     setTyping(endpoint);
-    if (endpoint === 'start') setStartText(raw);
-    else setEndText(raw);
+    if (masked.text !== raw) {
+      // Write through to the DOM as well as to state: when the mask swallows a
+      // keystroke the new state equals the old one, React skips the re-render, and
+      // the field would otherwise be left showing the unmasked text.
+      event.target.value = masked.text;
+      event.target.setSelectionRange(masked.caret, masked.caret);
+      pendingCaret.current = { endpoint, caret: masked.caret };
+    }
+    if (endpoint === 'start') setStartText(masked.text);
+    else setEndText(masked.text);
 
-    if (raw.trim() === '') {
+    if (masked.text.trim() === '') {
       commit({ ...range, [endpoint]: null });
       return;
     }
 
-    const parsed = parseJalali(raw, undefined, { locale });
+    // The developer's format wins so the field parses what it displays; the common
+    // defaults stay as a fallback so loose input keeps working.
+    const parsed =
+      parseJalali(masked.text, format, { locale }) ??
+      parseJalali(masked.text, undefined, { locale });
     if (parsed && withinBounds(parsed)) {
       commit({ ...range, [endpoint]: parsed.startOf('day') });
     }

@@ -1,4 +1,5 @@
 import {
+  applyFormatMask,
   parseJalali,
   type DayDataMap,
   type DoranDate,
@@ -17,6 +18,10 @@ import { boolAttr, esc, parseJalaliAttr, resolveLocaleAttr } from './util';
  * `locale`, `header-mode`, `with-time`, `show-holidays`, and `footer-actions`.
  * Customize the trigger with `icon-position`, `text-align`, `input-width`, and
  * `dropdown-width` (`auto`, `trigger`, or a CSS width).
+ *
+ * `format` sets the display pattern (default `YYYY/MM/DD`); typed digits are masked
+ * into that shape as they are entered and parsed back against it, so
+ * `format="MM-DD-YYYY"` accepts `05-12-1402`-style input.
  *
  * The pop-over is appended to `document.body` and positioned `fixed` from the
  * trigger rect, so it always renders above the page and is never clipped by an
@@ -257,7 +262,11 @@ export class DoranDatePickerElement extends HTMLElement {
 
   /** Parses `raw`, returning a date only if it is complete and in range. */
   #readDate(raw: string): DoranDate | null {
-    const parsed = parseJalali(raw);
+    const locale = resolveLocaleAttr(this.getAttribute('locale'));
+    // The developer's format wins so `format="MM-DD-YYYY"` parses what it displays;
+    // the common defaults stay as a fallback so loose input keeps working.
+    const parsed =
+      parseJalali(raw, this.#format, { locale }) ?? parseJalali(raw, undefined, { locale });
     if (!parsed || !this.#withinBounds(parsed)) return null;
     return boolAttr(this, 'with-time') ? parsed : parsed.startOf('day');
   }
@@ -271,6 +280,19 @@ export class DoranDatePickerElement extends HTMLElement {
   #onInput = (event: Event): void => {
     const field = event.target as HTMLInputElement;
     if (!field.classList.contains('doran-datepicker__control')) return;
+
+    // Flow typed digits into the developer's format as they go — `14020512` becomes
+    // `1402/05/12` without the user typing separators. In place, so the caret and the
+    // element's own re-render bookkeeping survive.
+    const masked = applyFormatMask(field.value, this.#format, {
+      locale: resolveLocaleAttr(this.getAttribute('locale')),
+      caret: field.selectionStart ?? field.value.length,
+      previous: this.#text,
+    });
+    if (masked.text !== field.value) {
+      field.value = masked.text;
+      field.setSelectionRange(masked.caret, masked.caret);
+    }
 
     this.#typing = true;
     this.#text = field.value;

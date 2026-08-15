@@ -2,6 +2,8 @@
   import { lang, t } from '../i18n/store';
   import DemoCard from '../demo/DemoCard.svelte';
   import Section from '../demo/Section.svelte';
+  import WithTrigger from '../demos/rangepicker/WithTrigger.svelte';
+  import WithTriggerSrc from '../demos/rangepicker/WithTrigger.svelte?raw';
   import Default from '../demos/rangepicker/Default.svelte';
   import DefaultSrc from '../demos/rangepicker/Default.svelte?raw';
   import Presets from '../demos/rangepicker/Presets.svelte';

@@ -3,8 +3,10 @@ import { DoranDatePicker } from '@doranjs/react';
 import { useState } from 'react';
 
 /**
- * The trigger is a real text field: type `1402/5/12`, `1402-5-12`, or `۱۴۰۲/۰۵/۱۲`
- * and the calendar follows along.
+ * The trigger is a real text field: type `1402512` and the separators land on their
+ * own — `1402/05/12` — while the calendar follows along. Typing a separator yourself
+ * closes the field early, so `1402-1-2` is month 1 / day 2, and `۱۴۰۲/۰۵/۱۲` from a
+ * Persian keyboard parses just the same.
  *
  * `valueFormat` decides what `onChange` hands back — here a `YYYY-MM-DD` string,
  * the shape you would keep in a query param, so no conversion wrapper is needed.

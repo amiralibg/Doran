@@ -45,6 +45,24 @@ describe('<doran-rangedatepicker>', () => {
     expect(detail.end).toBeNull();
   });
 
+  it('masks typed digits into the format as they go', () => {
+    const el = mount();
+    type(el, 'start', '14050310');
+    expect(field(el, 'start').value).toBe('۱۴۰۵/۰۳/۱۰');
+  });
+
+  it('masks and parses a developer-supplied format', () => {
+    const el = mount({ format: 'MM-DD-YYYY' });
+    const onChange = vi.fn();
+    el.addEventListener('change', onChange);
+
+    type(el, 'start', '03101405');
+
+    expect(field(el, 'start').value).toBe('۰۳-۱۰-۱۴۰۵');
+    const detail = onChange.mock.calls[0]![0].detail as { start: DoranDate; end: null };
+    expect([detail.start.year, detail.start.month, detail.start.day]).toEqual([1405, 3, 10]);
+  });
+
   // Matches React: a backwards range is a slip, not an instruction.
   it('swaps a range typed backwards', () => {
     const el = mount();

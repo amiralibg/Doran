@@ -35,24 +35,24 @@ import '@doranjs/wc/styles.css'; // tokens + component styles in one file
 
 ## Attributes
 
-| Attribute        | Elements                          | Description                                                   |
-| ---------------- | --------------------------------- | ------------------------------------------------------------- |
-| `value`          | calendar, datepicker, nlp-input   | `YYYY/MM/DD` (or the raw text for nlp-input)                  |
-| `min` / `max`    | calendar, datepicker              | Selectable bounds                                             |
-| `locale`         | all                               | `fa` (default) or `en`                                        |
-| `header-mode`    | calendar, rangepicker             | `dropdown` (default) or `separate`                            |
-| `with-time`      | calendar, datepicker              | Enable the time picker                                        |
-| `show-holidays`  | calendar, datepicker, rangepicker | Mark official holidays                                        |
-| `weekends`       | calendar, rangepicker             | Comma-separated weekday indices (`6` = Fri)                   |
-| `placeholder`    | datepicker, nlp-input             | Placeholder text                                              |
-| `format`         | datepicker, nlp-input             | Display/preview format pattern                                |
-| `footer-actions` | calendar, datepicker, rangepicker | Ordered comma/space-separated actions; empty hides the footer |
-| `hide-footer`    | calendar, datepicker, rangepicker | Deprecated; use `footer-actions=""`                           |
-| `icon-position`  | datepicker                        | `left` (default) or `right`                                   |
-| `text-align`     | datepicker                        | `right` (default) or `left`                                   |
-| `input-width`    | datepicker                        | CSS trigger width, such as `18rem`                            |
-| `dropdown-width` | datepicker                        | `auto`, `trigger`, or a custom CSS width                      |
-| `disabled`       | datepicker                        | Disables the trigger and closes an open popover               |
+| Attribute        | Elements                               | Description                                                                                                            |
+| ---------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `value`          | calendar, datepicker, nlp-input        | `YYYY/MM/DD` (or the raw text for nlp-input)                                                                           |
+| `min` / `max`    | calendar, datepicker                   | Selectable bounds                                                                                                      |
+| `locale`         | all                                    | `fa` (default) or `en`                                                                                                 |
+| `header-mode`    | calendar, rangepicker                  | `dropdown` (default) or `separate`                                                                                     |
+| `with-time`      | calendar, datepicker                   | Enable the time picker                                                                                                 |
+| `show-holidays`  | calendar, datepicker, rangepicker      | Mark official holidays                                                                                                 |
+| `weekends`       | calendar, rangepicker                  | Comma-separated weekday indices (`6` = Fri)                                                                            |
+| `placeholder`    | datepicker, nlp-input                  | Placeholder text                                                                                                       |
+| `format`         | datepicker, rangedatepicker, nlp-input | Display format pattern; typed digits are masked into this shape as they are entered, and the text is parsed against it |
+| `footer-actions` | calendar, datepicker, rangepicker      | Ordered comma/space-separated actions; empty hides the footer                                                          |
+| `hide-footer`    | calendar, datepicker, rangepicker      | Deprecated; use `footer-actions=""`                                                                                    |
+| `icon-position`  | datepicker                             | `left` (default) or `right`                                                                                            |
+| `text-align`     | datepicker                             | `right` (default) or `left`                                                                                            |
+| `input-width`    | datepicker                             | CSS trigger width, such as `18rem`                                                                                     |
+| `dropdown-width` | datepicker                             | `auto`, `trigger`, or a custom CSS width                                                                               |
+| `disabled`       | datepicker                             | Disables the trigger and closes an open popover                                                                        |
 
 `footer-actions="today,clear"` preserves the declared button order. Today selects the current
 date and emits `change`; Clear removes the value and emits `null` in `detail.date` and
@@ -62,6 +62,14 @@ date and emits `change`; Clear removes the value and emits `null` in `detail.dat
 `dropdown-width="auto"` uses the intrinsic popover width, `trigger` matches the trigger, and any
 other value such as `24rem` is used as a custom CSS width. When `disabled` is present, the
 datepicker's native trigger is disabled, cannot open on click, and closes any open popover.
+
+`format` drives typing as well as display. Digits flow into the pattern as they are
+entered — `14020512` becomes `۱۴۰۲/۰۵/۱۲` with no separators typed — and fields
+advance the way a native date input does: `95` is no month, so the `9` becomes month
+`09` and the `5` starts the day. A separator you type closes the field early, keeping
+`1402-1-2` as month 1 / day 2. The text is parsed back against the same pattern, so
+`format="MM-DD-YYYY"` accepts `05-12-1402`. Patterns built from text tokens (`MMMM`,
+`dddd`) cannot be masked and stay free-typing, settling on blur.
 
 ## Events
 

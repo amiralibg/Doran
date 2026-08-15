@@ -35,24 +35,24 @@ import '@doranjs/wc/styles.css'; // tokenها + استایل کامپوننت‌
 
 ## Attributeها
 
-| Attribute        | Elementها                         | توضیح                                                        |
-| ---------------- | --------------------------------- | ------------------------------------------------------------ |
-| `value`          | calendar، datepicker، nlp-input   | `YYYY/MM/DD` (یا متن خام برای nlp-input)                     |
-| `min` / `max`    | calendar، datepicker              | کران‌های قابل انتخاب                                         |
-| `locale`         | همه                               | `fa` (پیش‌فرض) یا `en`                                       |
-| `header-mode`    | calendar، rangepicker             | `dropdown` (پیش‌فرض) یا `separate`                           |
-| `with-time`      | calendar، datepicker              | فعال‌سازی انتخابگر ساعت                                      |
-| `show-holidays`  | calendar، datepicker، rangepicker | نشانه‌گذاری تعطیلات رسمی                                     |
-| `weekends`       | calendar، rangepicker             | اندیس روزهای هفته با کاما (`6` = جمعه)                       |
-| `placeholder`    | datepicker، nlp-input             | متن placeholder                                              |
-| `format`         | datepicker، nlp-input             | الگوی format برای نمایش/پیش‌نمایش                            |
-| `footer-actions` | calendar، datepicker، rangepicker | اکشن‌های مرتب با کاما/فاصله؛ مقدار خالی فوتر را پنهان می‌کند |
-| `hide-footer`    | calendar، datepicker، rangepicker | منسوخ؛ به‌جای آن `footer-actions=""` را استفاده کنید         |
-| `icon-position`  | datepicker                        | `left` (پیش‌فرض) یا `right`                                  |
-| `text-align`     | datepicker                        | `right` (پیش‌فرض) یا `left`                                  |
-| `input-width`    | datepicker                        | عرض CSS برای trigger، مثل `18rem`                            |
-| `dropdown-width` | datepicker                        | `auto`، `trigger` یا عرض CSS سفارشی                          |
-| `disabled`       | datepicker                        | trigger را غیرفعال می‌کند و popover باز را می‌بندد           |
+| Attribute        | Elementها                              | توضیح                                                                                                                     |
+| ---------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `value`          | calendar، datepicker، nlp-input        | `YYYY/MM/DD` (یا متن خام برای nlp-input)                                                                                  |
+| `min` / `max`    | calendar، datepicker                   | کران‌های قابل انتخاب                                                                                                      |
+| `locale`         | همه                                    | `fa` (پیش‌فرض) یا `en`                                                                                                    |
+| `header-mode`    | calendar، rangepicker                  | `dropdown` (پیش‌فرض) یا `separate`                                                                                        |
+| `with-time`      | calendar، datepicker                   | فعال‌سازی انتخابگر ساعت                                                                                                   |
+| `show-holidays`  | calendar، datepicker، rangepicker      | نشانه‌گذاری تعطیلات رسمی                                                                                                  |
+| `weekends`       | calendar، rangepicker                  | اندیس روزهای هفته با کاما (`6` = جمعه)                                                                                    |
+| `placeholder`    | datepicker، nlp-input                  | متن placeholder                                                                                                           |
+| `format`         | datepicker، rangedatepicker، nlp-input | الگوی format برای نمایش؛ ارقامِ تایپ‌شده همین‌طور که وارد می‌شوند در این قالب mask می‌شوند و متن با همین الگو پارس می‌شود |
+| `footer-actions` | calendar، datepicker، rangepicker      | اکشن‌های مرتب با کاما/فاصله؛ مقدار خالی فوتر را پنهان می‌کند                                                              |
+| `hide-footer`    | calendar، datepicker، rangepicker      | منسوخ؛ به‌جای آن `footer-actions=""` را استفاده کنید                                                                      |
+| `icon-position`  | datepicker                             | `left` (پیش‌فرض) یا `right`                                                                                               |
+| `text-align`     | datepicker                             | `right` (پیش‌فرض) یا `left`                                                                                               |
+| `input-width`    | datepicker                             | عرض CSS برای trigger، مثل `18rem`                                                                                         |
+| `dropdown-width` | datepicker                             | `auto`، `trigger` یا عرض CSS سفارشی                                                                                       |
+| `disabled`       | datepicker                             | trigger را غیرفعال می‌کند و popover باز را می‌بندد                                                                        |
 
 `footer-actions="today,clear"` ترتیب دکمه‌ها را دقیقاً حفظ می‌کند. «امروز» تاریخ امروز را
 انتخاب و رویداد `change` را منتشر می‌کند؛ «پاک کردن» مقدار را خالی می‌کند و
@@ -63,6 +63,14 @@ import '@doranjs/wc/styles.css'; // tokenها + استایل کامپوننت‌
 عرض `dropdown-width="auto"` ذاتی است، `trigger` عرض popover را با trigger برابر می‌کند و هر
 مقدار دیگر مثل `24rem` به‌عنوان عرض CSS سفارشی استفاده می‌شود. وقتی `disabled` حاضر باشد،
 trigger بومیِ datepicker غیرفعال است، با کلیک باز نمی‌شود و اگر popover باز باشد بسته می‌شود.
+
+`format` علاوه بر نمایش، تایپ را هم هدایت می‌کند. ارقام همین‌طور که وارد می‌شوند داخل
+الگو می‌ریزند — `14020512` بدون زدن هیچ جداکننده‌ای `۱۴۰۲/۰۵/۱۲` می‌شود — و فیلدها مثل
+یک ورودی تاریخ نیتیو جلو می‌روند: `95` ماه نیست، پس `9` می‌شود ماه `09` و `5` روز را
+شروع می‌کند. جداکننده‌ای که خودتان تایپ کنید فیلد را زودتر می‌بندد و `1402-1-2` را ماه ۱
+و روز ۲ نگه می‌دارد. متن هم با همان الگو پارس می‌شود، پس `format="MM-DD-YYYY"` ورودی
+`05-12-1402` را می‌پذیرد. الگوهایی که از tokenهای متنی ساخته شده‌اند (`MMMM`، `dddd`)
+قابل ماسک‌شدن نیستند و آزاد می‌مانند تا روی blur مرتب شوند.
 
 ## Eventها
 

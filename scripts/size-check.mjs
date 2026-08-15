@@ -9,7 +9,9 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 /** entry → gzip budget in kB (of the built, unminified dist file). */
-const BUDGETS = [{ file: 'packages/core/dist/index.js', budgetKb: 20 }];
+// 20 → 23 kB: the input-masking engine (`applyFormatMask`) landed in core, with
+// per-field widths and ceilings so typing auto-advances like a native date input.
+const BUDGETS = [{ file: 'packages/core/dist/index.js', budgetKb: 23 }];
 
 let failed = false;
 for (const { file, budgetKb } of BUDGETS) {
