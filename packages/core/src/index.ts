@@ -81,6 +81,7 @@ export {
   getLocale,
   registerLocale,
   resolveCalendarLabels,
+  resolveDirection,
   resolveLocale,
   setDefaultLocale,
 } from './locale';
@@ -106,6 +107,7 @@ export type {
   JalaliParts,
   Locale,
   LocaleLike,
+  ResolvedCalendarLabels,
   RelativeTimeStrings,
   Weekday,
 } from './types';

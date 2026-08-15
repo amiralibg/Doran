@@ -57,6 +57,61 @@ that omit them remain compatible and use the Persian control labels.
 > web-component bindings (Vue, Svelte, and Angular) accept `locale="fa"` or
 > `locale="en"` on each component.
 
+## Direction and component labels
+
+A locale carries a `direction`, and components read it instead of hardcoding one — so
+switching to a Latin locale produces a genuinely left-to-right widget rather than an
+RTL one with Latin text in it.
+
+```tsx
+setDefaultLocale(enUS); // dir="ltr", English labels, LTR arrow keys
+
+<DoranDatePicker dir="rtl" />; // an explicit prop still wins
+```
+
+Arrow-key navigation follows the direction too: `ArrowLeft` advances in RTL and goes
+back in LTR, and the default navigation chevrons flip to match.
+
+Every user-visible and screen-reader string lives in `calendarLabels`:
+
+| Field                                          | Used for                                    |
+| ---------------------------------------------- | ------------------------------------------- |
+| `today`, `clear`                               | Footer actions                              |
+| `datePlaceholder`                              | The date input's placeholder                |
+| `calendar`, `openCalendar`                     | Pop-over name, and the button that opens it |
+| `previousMonth`, `nextMonth`                   | Navigation arrows                           |
+| `month`, `year`                                | Month and year selectors                    |
+| `hour`, `minute`, `increase`, `decrease`       | Time picker                                 |
+| `presets`, `lastDays`, `thisMonth`, `thisYear` | Range shortcuts                             |
+| `rangeSeparator`, `rangeEmpty`                 | Range summary                               |
+| `nlpPlaceholder`, `unresolved`                 | Natural-language input                      |
+| `listSeparator`                                | Joins a day's date with its annotation      |
+
+Every field is optional. A locale supplying only some of them gets the Persian default
+for the rest, so locales written before these fields existed keep working:
+
+```ts
+const custom: Locale = {
+  ...faIR,
+  name: 'fa-custom',
+  calendarLabels: { today: 'همین امروز' }, // the rest fall back
+};
+```
+
+`lastDays` is a template: `{count}` is replaced with the number formatted through
+`locale.formatNumber`, so `defaultRangePresets(faIR)` yields `'۷ روز اخیر'` and
+`defaultRangePresets(enUS)` yields `'Last 7 days'`.
+
+Read the resolved set with `resolveCalendarLabels(locale)`, which fills the gaps, and
+the direction with `resolveDirection(locale)`, which defaults to `'rtl'`.
+
+In web components the `locale` attribute drives all of this, and omitting it now falls
+back to whatever `setDefaultLocale()` was given:
+
+```html
+<doran-datepicker locale="en"></doran-datepicker>
+```
+
 ## Per-call digit control
 
 Digit style is independent of the locale. Pass `{ digits }` to `format` to

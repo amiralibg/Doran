@@ -5,6 +5,7 @@ import {
   type DayDataMap,
   type DayDatum,
   type Locale,
+  resolveDirection,
 } from '@doranjs/core';
 import { isDayBlocked, renderDayCell } from './day-render';
 import { buildMonthGrid, navigateFocus, type GridNav } from './grid';
@@ -143,7 +144,7 @@ export class DoranRangePickerElement extends HTMLElement {
   /** The presets to show: custom ones if set, the defaults if the attribute is present, else none. */
   get #presetList(): RangePreset[] {
     if (this.#customPresets) return this.#customPresets;
-    return boolAttr(this, 'presets') ? defaultRangePresets() : [];
+    return boolAttr(this, 'presets') ? defaultRangePresets(this.#locale) : [];
   }
 
   /** How many month grids to show side by side. */
@@ -372,7 +373,7 @@ export class DoranRangePickerElement extends HTMLElement {
 
     this.classList.add('doran-calendar', 'doran-rangepicker');
     this.classList.toggle('doran-rangepicker--multi', multi);
-    this.setAttribute('dir', 'rtl');
+    this.setAttribute('dir', resolveDirection(locale));
 
     const header = multi
       ? this.#renderMultiHeader(locale, num, months)
@@ -408,7 +409,7 @@ export class DoranRangePickerElement extends HTMLElement {
     // The aside shares the sidebar with the presets, sitting above them. The presets
     // keep their own labelled group so the aside doesn't join their accessible name.
     const presetGroup = presets.length
-      ? `<div class="doran-rangepicker__preset-group" role="group" aria-label="بازه‌های آماده">` +
+      ? `<div class="doran-rangepicker__preset-group" role="group" aria-label="${esc(labels.presets)}">` +
         presets
           .map(
             (p, i) =>
@@ -423,7 +424,7 @@ export class DoranRangePickerElement extends HTMLElement {
         : '';
 
     const fmt = (d: DoranDate | null) => (d ? d.withLocale(locale).format('YYYY/MM/DD') : '—');
-    const summary = `${fmt(this.#start)} تا ${fmt(this.#end)}`;
+    const summary = `${fmt(this.#start)}${labels.rangeSeparator}${fmt(this.#end)}`;
     const footerActions = parseFooterActions(
       this.getAttribute('footer-actions'),
       ['clear'],
@@ -459,6 +460,12 @@ export class DoranRangePickerElement extends HTMLElement {
 
   /** A simplified arrows-only header for the multi-month layout. */
   #renderMultiHeader(locale: Locale, num: (n: number | string) => string, months: number): string {
+    const labels = resolveCalendarLabels(locale);
+    // "Previous" points back along the reading direction.
+    const rtl = resolveDirection(locale) === 'rtl';
+    const prevChevron = rtl ? chevronRight : chevronLeft;
+    const nextChevron = rtl ? chevronLeft : chevronRight;
+
     const label = (idx: number) => {
       const y = Math.floor(idx / 12);
       const m = (idx % 12) + 1;
@@ -468,9 +475,9 @@ export class DoranRangePickerElement extends HTMLElement {
     const caption = esc(`${label(startIdx)} – ${label(startIdx + months - 1)}`);
     return (
       `<div class="doran-calendar__header">` +
-      `<button type="button" class="doran-calendar__nav" data-action="prev" aria-label="ماه قبل">${chevronRight}</button>` +
+      `<button type="button" class="doran-calendar__nav" data-action="prev" aria-label="${esc(labels.previousMonth)}">${prevChevron}</button>` +
       `<div class="doran-calendar__heading" aria-live="polite">${caption}</div>` +
-      `<button type="button" class="doran-calendar__nav" data-action="next" aria-label="ماه بعد">${chevronLeft}</button>` +
+      `<button type="button" class="doran-calendar__nav" data-action="next" aria-label="${esc(labels.nextMonth)}">${nextChevron}</button>` +
       `</div>`
     );
   }
@@ -480,6 +487,11 @@ export class DoranRangePickerElement extends HTMLElement {
     mode: 'dropdown' | 'separate',
     num: (n: number | string) => string,
   ): string {
+    const labels = resolveCalendarLabels(locale);
+    // "Previous" points back along the reading direction.
+    const rtl = resolveDirection(locale) === 'rtl';
+    const prevChevron = rtl ? chevronRight : chevronLeft;
+    const nextChevron = rtl ? chevronLeft : chevronRight;
     let heading: string;
     if (mode === 'separate') {
       const months = locale.months
@@ -493,7 +505,7 @@ export class DoranRangePickerElement extends HTMLElement {
       for (let y = from; y <= to; y += 1) {
         years += `<option value="${y}" ${y === this.#viewYear ? 'selected' : ''}>${esc(num(y))}</option>`;
       }
-      heading = `<select class="doran-calendar__heading-btn" data-role="month" aria-label="ماه">${months}</select><select class="doran-calendar__heading-btn" data-role="year" aria-label="سال">${years}</select>`;
+      heading = `<select class="doran-calendar__heading-btn" data-role="month" aria-label="${esc(labels.month)}">${months}</select><select class="doran-calendar__heading-btn" data-role="year" aria-label="${esc(labels.year)}">${years}</select>`;
     } else {
       heading =
         `<button type="button" class="doran-calendar__heading-btn ${this.#panel === 'months' ? 'doran-calendar__heading-btn--active' : ''}" data-action="toggle-panel" data-panel="months">${esc(locale.months[this.#viewMonth - 1]!)}${chevronDown}</button>` +
@@ -501,9 +513,9 @@ export class DoranRangePickerElement extends HTMLElement {
     }
     return (
       `<div class="doran-calendar__header">` +
-      `<button type="button" class="doran-calendar__nav" data-action="prev" aria-label="ماه قبل">${chevronRight}</button>` +
+      `<button type="button" class="doran-calendar__nav" data-action="prev" aria-label="${esc(labels.previousMonth)}">${prevChevron}</button>` +
       `<div class="doran-calendar__heading" aria-live="polite">${heading}</div>` +
-      `<button type="button" class="doran-calendar__nav" data-action="next" aria-label="ماه بعد">${chevronLeft}</button>` +
+      `<button type="button" class="doran-calendar__nav" data-action="next" aria-label="${esc(labels.nextMonth)}">${nextChevron}</button>` +
       `</div>`
     );
   }

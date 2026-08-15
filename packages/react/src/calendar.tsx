@@ -7,7 +7,7 @@ import {
   type DoranDate,
   type Locale,
 } from '@doranjs/core';
-import { useResolvedLocale } from './provider';
+import { useDirection, useResolvedLocale } from './provider';
 import { Button, cn } from '@doranjs/ui';
 import { useState, type ReactNode } from 'react';
 import {
@@ -62,6 +62,8 @@ export interface DoranCalendarProps extends Omit<UseCalendarOptions, 'onChange'>
   dayData?: DayDataMap;
   /** Your own content in the calendar's `legend`, `aside`, and `footer` regions. */
   slots?: CalendarSlots;
+  /** Writing direction. Defaults to the locale's. */
+  dir?: 'rtl' | 'ltr';
   /** Weekday indices treated as weekend (0 = Saturday). Defaults to `[6]` (Friday). */
   weekends?: number[];
   /** How many years to offer around the current view in the year picker. */
@@ -96,6 +98,7 @@ export function DoranCalendar({
   dayProps,
   dayData,
   slots,
+  dir,
   weekends,
   yearSpan = 60,
   arrows,
@@ -108,6 +111,7 @@ export function DoranCalendar({
   ...options
 }: DoranCalendarProps) {
   const locale = useResolvedLocale(localeProp);
+  const direction = useDirection(locale, dir);
   const labels = resolveCalendarLabels(locale);
   const isControlled = value !== undefined;
   const [internal, setInternal] = useState<DoranDate | null>(defaultValue ?? null);
@@ -185,6 +189,7 @@ export function DoranCalendar({
       isSelected={calendar.isSelected}
       isDisabled={calendar.isDisabled}
       isOutOfBounds={calendar.isOutOfBounds}
+      dir={direction}
       {...(isHoliday ? { isHoliday } : {})}
       {...(dayContent ? { dayContent } : {})}
       {...(dayProps ? { dayProps } : {})}
@@ -213,7 +218,7 @@ export function DoranCalendar({
 
   return (
     <DoranCalendarProvider value={context}>
-      <div className={cn('doran-calendar', className)} dir="rtl">
+      <div className={cn('doran-calendar', className)} dir={direction}>
         <CalendarHeader
           year={calendar.year}
           month={calendar.month}

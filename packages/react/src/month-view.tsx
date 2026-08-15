@@ -3,6 +3,7 @@
 import {
   dayKey,
   indexDayData,
+  resolveCalendarLabels,
   type DayDataMap,
   type DayDatum,
   type DayMeta,
@@ -10,7 +11,7 @@ import {
   type DoranDate,
   type Locale,
 } from '@doranjs/core';
-import { useResolvedLocale } from './provider';
+import { useDirection, useResolvedLocale } from './provider';
 import { cn } from '@doranjs/ui';
 import {
   useEffect,
@@ -102,6 +103,8 @@ export interface DoranMonthViewProps {
   showOutsideDays?: boolean;
   /** Whether the grid allows selecting multiple days (e.g. a range). */
   multiselectable?: boolean;
+  /** Writing direction. Defaults to the locale's. */
+  dir?: 'rtl' | 'ltr';
   className?: string;
 }
 
@@ -171,9 +174,12 @@ export function DoranMonthView({
   weekends = [6],
   showOutsideDays = true,
   multiselectable,
+  dir,
   className,
 }: DoranMonthViewProps) {
   const locale = useResolvedLocale(localeProp);
+  const direction = useDirection(locale, dir);
+  const labels = resolveCalendarLabels(locale);
   const gridRef = useRef<HTMLDivElement>(null);
   const [focusDate, setFocusDate] = useState<DoranDate | null>(null);
   const [isFocusWithin, setIsFocusWithin] = useState(false);
@@ -250,7 +256,9 @@ export function DoranMonthView({
       key,
       meta: { ...meta, disabled },
       disabled,
-      label: [cell.date.withLocale(locale).format('dddd D MMMM YYYY'), ...additions].join(', '),
+      label: [cell.date.withLocale(locale).format('dddd D MMMM YYYY'), ...additions].join(
+        labels.listSeparator,
+      ),
       title: custom?.title ?? datum?.title ?? disabledReason,
       className: custom?.className,
       style: custom?.style,
@@ -289,12 +297,12 @@ export function DoranMonthView({
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     switch (event.key) {
-      // RTL: ArrowLeft advances, ArrowRight goes back.
+      // Arrow keys follow the writing direction: in RTL, ArrowLeft advances.
       case 'ArrowLeft':
-        navigate('next-day', true);
+        navigate(direction === 'rtl' ? 'next-day' : 'prev-day', true);
         break;
       case 'ArrowRight':
-        navigate('prev-day', true);
+        navigate(direction === 'rtl' ? 'prev-day' : 'next-day', true);
         break;
       case 'ArrowDown':
         navigate('next-week', true);
@@ -344,7 +352,7 @@ export function DoranMonthView({
       role="grid"
       aria-label={gridLabel}
       {...(multiselectable ? { 'aria-multiselectable': true } : {})}
-      dir="rtl"
+      dir={direction}
       onKeyDown={onKeyDown}
       onFocus={() => setIsFocusWithin(true)}
       onBlur={() => setIsFocusWithin(false)}

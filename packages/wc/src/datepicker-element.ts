@@ -1,4 +1,10 @@
-import { parseJalali, type DayDataMap, type DoranDate } from '@doranjs/core';
+import {
+  parseJalali,
+  type DayDataMap,
+  type DoranDate,
+  resolveCalendarLabels,
+  resolveDirection,
+} from '@doranjs/core';
 import { type DoranCalendarElement } from './calendar-element';
 import { calendarIcon } from './icons';
 import { trackPopoverPosition } from './popover-position';
@@ -334,7 +340,8 @@ export class DoranDatePickerElement extends HTMLElement {
   #render(): void {
     if (boolAttr(this, 'disabled')) this.#open = false;
     const locale = resolveLocaleAttr(this.getAttribute('locale'));
-    const placeholder = this.getAttribute('placeholder') ?? 'انتخاب تاریخ';
+    const labels = resolveCalendarLabels(locale);
+    const placeholder = this.getAttribute('placeholder') ?? labels.datePlaceholder;
     const iconPosition = this.#iconPosition;
     const textAlign = this.#textAlign;
     const dropdownWidth = this.getAttribute('dropdown-width')?.trim() || 'auto';
@@ -346,14 +353,14 @@ export class DoranDatePickerElement extends HTMLElement {
     // naming the field costs nothing and the placeholder is the best default.
     const explicitLabel = this.getAttribute('aria-label');
     const fieldLabel = explicitLabel ?? placeholder;
-    const openLabel = explicitLabel ? `${explicitLabel} — تقویم` : 'باز کردن تقویم';
+    const openLabel = explicitLabel ? `${explicitLabel} — ${labels.calendar}` : labels.openCalendar;
 
     this.classList.add('doran-datepicker');
     this.classList.toggle('doran-datepicker--icon-left', iconPosition === 'left');
     this.classList.toggle('doran-datepicker--icon-right', iconPosition === 'right');
     this.classList.toggle('doran-datepicker--text-left', textAlign === 'left');
     this.classList.toggle('doran-datepicker--text-right', textAlign === 'right');
-    this.setAttribute('dir', 'rtl');
+    this.setAttribute('dir', resolveDirection(locale));
     this.dataset.iconPosition = iconPosition;
     this.dataset.textAlign = textAlign;
     this.dataset.dropdownWidth = dropdownWidthMode;
@@ -412,8 +419,8 @@ export class DoranDatePickerElement extends HTMLElement {
       popover.dataset.dropdownWidth = dropdownWidthMode;
       popover.setAttribute('role', 'dialog');
       popover.setAttribute('aria-modal', 'false');
-      popover.setAttribute('aria-label', 'تقویم');
-      popover.setAttribute('dir', 'rtl');
+      popover.setAttribute('aria-label', labels.calendar);
+      popover.setAttribute('dir', resolveDirection(locale));
       popover.addEventListener('keydown', this.#onPopoverKeyDown);
 
       const calendar = document.createElement('doran-calendar') as DoranCalendarElement;

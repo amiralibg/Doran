@@ -83,18 +83,75 @@ export type LocaleLike = string | Locale;
 /** Day-of-week index where 0 = Saturday … 6 = Friday (Persian week convention). */
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
-/** Labels used by calendar controls. */
+/**
+ * Text used by calendar controls, including the strings assistive technology reads.
+ *
+ * Every field is optional: anything you leave out falls back to the Persian default,
+ * so a locale can override as little or as much as it likes. Use
+ * {@link resolveCalendarLabels} to read them — it fills the gaps.
+ */
 export interface CalendarLabels {
-  /** Label for the action that selects today. */
-  today: string;
-  /** Label for the action that clears the current selection. */
-  clear: string;
+  /** The action that selects today. */
+  today?: string;
+  /** The action that clears the current selection. */
+  clear?: string;
+  /** Placeholder for a date-picker input. */
+  datePlaceholder?: string;
+  /** Accessible name of the calendar pop-over. */
+  calendar?: string;
+  /** Accessible name of the button that opens the calendar. */
+  openCalendar?: string;
+  /** Accessible name of the previous-month button. */
+  previousMonth?: string;
+  /** Accessible name of the next-month button. */
+  nextMonth?: string;
+  /** Accessible name of the month selector. */
+  month?: string;
+  /** Accessible name of the year selector. */
+  year?: string;
+  /** Label for the hour field of a time picker. */
+  hour?: string;
+  /** Label for the minute field of a time picker. */
+  minute?: string;
+  /** Prefixes a stepper's accessible name, as `"{increase} {hour}"`. */
+  increase?: string;
+  /** Prefixes a stepper's accessible name, as `"{decrease} {hour}"`. */
+  decrease?: string;
+  /** Accessible name of the quick-pick range group. */
+  presets?: string;
+  /** Joins the two ends of a range summary, as `"{start}{rangeSeparator}{end}"`. */
+  rangeSeparator?: string;
+  /** Stands in for a range end that has not been picked yet. */
+  rangeEmpty?: string;
+  /** Placeholder for the natural-language input. */
+  nlpPlaceholder?: string;
+  /** Shown when natural-language text does not resolve to a date. */
+  unresolved?: string;
+  /** Joins a day's date with any custom annotation in its accessible name. */
+  listSeparator?: string;
+  /** Quick-pick label; `{count}` is replaced with the localized number. */
+  lastDays?: string;
+  /** Quick-pick label for the current month. */
+  thisMonth?: string;
+  /** Quick-pick label for the current year. */
+  thisYear?: string;
 }
+
+/** {@link CalendarLabels} with every gap filled, as {@link resolveCalendarLabels} returns. */
+export type ResolvedCalendarLabels = Required<CalendarLabels>;
 
 /** A localization bundle for formatting Jalali dates. */
 export interface Locale {
   /** Unique name, e.g. `"fa-IR"`. */
   name: string;
+  /**
+   * Writing direction for components rendered in this locale. Defaults to `'rtl'`,
+   * which is what every existing locale assumed before this field existed.
+   *
+   * Components read this instead of hardcoding `dir`, so switching to a Latin locale
+   * actually produces a left-to-right widget.
+   */
+  direction?: 'rtl' | 'ltr';
   /** Full month names, index 0 = Farvardin … 11 = Esfand. */
   months: readonly string[];
   /** Abbreviated month names, aligned with {@link Locale.months}. */

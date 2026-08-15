@@ -1,6 +1,6 @@
 'use client';
 
-import { type Locale } from '@doranjs/core';
+import { resolveCalendarLabels, type Locale } from '@doranjs/core';
 import { useResolvedLocale } from './provider';
 import { ChevronDownIcon, ChevronUpIcon } from '@doranjs/ui';
 
@@ -40,6 +40,7 @@ export function DoranTimePicker({
   className,
 }: DoranTimePickerProps) {
   const locale = useResolvedLocale(localeProp);
+  const labels = resolveCalendarLabels(locale);
   const num = (n: number) => locale.formatNumber(pad(n));
 
   const setHour = (delta: number) =>
@@ -50,7 +51,9 @@ export function DoranTimePicker({
   return (
     <div className={className ? `doran-time ${className}` : 'doran-time'} dir="ltr">
       <Field
-        label="ساعت"
+        label={labels.hour}
+        increase={labels.increase}
+        decrease={labels.decrease}
         display={num(value.hour)}
         onUp={() => setHour(1)}
         onDown={() => setHour(-1)}
@@ -59,7 +62,9 @@ export function DoranTimePicker({
         :
       </span>
       <Field
-        label="دقیقه"
+        label={labels.minute}
+        increase={labels.increase}
+        decrease={labels.decrease}
         display={num(value.minute)}
         onUp={() => setMinute(1)}
         onDown={() => setMinute(-1)}
@@ -70,18 +75,20 @@ export function DoranTimePicker({
 
 interface FieldProps {
   label: string;
+  increase: string;
+  decrease: string;
   display: string;
   onUp: () => void;
   onDown: () => void;
 }
 
-function Field({ label, display, onUp, onDown }: FieldProps) {
+function Field({ label, increase, decrease, display, onUp, onDown }: FieldProps) {
   return (
     <div className="doran-time__field" role="group" aria-label={label}>
       <button
         type="button"
         className="doran-time__btn"
-        aria-label={`افزایش ${label}`}
+        aria-label={`${increase} ${label}`}
         onClick={onUp}
       >
         <ChevronUpIcon />
@@ -92,7 +99,7 @@ function Field({ label, display, onUp, onDown }: FieldProps) {
       <button
         type="button"
         className="doran-time__btn"
-        aria-label={`کاهش ${label}`}
+        aria-label={`${decrease} ${label}`}
         onClick={onDown}
       >
         <ChevronDownIcon />

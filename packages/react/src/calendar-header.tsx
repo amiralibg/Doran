@@ -1,6 +1,6 @@
 'use client';
 
-import { type Locale } from '@doranjs/core';
+import { resolveCalendarLabels, type Locale } from '@doranjs/core';
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, cn } from '@doranjs/ui';
 import type { ReactNode } from 'react';
 
@@ -32,6 +32,8 @@ export interface CalendarHeaderProps {
   /** Inclusive year bounds for the `separate` year `<select>`. */
   yearRange: [number, number];
   arrows?: CalendarArrows;
+  /** Writing direction, which decides which way the default arrows point. */
+  direction?: 'rtl' | 'ltr';
 }
 
 /**
@@ -52,17 +54,24 @@ export function CalendarHeader({
   onSelectYear,
   yearRange,
   arrows,
+  direction = 'rtl',
 }: CalendarHeaderProps) {
+  const labels = resolveCalendarLabels(locale);
+  // "Previous" points back along the reading direction: right in RTL, left in LTR.
+  const prevArrow =
+    arrows?.prev ?? (direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />);
+  const nextArrow =
+    arrows?.next ?? (direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon />);
+
   return (
     <div className="doran-calendar__header">
-      {/* RTL: "previous" sits on the right and points right. */}
       <button
         type="button"
         className="doran-calendar__nav"
-        aria-label="ماه قبل"
+        aria-label={labels.previousMonth}
         onClick={onPrevMonth}
       >
-        {arrows?.prev ?? <ChevronRightIcon />}
+        {prevArrow}
       </button>
 
       <div className="doran-calendar__heading" aria-live="polite">
@@ -70,7 +79,7 @@ export function CalendarHeader({
           <>
             <select
               className="doran-calendar__heading-btn"
-              aria-label="ماه"
+              aria-label={labels.month}
               value={month}
               onChange={(e) => onSelectMonth(Number(e.target.value))}
             >
@@ -82,7 +91,7 @@ export function CalendarHeader({
             </select>
             <select
               className="doran-calendar__heading-btn"
-              aria-label="سال"
+              aria-label={labels.year}
               value={year}
               onChange={(e) => onSelectYear(Number(e.target.value))}
             >
@@ -126,10 +135,10 @@ export function CalendarHeader({
       <button
         type="button"
         className="doran-calendar__nav"
-        aria-label="ماه بعد"
+        aria-label={labels.nextMonth}
         onClick={onNextMonth}
       >
-        {arrows?.next ?? <ChevronLeftIcon />}
+        {nextArrow}
       </button>
     </div>
   );

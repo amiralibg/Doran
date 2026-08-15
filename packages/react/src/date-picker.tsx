@@ -3,6 +3,7 @@
 import {
   formatValue,
   parseJalali,
+  resolveCalendarLabels,
   toDoranDate,
   type DateInput,
   type DoranDate,
@@ -10,7 +11,7 @@ import {
   type Locale,
   type ValueFormat,
 } from '@doranjs/core';
-import { useResolvedLocale } from './provider';
+import { useDirection, useResolvedLocale } from './provider';
 import { CalendarIcon, cn } from '@doranjs/ui';
 import {
   forwardRef,
@@ -152,6 +153,8 @@ export interface DoranDatePickerProps<F extends ValueFormat = 'doran'> extends P
    * trap, so the trap pulls focus straight back out of the calendar.
    */
   portalContainer?: HTMLElement | null;
+  /** Writing direction. Defaults to the locale's. */
+  dir?: 'rtl' | 'ltr';
   /** Explicit trigger width. Numeric values are interpreted as pixels. */
   inputWidth?: CSSProperties['width'];
   /**
@@ -201,7 +204,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
       onChange,
       locale: localeProp,
       format,
-      placeholder = 'انتخاب تاریخ',
+      placeholder,
       min,
       max,
       disabled,
@@ -226,6 +229,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
       onParseError,
       classNames,
       portalContainer,
+      dir,
       inputWidth,
       dropdownWidth = 'auto',
       withTime,
@@ -245,6 +249,9 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
     forwardedRef,
   ) {
     const locale = useResolvedLocale(localeProp);
+    const direction = useDirection(locale, dir);
+    const labels = resolveCalendarLabels(locale);
+    const resolvedPlaceholder = placeholder ?? labels.datePlaceholder;
     const isControlled = value !== undefined;
     // Loose input is coerced once, at the edge, so the rest of the component only
     // ever deals in DoranDate.
@@ -461,7 +468,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
     // Unlike a button, an input's value is announced separately from its name — so
     // naming the field costs nothing here, and the placeholder is the best default.
     // Prefer a real <label> via `aria-labelledby` where you have one.
-    const fieldLabel = ariaLabel ?? placeholder;
+    const fieldLabel = ariaLabel ?? resolvedPlaceholder;
     // `doran` can't cross a form boundary, so a named picker defaults to an
     // unambiguous Latin-digit Jalali date rather than what the field displays.
     const submitted = formatValue(
@@ -470,7 +477,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
     );
     const submitValue =
       submitted instanceof Date ? submitted.toISOString() : ((submitted as string | null) ?? '');
-    const openLabel = ariaLabel ? `${ariaLabel} — تقویم` : 'باز کردن تقویم';
+    const openLabel = ariaLabel ? `${ariaLabel} — ${labels.calendar}` : labels.openCalendar;
     const isInvalid = invalid === true || unparseable;
 
     const dropdownWidthMode =
@@ -494,7 +501,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
         data-icon-position={iconPosition}
         data-text-align={textAlign}
         data-dropdown-width={dropdownWidthMode}
-        dir="rtl"
+        dir={direction}
       >
         <div
           ref={fieldRef}
@@ -522,7 +529,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
             className={cn('doran-datepicker__control', classNames?.input)}
             style={{ flex: 1, textAlign }}
             value={text}
-            placeholder={placeholder}
+            placeholder={resolvedPlaceholder}
             disabled={disabled}
             readOnly={readOnly}
             required={required}
@@ -568,8 +575,8 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
               id={popoverId}
               role="dialog"
               aria-modal="false"
-              aria-label="تقویم"
-              dir="rtl"
+              aria-label={labels.calendar}
+              dir={direction}
               className={cn(
                 'doran-datepicker__popover',
                 `doran-datepicker__popover--${dropdownWidthMode}`,

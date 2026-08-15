@@ -6,8 +6,9 @@ import {
   type DayMeta,
   type DoranDate,
   type Locale,
+  type ResolvedCalendarLabels,
 } from '@doranjs/core';
-import { useResolvedLocale } from './provider';
+import { useDirection, useResolvedLocale } from './provider';
 import { Button, ChevronLeftIcon, ChevronRightIcon, cn } from '@doranjs/ui';
 import { useState, type ReactNode } from 'react';
 import {
@@ -54,6 +55,8 @@ export interface DoranRangePickerProps extends UseDateRangeOptions {
   /** Weekday indices treated as weekend (0 = Saturday). Defaults to `[6]` (Friday). */
   weekends?: number[];
   arrows?: CalendarArrows;
+  /** Writing direction. Defaults to the locale's. */
+  dir?: 'rtl' | 'ltr';
   yearSpan?: number;
   /**
    * Quick-pick presets shown beside the calendar. `true` uses
@@ -89,6 +92,7 @@ export function DoranRangePicker({
   disabledDates,
   weekends,
   arrows,
+  dir,
   yearSpan = 60,
   presets,
   numberOfMonths = 1,
@@ -97,6 +101,7 @@ export function DoranRangePicker({
   ...rangeOptions
 }: DoranRangePickerProps) {
   const locale = useResolvedLocale(localeProp);
+  const direction = useDirection(locale, dir);
   const labels = resolveCalendarLabels(locale);
   const range = useDateRange(rangeOptions);
   const calendar = useCalendar({
@@ -107,10 +112,10 @@ export function DoranRangePicker({
 
   const months = Math.max(1, numberOfMonths);
   const multi = months > 1;
-  const summary = formatSummary(range.range, locale);
+  const summary = formatSummary(range.range, locale, labels);
 
   const presetList =
-    presets === true ? defaultRangePresets() : Array.isArray(presets) ? presets : [];
+    presets === true ? defaultRangePresets(locale) : Array.isArray(presets) ? presets : [];
 
   const yearRange: [number, number] = [
     calendar.year - Math.floor(yearSpan / 2),
@@ -161,6 +166,7 @@ export function DoranRangePicker({
       isSelected={(d) => range.isStart(d) || range.isEnd(d)}
       isDisabled={calendar.isDisabled}
       isOutOfBounds={calendar.isOutOfBounds}
+      dir={direction}
       {...(isHoliday ? { isHoliday } : {})}
       {...(dayContent ? { dayContent } : {})}
       {...(dayProps ? { dayProps } : {})}
@@ -175,10 +181,10 @@ export function DoranRangePicker({
         <button
           type="button"
           className="doran-calendar__nav"
-          aria-label="ماه قبل"
+          aria-label={labels.previousMonth}
           onClick={calendar.goToPrevMonth}
         >
-          {arrows?.prev ?? <ChevronRightIcon />}
+          {arrows?.prev ?? (direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />)}
         </button>
         <div className="doran-calendar__heading" aria-live="polite">
           {monthLabel(calendar.year, calendar.month, locale)}
@@ -188,10 +194,10 @@ export function DoranRangePicker({
         <button
           type="button"
           className="doran-calendar__nav"
-          aria-label="ماه بعد"
+          aria-label={labels.nextMonth}
           onClick={calendar.goToNextMonth}
         >
-          {arrows?.next ?? <ChevronLeftIcon />}
+          {arrows?.next ?? (direction === 'rtl' ? <ChevronLeftIcon /> : <ChevronRightIcon />)}
         </button>
       </div>
       <div className="doran-rangepicker__months">
@@ -222,6 +228,7 @@ export function DoranRangePicker({
         onSelectMonth={selectMonth}
         onSelectYear={selectYear}
         yearRange={yearRange}
+        direction={direction}
         {...(arrows ? { arrows } : {})}
       />
       {panel === 'days' ? (
@@ -273,7 +280,7 @@ export function DoranRangePicker({
           multi && 'doran-rangepicker--multi',
           className,
         )}
-        dir="rtl"
+        dir={direction}
       >
         {slots?.legend && <div className="doran-calendar__legend">{slots.legend}</div>}
 
@@ -285,7 +292,7 @@ export function DoranRangePicker({
                 <div
                   className="doran-rangepicker__preset-group"
                   role="group"
-                  aria-label="بازه‌های آماده"
+                  aria-label={labels.presets}
                 >
                   {presetList.map((preset) => (
                     <button
@@ -334,7 +341,8 @@ function monthLabel(year: number, month: number, locale: Locale): string {
   return `${locale.months[month - 1]} ${locale.formatNumber(String(year))}`;
 }
 
-function formatSummary(range: DateRange, locale: Locale): string {
-  const fmt = (d: DateRange['start']) => (d ? d.withLocale(locale).format('YYYY/MM/DD') : '—');
-  return `${fmt(range.start)} تا ${fmt(range.end)}`;
+function formatSummary(range: DateRange, locale: Locale, labels: ResolvedCalendarLabels): string {
+  const fmt = (d: DateRange['start']) =>
+    d ? d.withLocale(locale).format('YYYY/MM/DD') : labels.rangeEmpty;
+  return `${fmt(range.start)}${labels.rangeSeparator}${fmt(range.end)}`;
 }
