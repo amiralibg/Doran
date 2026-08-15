@@ -117,6 +117,67 @@
   padding-top: var(--doran-space-xs);
 }
 
+/* A fixed-width column cannot also hold a sidebar: without this the aside squeezes
+   the month grid instead of widening the calendar. Mirrors what the range picker
+   already does for its presets. */
+.doran-calendar:has(.doran-calendar__body) {
+  width: auto;
+}
+
+/* --- Slot regions -------------------------------------------------------
+   Filled through the `slots` prop. Each region is intentionally unstyled beyond
+   placement and spacing: whatever you drop in should look like your app, not
+   like Doran. `__body` only exists when an `aside` is present. */
+
+.doran-calendar__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--doran-space-sm);
+  padding: var(--doran-calendar-legend-padding, var(--doran-space-xs) 0);
+  border-bottom: 1px solid var(--doran-calendar-border-color, var(--doran-border));
+  font-size: var(--doran-calendar-legend-font-size, 0.7rem);
+  color: var(--doran-calendar-legend-color, var(--doran-text-muted));
+}
+
+.doran-calendar__body {
+  display: flex;
+  gap: var(--doran-calendar-gap, 0.75rem);
+  align-items: flex-start;
+}
+
+.doran-calendar__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--doran-calendar-aside-gap, 0.35rem);
+  flex-shrink: 0;
+  /* Reads as a sidebar rather than as content that wandered into the grid. */
+  padding-inline-end: var(--doran-calendar-aside-gap, 0.75rem);
+  border-inline-end: 1px solid var(--doran-calendar-border-color, var(--doran-border));
+}
+
+.doran-calendar__main {
+  /* The grid keeps the calendar's intended width; the aside adds to it. */
+  width: var(--doran-calendar-width, 17.5rem);
+  min-width: 0;
+}
+
+.doran-calendar__footer-slot {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--doran-space-sm);
+  min-width: 0;
+  font-size: 0.78rem;
+  color: var(--doran-text-muted);
+}
+
+/* The footer is a row of actions plus, sometimes, a summary that should not push
+   them off the edge. */
+.doran-calendar__footer:has(.doran-calendar__footer-slot) {
+  justify-content: space-between;
+}
+
 /* --- Header pickers (month / year / time) ------------------------------- */
 
 .doran-calendar__heading-btn {
@@ -215,7 +276,7 @@
   justify-content: center;
   gap: var(--doran-space-xs);
   padding-top: var(--doran-space-sm);
-  border-top: 1px solid var(--doran-border);
+  border-top: 1px solid var(--doran-time-border-color, var(--doran-border));
   margin-top: var(--doran-space-xs);
 }
 
@@ -229,37 +290,86 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.75rem;
-  height: 1.25rem;
+  width: var(--doran-time-btn-width, 1.75rem);
+  height: var(--doran-time-btn-height, 1.25rem);
   border: none;
   background: transparent;
-  color: var(--doran-text-muted);
-  border-radius: var(--doran-radius-sm);
+  color: var(--doran-time-btn-color, var(--doran-text-muted));
+  border-radius: var(--doran-time-btn-radius, var(--doran-radius-sm));
   cursor: pointer;
 }
 
 .doran-time__btn:hover {
-  background: var(--doran-surface-muted);
-  color: var(--doran-text);
+  background: var(--doran-time-btn-hover-bg, var(--doran-surface-muted));
+  color: var(--doran-time-btn-hover-color, var(--doran-text));
+}
+
+.doran-time__btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--doran-focus-ring);
 }
 
 .doran-time__btn svg {
-  width: 0.8em;
-  height: 0.8em;
+  width: var(--doran-time-btn-icon-size, 0.8em);
+  height: var(--doran-time-btn-icon-size, 0.8em);
 }
 
 .doran-time__value {
-  font-variant-numeric: tabular-nums;
-  font-size: 1.1rem;
-  font-weight: var(--doran-font-weight-semibold, 600);
-  min-width: 2ch;
-  text-align: center;
+  /* A real input now, so it needs its chrome stripped back to the bare number.
+     `ch` tracks the font, so the field scales with whatever face you set; 2.4 leaves
+     enough room for two Persian digits, which are wider than the "0" ch measures. */
+  width: var(--doran-time-field-width, 2.4ch);
+  border: none;
+  background: transparent;
+  /* No horizontal padding: the calendar sets `box-sizing: border-box`, so side
+     padding would come out of the 2.4ch rather than sitting outside it. */
   padding: 0.1rem 0;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--doran-time-font-size, 1.1rem);
+  font-weight: var(--doran-time-font-weight, var(--doran-font-weight-semibold, 600));
+  color: var(--doran-time-color, var(--doran-text));
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* The value is a spinbutton, so it is a tab stop and needs a visible focus ring. */
+.doran-time__value:focus-visible,
+.doran-time__value:focus {
+  outline: none;
+  border-radius: var(--doran-radius-sm);
+  box-shadow: 0 0 0 3px var(--doran-focus-ring);
+}
+
+.doran-time__value::selection {
+  background: var(--doran-primary-soft);
+}
+
+.doran-time__meridiem {
+  margin-inline-start: var(--doran-space-xs);
+  padding: var(--doran-time-meridiem-padding, 0.2rem 0.45rem);
+  border: 1px solid var(--doran-time-meridiem-border-color, var(--doran-border));
+  border-radius: var(--doran-time-meridiem-radius, var(--doran-radius-sm));
+  background: transparent;
+  color: var(--doran-time-color, var(--doran-text));
+  font: inherit;
+  font-size: var(--doran-time-meridiem-font-size, 0.78rem);
+  cursor: pointer;
+}
+
+.doran-time__meridiem:hover {
+  background: var(--doran-time-btn-hover-bg, var(--doran-surface-muted));
+}
+
+.doran-time__meridiem:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--doran-focus-ring);
 }
 
 .doran-time__sep {
-  font-size: 1.1rem;
-  font-weight: var(--doran-font-weight-semibold, 600);
+  font-size: var(--doran-time-font-size, 1.1rem);
+  font-weight: var(--doran-time-font-weight, var(--doran-font-weight-semibold, 600));
+  color: var(--doran-time-color, var(--doran-text));
   padding: 0 0.1rem;
 }
 
@@ -273,10 +383,28 @@
   gap: 2px;
 }
 
+/* Announces the focused day during keyboard navigation, including when arrowing
+   past a month edge re-renders the grid. Visually hidden, never display:none —
+   that would take it out of the accessibility tree entirely. */
+.doran-month__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 .doran-month__weekdays,
 .doran-month__week {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  /* minmax(0, …) rather than a bare 1fr: `1fr` floors at min-content, so one long
+     day annotation would widen its column and knock the whole grid out of true. */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .doran-month__weekday {
@@ -297,6 +425,7 @@
   justify-content: center;
   aspect-ratio: 1;
   position: relative;
+  min-width: 0;
 }
 
 .doran-month__spacer {
@@ -329,7 +458,7 @@
     box-shadow var(--doran-transition, 0.12s ease);
 }
 
-.doran-day:not(:disabled):hover {
+.doran-day:not([aria-disabled='true']):hover {
   background: var(--doran-day-hover-bg, var(--doran-surface-muted));
 }
 
@@ -338,10 +467,95 @@
   box-shadow: 0 0 0 3px var(--doran-focus-ring);
 }
 
-.doran-day:disabled {
+/* Unavailable days are marked with `aria-disabled`, not the `disabled` attribute, so
+   they stay focusable and can announce why they cannot be picked. */
+.doran-day[aria-disabled='true'] {
   color: var(--doran-text-muted);
-  opacity: 0.4;
+  opacity: var(--doran-day-disabled-opacity, 0.4);
   cursor: not-allowed;
+}
+
+/* Rich days ---------------------------------------------------------------
+   `.doran-month--rich` is set automatically when `dayContent` or `dayData` can
+   supply a second line. Plain grids keep the square pill; rich grids give every
+   cell the same taller box so rows stay level whether or not they carry text. */
+.doran-month--rich .doran-month__cell {
+  aspect-ratio: auto;
+  /* Uniform height regardless of annotation, so rows never jump. */
+  min-height: var(--doran-day-rich-size, 3rem);
+}
+
+.doran-month--rich .doran-day {
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--doran-day-content-gap, 0.1rem);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: var(--doran-day-rich-padding, 0.2rem 0.15rem);
+  border-radius: var(--doran-day-rich-radius, var(--doran-radius-md));
+  line-height: 1.15;
+}
+
+.doran-day__number {
+  line-height: 1.15;
+  /* The number is the anchor; keep it steady while the annotation varies. */
+  font-variant-numeric: tabular-nums;
+}
+
+.doran-day__content {
+  /* min-width: 0 is what actually lets the ellipsis engage inside a flex column. */
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--doran-day-content-font-size, 0.625rem);
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--doran-day-content-color, var(--doran-text-muted));
+}
+
+/* Tones are conventions, not a closed set: any other `data-tone` value passes
+   through untouched for your own stylesheet to pick up. */
+.doran-day__content[data-tone='low'],
+.doran-day__content[data-tone='positive'] {
+  color: var(--doran-day-tone-low, var(--doran-success));
+}
+
+.doran-day__content[data-tone='high'],
+.doran-day__content[data-tone='negative'] {
+  color: var(--doran-day-tone-high, var(--doran-danger));
+}
+
+/* Outside days keep their annotation but recede with the number, so a trailing
+   week does not shout as loudly as the current month. */
+.doran-day--outside .doran-day__content {
+  opacity: 0.55;
+}
+
+/* Selected days invert their background, so the annotation follows the contrast
+   rather than keeping a tone colour that would fail against the fill. */
+.doran-day--selected .doran-day__content,
+.doran-day--range-start .doran-day__content,
+.doran-day--range-end .doran-day__content {
+  color: inherit;
+  opacity: 0.9;
+}
+
+/* In-range days sit on a tinted band; the annotation needs to stay legible on it
+   without adopting the filled-endpoint treatment. */
+.doran-day--in-range .doran-day__content {
+  color: var(--doran-day-in-range-color, inherit);
+}
+
+/* The holiday dot is positioned for a single-line cell; nudge it clear of the
+   second line so it does not collide with the annotation. */
+.doran-month--rich .doran-day--holiday::after {
+  bottom: auto;
+  top: 0.2rem;
+  inset-inline-end: 0.25rem;
 }
 
 .doran-day--outside {
@@ -383,9 +597,9 @@
   box-shadow: none;
 }
 
-.doran-day--selected:not(:disabled):hover,
-.doran-day--range-start:not(:disabled):hover,
-.doran-day--range-end:not(:disabled):hover {
+.doran-day--selected:not([aria-disabled='true']):hover,
+.doran-day--range-start:not([aria-disabled='true']):hover,
+.doran-day--range-end:not([aria-disabled='true']):hover {
   background: var(--doran-day-selected-hover-bg, var(--doran-primary-hover));
   color: var(--doran-day-selected-color, var(--doran-primary-contrast));
 }
@@ -467,7 +681,8 @@
   border: 1px solid var(--doran-input-border-color, var(--doran-border));
   border-radius: var(--doran-input-radius, var(--doran-radius-md));
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: var(--doran-input-font-size, 0.9rem);
+  box-shadow: var(--doran-input-shadow, none);
   cursor: pointer;
   box-sizing: border-box;
   transition:
@@ -487,51 +702,159 @@
   border-color: var(--doran-border-strong);
 }
 
-.doran-datepicker__input:disabled {
+/* The trigger is now a wrapper around a real <input>, so disabled and focus state
+   arrive from the field inside it rather than from the box itself. */
+.doran-datepicker__input[data-disabled] {
   opacity: var(--doran-disabled-opacity, 0.55);
   cursor: not-allowed;
 }
 
-.doran-datepicker__input:disabled:hover {
+.doran-datepicker__input[data-disabled]:hover {
   border-color: var(--doran-input-border-color, var(--doran-border));
 }
 
-.doran-datepicker__input:focus-visible,
-.doran-datepicker__input[aria-expanded='true'] {
+.doran-datepicker__input:focus-within {
   outline: none;
-  border-color: var(--doran-primary);
-  box-shadow: 0 0 0 3px var(--doran-focus-ring);
+  border-color: var(--doran-input-focus-border-color, var(--doran-primary));
+  box-shadow: var(--doran-input-focus-shadow, 0 0 0 3px var(--doran-focus-ring));
 }
 
-.doran-datepicker__value {
+.doran-datepicker__input[data-invalid] {
+  border-color: var(--doran-input-invalid-border-color, var(--doran-danger));
+}
+
+.doran-datepicker__input[data-invalid]:focus-within {
+  border-color: var(--doran-input-invalid-border-color, var(--doran-danger));
+  box-shadow: var(--doran-input-invalid-shadow, 0 0 0 3px var(--doran-danger-soft, transparent));
+}
+
+/* The bare text field: the wrapper owns the border, background, and height. */
+.doran-datepicker__control {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.doran-datepicker__value[data-text-align='left'] {
-  text-align: left;
+.doran-datepicker__control:focus {
+  outline: none;
 }
 
-.doran-datepicker__value[data-text-align='right'] {
-  text-align: right;
-}
-
+/* Compatibility with markup from before the trigger became a real input.
+   `.doran-datepicker__value` named the text span the input replaced, and
+   `.doran-datepicker__placeholder` its empty state — both are still honoured so
+   existing stylesheets do not quietly stop applying. */
 .doran-datepicker__placeholder {
-  color: var(--doran-text-muted);
+  color: var(--doran-placeholder-color, var(--doran-text-muted));
+}
+
+.doran-datepicker__control:disabled {
+  cursor: not-allowed;
+  /* The wrapper already dims; dimming twice reads as broken. */
+  opacity: 1;
+  -webkit-text-fill-color: currentColor;
+}
+
+.doran-datepicker__control::placeholder {
+  color: var(--doran-placeholder-color, var(--doran-text-muted));
+  opacity: 1;
 }
 
 .doran-datepicker__icon {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  color: var(--doran-text-muted);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--doran-icon-color, var(--doran-text-muted));
+  cursor: pointer;
+}
+
+.doran-datepicker__icon:disabled {
+  cursor: not-allowed;
 }
 
 .doran-datepicker__icon svg {
-  width: 1.05rem;
-  height: 1.05rem;
+  width: var(--doran-icon-size, 1.05rem);
+  height: var(--doran-icon-size, 1.05rem);
+}
+
+/* --- Sheet presentation -------------------------------------------------
+   Under the breakpoint the calendar stops trying to anchor itself to a trigger
+   near the bottom of a phone viewport and becomes a bottom sheet instead. The
+   backdrop is a pseudo-element so no extra DOM is needed. */
+
+.doran-datepicker__popover--sheet {
+  position: fixed;
+  inset: auto 0 0 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 90dvh;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  padding: var(--doran-sheet-padding, var(--doran-space-md));
+  /* Clear the home indicator and any on-screen keyboard inset. */
+  padding-bottom: calc(var(--doran-space-md) + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--doran-sheet-radius, var(--doran-radius-lg) var(--doran-radius-lg) 0 0);
+  box-shadow: var(--doran-sheet-shadow, var(--doran-shadow-lg));
+  animation: doran-sheet-in var(--doran-transition, 0.15s ease);
+}
+
+@keyframes doran-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .doran-datepicker__popover--sheet {
+    animation: none;
+  }
+}
+
+/* The calendar fills the sheet rather than keeping its desktop width. */
+.doran-datepicker__popover--sheet .doran-calendar {
+  width: 100%;
+  max-width: 22rem;
+  border: none;
+  box-shadow: none;
+}
+
+/* --- Range trigger ------------------------------------------------------
+   Two fields sharing one bordered box, so the pair reads as a single control. */
+
+.doran-rangetrigger__field {
+  gap: var(--doran-space-xs);
+}
+
+.doran-rangetrigger__control {
+  /* Both ends share the width evenly rather than one crowding the other. */
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.doran-rangetrigger__separator {
+  flex-shrink: 0;
+  color: var(--doran-placeholder-color, var(--doran-text-muted));
+  user-select: none;
+}
+
+/* Marks which end the next pick fills — the only cue that the widget has two
+   modes, so it needs to be visible without relying on focus alone. */
+.doran-rangetrigger__field[data-editing='start'] .doran-rangetrigger__control:first-of-type,
+.doran-rangetrigger__field[data-editing='end'] .doran-rangetrigger__control:nth-of-type(2) {
+  font-weight: var(--doran-font-weight-medium, 500);
 }
 
 /*
@@ -596,6 +919,14 @@
   gap: 0.35rem;
   padding-inline-end: 0.75rem;
   border-inline-end: 1px solid var(--doran-calendar-border-color, var(--doran-border));
+}
+
+/* The preset buttons keep their own group so `slots.aside` can share the sidebar
+   above them without joining the group's accessible name. */
+.doran-rangepicker__preset-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .doran-rangepicker__preset {

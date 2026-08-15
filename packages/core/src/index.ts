@@ -7,6 +7,7 @@
 export {
   DoranDate,
   freeze,
+  isDoranDate,
   type GregorianInput,
   type JalaliInput,
   type NowInput,
@@ -53,6 +54,26 @@ export { formatParts, type DigitStyle, type FormatContext } from './format';
 // Digit utilities.
 export { normalizeDigits, toLatinDigits, toPersianDigits } from './digits';
 
+// Loose date input and formatted output, shared by every component surface.
+export {
+  formatValue,
+  toDoranDate,
+  type DateInput,
+  type FormattedValue,
+  type ValueFormat,
+} from './coerce';
+
+// Per-day annotations, shared by every calendar surface.
+export {
+  dayKey,
+  indexDayData,
+  normalizeDayKey,
+  type DayDataMap,
+  type DayDatum,
+  type DayMeta,
+  type DayTone,
+} from './day';
+
 // Locales.
 export {
   enUS,
@@ -61,6 +82,7 @@ export {
   getLocale,
   registerLocale,
   resolveCalendarLabels,
+  resolveDirection,
   resolveLocale,
   setDefaultLocale,
 } from './locale';
@@ -86,6 +108,7 @@ export type {
   JalaliParts,
   Locale,
   LocaleLike,
+  ResolvedCalendarLabels,
   RelativeTimeStrings,
   Weekday,
 } from './types';

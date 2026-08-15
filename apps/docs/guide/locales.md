@@ -57,6 +57,61 @@ resolveCalendarLabels(enUS); // { today: "Today", clear: "Clear" }
 > مبتنی‌بر وب‌کامپوننت (Vue، Svelte و Angular) روی هر کامپوننت
 > `locale="fa"` یا `locale="en"` می‌پذیرند.
 
+## جهت و برچسب‌های کامپوننت
+
+هر locale یک `direction` دارد و کامپوننت‌ها به‌جای مقدار ثابت، همان را می‌خوانند — پس
+سوئیچ به یک locale لاتین واقعاً یک ویجت چپ‌به‌راست می‌دهد، نه یک ویجت راست‌به‌چپ با متن
+لاتین داخلش.
+
+```tsx
+setDefaultLocale(enUS); // dir="ltr"، برچسب انگلیسی، کلیدهای جهت LTR
+
+<DoranDatePicker dir="rtl" />; // پراپ صریح همچنان برنده است
+```
+
+پیمایش با کلیدهای جهت هم از جهت پیروی می‌کند: `ArrowLeft` در RTL جلو می‌رود و در LTR
+عقب، و فلش‌های پیش‌فرضِ ناوبری هم برعکس می‌شوند.
+
+هر رشتهٔ قابل‌مشاهده و هر رشته‌ای که صفحه‌خوان می‌خواند در `calendarLabels` است:
+
+| فیلد                                           | کاربرد                       |
+| ---------------------------------------------- | ---------------------------- |
+| `today`، `clear`                               | اکشن‌های فوتر                |
+| `datePlaceholder`                              | placeholder ورودی تاریخ      |
+| `calendar`، `openCalendar`                     | نام پاپ‌اور و دکمهٔ بازکننده |
+| `previousMonth`، `nextMonth`                   | فلش‌های ناوبری               |
+| `month`، `year`                                | انتخابگر ماه و سال           |
+| `hour`، `minute`، `increase`، `decrease`       | انتخاب زمان                  |
+| `presets`، `lastDays`، `thisMonth`، `thisYear` | میان‌برهای بازه              |
+| `rangeSeparator`، `rangeEmpty`                 | خلاصهٔ بازه                  |
+| `nlpPlaceholder`، `unresolved`                 | ورودی زبان طبیعی             |
+| `listSeparator`                                | اتصال تاریخ روز به توضیح آن  |
+
+همهٔ فیلدها اختیاری‌اند. locale‌ای که فقط بخشی را بدهد، بقیه را از پیش‌فرض فارسی
+می‌گیرد، پس locale‌هایی که پیش از وجود این فیلدها نوشته شده‌اند کار می‌کنند:
+
+```ts
+const custom: Locale = {
+  ...faIR,
+  name: 'fa-custom',
+  calendarLabels: { today: 'همین امروز' }, // بقیه fallback می‌شوند
+};
+```
+
+`lastDays` یک قالب است: `{count}` با عددی که از `locale.formatNumber` گذشته جایگزین
+می‌شود، پس `defaultRangePresets(faIR)` می‌دهد `'۷ روز اخیر'` و
+`defaultRangePresets(enUS)` می‌دهد `'Last 7 days'`.
+
+مجموعهٔ نهایی را با `resolveCalendarLabels(locale)` بخوانید که جاهای خالی را پر می‌کند،
+و جهت را با `resolveDirection(locale)` که پیش‌فرضش `'rtl'` است.
+
+در وب‌کامپوننت‌ها همین‌ها را ویژگی `locale` هدایت می‌کند و نبودِ آن حالا به مقدارِ
+`setDefaultLocale()` برمی‌گردد:
+
+```html
+<doran-datepicker locale="en"></doran-datepicker>
+```
+
 ## کنترل ارقام در هر فراخوانی
 
 سبک ارقام مستقل از locale است. با `{ digits }` به `format` فقط ارقام همان فراخوانی را

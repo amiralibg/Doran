@@ -151,6 +151,177 @@ Shows a live autocomplete dropdown and a resolved-date hint pinned to the opposi
 (LTR) end of the field. The headless `useNlpSuggest(text, options)` hook returns
 `{ result, suggestions }` for building your own UI.
 
+## Typing a date
+
+The trigger is a real text field, so a date can be typed as well as picked —
+`1402/5/12`, `1402-5-12`, and `۱۴۰۲/۰۵/۱۲` all parse.
+
+Errors surface on blur rather than per keystroke: en route to `1402/05/12` the value
+passes through `1`, `14`, `140`, and flagging each would leave the field red the whole
+time it is in use. Text that doesn't parse is kept and marked `aria-invalid` rather
+than discarded; `onParseError` reports it. Pass `readOnly` where a date must come from
+the grid.
+
+The calendar opens on the icon, on `ArrowDown`, and deliberately not on focus, which
+would fight typing. It also does not take focus when it opens — that would pull the
+caret out of the field.
+
+## Value types
+
+`value`, `defaultValue`, `min`, and `max` accept a `DoranDate`, a native `Date`, epoch
+milliseconds, or a string — Jalali or Gregorian, Latin or Persian digits.
+
+```tsx
+// onChange receives a string, typed as such.
+<DoranDatePicker valueFormat="YYYY-MM-DD" onChange={setQueryParam} />
+```
+
+| `valueFormat`       | `onChange` receives                  |
+| ------------------- | ------------------------------------ |
+| `'doran'` (default) | `DoranDate`                          |
+| `'date'`            | native `Date`                        |
+| `'iso'`             | Gregorian UTC ISO string             |
+| any other string    | that Jalali pattern, in Latin digits |
+
+The second `onChange` argument is always the Gregorian `Date`. Pattern output uses
+Latin digits, since it is bound for a query string or an API rather than the screen.
+
+## Forms
+
+The picker forwards its ref to the input and accepts `name`, `required`, `readOnly`,
+`invalid`, `onBlur`, and `aria-describedby`. A named picker submits through a hidden
+input carrying a Latin-digit machine value.
+
+```tsx
+<Controller
+  control={control}
+  name="checkIn"
+  render={({ field, fieldState }) => (
+    <DoranDatePicker {...field} invalid={Boolean(fieldState.error)} />
+  )}
+/>
+```
+
+`{...field}` supplies `value`, `onChange`, `onBlur`, `name`, and `ref`. To keep plain
+strings in the form, set `valueFormat` and use `register` instead.
+
+## Styling parts
+
+```tsx
+<DoranDatePicker classNames={{ trigger: 'h-9', popover: 'shadow-xl' }} />
+```
+
+Slots are `root`, `trigger`, `input`, `icon`, `popover`, and `calendar`; your classes
+merge with Doran's. `portalContainer` moves the pop-over out of `document.body` — pass
+the dialog's element when the picker sits inside a focus-trapping dialog, since a
+body-level pop-over falls outside the trap.
+
+## Day widgets
+
+Put your own content under each day — a fare, a seat count, an availability badge.
+
+| Prop            | Type                                                | Description                                                            |
+| --------------- | --------------------------------------------------- | ---------------------------------------------------------------------- |
+| `dayContent`    | `(day: DoranDate, meta: DayMeta) => ReactNode`      | Content rendered beneath the day number. Must be non-interactive.      |
+| `dayProps`      | `(day: DoranDate, meta: DayMeta) => DayPropsResult` | Attributes merged onto the day button — `className`, `style`, `data-*` |
+| `dayData`       | `Record<string, DayDatum>`                          | Serializable annotations keyed by Jalali `YYYY-M-D`                    |
+| `disabledDates` | `(day: DoranDate) => boolean`                       | Blocks individual days on top of `min`/`max`                           |
+
+```tsx
+import { DoranDatePicker, dayKey } from '@doranjs/react';
+
+<DoranDatePicker
+  dayContent={(day) => <span>{fares[dayKey(day)]}</span>}
+  dayProps={(day) => ({
+    'data-cheapest': isCheapest(day) || undefined,
+    label: `${fares[dayKey(day)]} toman`,
+  })}
+  disabledDates={(day) => soldOut(day)}
+/>;
+```
+
+Two rules keep this accessible. **`dayContent` must be non-interactive** — the day
+cell is itself a `<button>`, so a nested button or link is invalid HTML and breaks the
+grid's keyboard model; put interactive content in a slot. And **announce what you
+render** — a day's `aria-label` replaces its text rather than adding to it, so custom
+content is invisible to screen readers unless you return a `label` from `dayProps`.
+`dayData` text is used automatically.
+
+### dayData
+
+A render function can't cross an HTML boundary, so there is also a serializable map.
+It survives JSON, so it can come straight from an API response, and the same shape
+works in Vue, Svelte, Angular, and plain HTML.
+
+```tsx
+<DoranDatePicker
+  dayData={{
+    '1404-5-12': { text: '1,200,000', tone: 'low' },
+    '1404-5-14': { disabled: true, disabledReason: 'Sold out' },
+  }}
+/>
+```
+
+`DayDatum` accepts `text`, `tone`, `label`, `title`, `disabled`, and `disabledReason`.
+Keys are Jalali `YYYY-M-D`; zero-padded and Persian-digit forms resolve to the same
+day. `dayContent` wins where both supply content for one day.
+
+Tones become `data-tone`: `low`/`positive` and `high`/`negative` are styled out of the
+box, and any other value passes through for your own CSS.
+
+### Blocked days
+
+A blocked day carries `aria-disabled` rather than the `disabled` attribute, so it stays
+focusable and can explain itself. Arrow navigation skips `min`/`max` gaps, which can
+span decades, but lands on individually blocked days so the `disabledReason` is heard.
+
+## Slots
+
+`legend`, `aside`, and `footer` take your own content. Unlike `dayContent`, slot
+content sits outside the day grid, so it may be fully interactive.
+
+```tsx
+<DoranCalendar
+  slots={{
+    legend: <FareLegend />,
+    aside: <FlexibleDatesPanel />,
+    footer: <SelectedFareSummary />,
+  }}
+/>
+```
+
+`useDoranCalendar()` gives that content the calendar's state and navigation — which is
+what makes a slot more than decoration:
+
+```tsx
+function JumpThreeMonths() {
+  const { year, month, setMonth } = useDoranCalendar();
+  return <button onClick={() => setMonth({ year, month: month + 3 })}>+3 months</button>;
+}
+```
+
+It exposes `year`, `month`, `today`, `locale`, `selected`, `range`, `isSelected`,
+`isDisabled`, `select`, `selectRange`, `clear`, `setMonth`, and the `goTo*` helpers.
+Calling it outside a Doran calendar throws.
+
+## Iranian holidays
+
+```tsx
+import { useHolidays } from '@doranjs/react/holidays';
+
+const holidays = useHolidays();
+
+<DoranDatePicker isHoliday={holidays.isHoliday} dayProps={holidays.dayProps} />;
+```
+
+A subpath export, so the holiday dataset only enters bundles that import it. It also
+indexes each year once — `getHolidaysOn()` re-resolves a whole year per call, which a
+month grid would do 42 times per render.
+
+`isHoliday` counts only official public holidays by default; pass `officialOnly: false`
+for observances. Lunar dates outside the years Iran has officially announced are
+computed arithmetically and may land a day either side — those carry `data-approximate`.
+
 ## Theming
 
 Every part reads its own CSS variable, so you can restyle a single instance without
@@ -175,3 +346,43 @@ const grid = buildMonthGrid(1405, 3); // pure, no React
 
 All components support keyboard navigation (arrows, Home/End, Enter/Space), ARIA grid
 semantics, dark mode, and mobile layouts.
+
+## Range picker with a trigger
+
+`DoranRangeDatePicker` is one trigger holding two fields, either typable or fillable
+from the grid:
+
+```tsx
+<DoranRangeDatePicker value={range} onChange={setRange} numberOfMonths={2} presets />
+```
+
+The ends are kept in order — an end before the start swaps them. `startName` and
+`endName` emit hidden fields carrying Latin-digit dates for native form submission.
+`DoranRangePicker` remains the inline version with no trigger.
+
+## Time picker
+
+Every field is typable as well as steppable, and each unit has its own step, all
+defaulting to `1`:
+
+```tsx
+<DoranDatePicker withTime withSeconds hourCycle={12} minuteStep={15} />
+```
+
+| Prop          | Default | Description                                 |
+| ------------- | ------- | ------------------------------------------- |
+| `hourStep`    | `1`     | How far one arrow press moves the hour      |
+| `minuteStep`  | `1`     | …the minute                                 |
+| `secondStep`  | `1`     | …the second                                 |
+| `withSeconds` | `false` | Adds a seconds field                        |
+| `hourCycle`   | `24`    | `12` adds a meridiem toggle from the locale |
+| `readOnly`    | —       | Stops typing, keeps the steppers            |
+
+## Presentation
+
+```tsx
+<DoranDatePicker mode="auto" />
+```
+
+`auto` switches to a bottom sheet under 640px, `sheet` forces it, `popover` (the
+default) never uses it.

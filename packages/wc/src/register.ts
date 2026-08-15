@@ -2,6 +2,7 @@ import { DoranAgendaElement } from './agenda-element';
 import { DoranCalendarElement } from './calendar-element';
 import { DoranDatePickerElement } from './datepicker-element';
 import { DoranNlpInputElement } from './nlp-input-element';
+import { DoranRangeDatePickerElement } from './rangedatepicker-element';
 import { DoranRangePickerElement } from './rangepicker-element';
 
 /** The custom-element tag names Doran registers. */
@@ -9,6 +10,7 @@ export const TAG_NAMES = {
   calendar: 'doran-calendar',
   datepicker: 'doran-datepicker',
   rangepicker: 'doran-rangepicker',
+  rangedatepicker: 'doran-rangedatepicker',
   nlpInput: 'doran-nlp-input',
   agenda: 'doran-agenda',
 } as const;
@@ -25,6 +27,7 @@ export function defineDoranElements(): void {
   define(TAG_NAMES.calendar, DoranCalendarElement);
   define(TAG_NAMES.datepicker, DoranDatePickerElement);
   define(TAG_NAMES.rangepicker, DoranRangePickerElement);
+  define(TAG_NAMES.rangedatepicker, DoranRangeDatePickerElement);
   define(TAG_NAMES.nlpInput, DoranNlpInputElement);
   define(TAG_NAMES.agenda, DoranAgendaElement);
 }

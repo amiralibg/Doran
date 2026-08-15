@@ -74,3 +74,18 @@ import { hijriToJdn, jdnToHijri, hijriMonthLength } from '@doranjs/holidays';
 
 hijriMonthLength(1447, 1); // 30 (محرم)
 ```
+
+## کدام سال‌ها دقیق‌اند؟
+
+ایران تعطیلات مذهبی را با رؤیت هلال اعلام می‌کند، پس از پیش دقیق محاسبه‌شدنی نیستند.
+تاریخ‌های رسمی برای **۱۴۰۴ و ۱۴۰۵** موجود است؛ سال‌های دیگر از تقویم حسابی استفاده
+می‌کنند و با `approximate` علامت می‌خورند.
+
+```ts
+getOfficialLunarYears(); // [1404, 1405]
+hasOfficialLunarDates(1410); // false
+
+const { official, approximate, total } = getHolidayCoverage(1410);
+```
+
+با `registerOfficialLunarYear(year, dates)` سال‌های آینده را با اعلام رسمی دقیق کنید.

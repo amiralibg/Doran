@@ -139,7 +139,29 @@ function currentEpochMs(): number {
  * DoranDate.fromGregorian(new Date());
  * ```
  */
+/**
+ * Cross-copy identity brand.
+ *
+ * `instanceof` compares against one module's class object, so it returns `false` for
+ * a `DoranDate` built by a *different installed copy* of `@doranjs/core` — which
+ * happens whenever two Doran packages resolve to different core versions. A
+ * `Symbol.for` key lives in the global registry, shared by every copy, so a brand
+ * check survives that.
+ */
+const BRAND = Symbol.for('doran.date');
+
+/**
+ * Whether a value is a {@link DoranDate}, including one created by another installed
+ * copy of `@doranjs/core`. Prefer this to `instanceof` anywhere a value crosses a
+ * package boundary.
+ */
+export function isDoranDate(value: unknown): value is DoranDate {
+  return typeof value === 'object' && value !== null && BRAND in value;
+}
+
 export class DoranDate {
+  /** @internal Marks instances for {@link isDoranDate}. */
+  readonly [BRAND] = true;
   readonly #epochMs: number;
   readonly #timeZone: string;
   readonly #locale: Locale;

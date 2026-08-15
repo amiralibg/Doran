@@ -1,7 +1,7 @@
 'use client';
 
 import { type DoranDate, type Locale } from '@doranjs/core';
-import { useResolvedLocale } from './provider';
+import { useDirection, useResolvedLocale } from './provider';
 import { cn } from '@doranjs/ui';
 import type { ReactNode } from 'react';
 
@@ -28,6 +28,8 @@ export interface DoranAgendaProps {
   onSelectDay?: (day: DoranDate) => void;
   /** Custom event renderer. */
   renderEvent?: (event: AgendaEvent) => ReactNode;
+  /** Writing direction. Defaults to the locale's. */
+  dir?: 'rtl' | 'ltr';
   className?: string;
 }
 
@@ -42,9 +44,11 @@ export function DoranAgenda({
   locale: localeProp,
   onSelectDay,
   renderEvent,
+  dir,
   className,
 }: DoranAgendaProps) {
   const locale = useResolvedLocale(localeProp);
+  const direction = useDirection(locale, dir);
   const startOfRange = start.startOf('day');
   const dayList = Array.from({ length: days }, (_, i) => startOfRange.addDays(i));
 
@@ -57,7 +61,7 @@ export function DoranAgenda({
   }
 
   return (
-    <div className={cn('doran-agenda', className)} dir="rtl">
+    <div className={cn('doran-agenda', className)} dir={direction}>
       {dayList.map((day) => {
         const key = day.withLocale(locale).format('YYYY-MM-DD');
         const dayEvents = eventsByDay.get(key) ?? [];

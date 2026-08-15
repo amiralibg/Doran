@@ -1,0 +1,29 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "doran",
+  "homepage": "https://amiralibg.github.io/Doran/",
+  "items": [
+    {
+      "name": "doran-date-picker",
+      "type": "registry:ui",
+      "title": "Persian Date Picker",
+      "description": "A Jalali date picker built from your own shadcn/ui Button, Input, and Popover. Type a date or pick one; Doran supplies the calendar engine, your theme supplies every visual.",
+      "registryDependencies": [
+        "button",
+        "input",
+        "popover"
+      ],
+      "dependencies": [
+        "@doranjs/core",
+        "@doranjs/react",
+        "lucide-react"
+      ],
+      "files": [
+        {
+          "path": "https://amiralibg.github.io/Doran/r/doran-date-picker.json",
+          "type": "registry:ui"
+        }
+      ]
+    }
+  ]
+}

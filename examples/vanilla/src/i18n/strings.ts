@@ -61,6 +61,10 @@ const fa: Dict = {
 
   // ── <doran-rangepicker> ────────────────────────────────────────────
   rpIntro: 'انتخاب بازهٔ تاریخ با همان منطقِ تقویم؛ با میان‌برهای آماده و نمایش چندماهه.',
+  rpTriggerTitle: 'با ورودی — <doran-rangedatepicker>',
+  rpTriggerDesc: 'یک تریگر با دو فیلد که هم تایپ می‌شوند و هم از جدول پر.',
+  wgEventsTitle: 'ویجت زیر روزها',
+  wgEventsDesc: 'با پراپرتی dayData و اسلات legend، از HTML ساده.',
   rpDefaultTitle: 'پیش‌فرض',
   rpDefaultDesc: 'با کلیک روی روزِ شروع و سپس روزِ پایان، بازه انتخاب می‌شود.',
   rpPresetsTitle: 'میان‌برهای آماده',
@@ -158,6 +162,10 @@ const en: Dict = {
   // ── <doran-rangepicker> ────────────────────────────────────────────
   rpIntro:
     'Pick a date range with the same calendar logic — with ready-made shortcuts and multi-month view.',
+  rpTriggerTitle: 'With an input — <doran-rangedatepicker>',
+  rpTriggerDesc: 'One trigger holding two fields, either typable or fillable from the grid.',
+  wgEventsTitle: 'Day widgets',
+  wgEventsDesc: 'Via the dayData property and the legend slot, from plain HTML.',
   rpDefaultTitle: 'Default',
   rpDefaultDesc: 'Click the start day, then the end day, to select a range.',
   rpPresetsTitle: 'Preset shortcuts',

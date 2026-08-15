@@ -1,4 +1,4 @@
-import { DoranDate, type Locale } from '@doranjs/core';
+import { DoranDate, type Locale, resolveCalendarLabels, resolveDirection } from '@doranjs/core';
 import { parse, suggest, type Suggestion } from '@doranjs/nlp';
 import { trackPopoverPosition } from './popover-position';
 import { esc, resolveLocaleAttr } from './util';
@@ -104,12 +104,14 @@ export class DoranNlpInputElement extends HTMLElement {
   }
 
   #build(): void {
+    const labels = resolveCalendarLabels(this.#locale);
+    const direction = resolveDirection(this.#locale);
     this.classList.add('doran-nlp');
-    this.setAttribute('dir', 'rtl');
+    this.setAttribute('dir', direction);
     const listId = `doran-nlp-list-${(uid += 1)}`;
     this.innerHTML =
       `<div class="doran-nlp__field">` +
-      `<input type="text" class="doran-nlp__input" dir="rtl" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-controls="${listId}" />` +
+      `<input type="text" class="doran-nlp__input" dir="${direction}" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-controls="${listId}" />` +
       `<span class="doran-nlp__hint" aria-hidden></span>` +
       `</div>`;
 
@@ -122,14 +124,14 @@ export class DoranNlpInputElement extends HTMLElement {
     list.className = 'doran-nlp__suggestions';
     list.id = listId;
     list.setAttribute('role', 'listbox');
-    list.setAttribute('dir', 'rtl');
+    list.setAttribute('dir', direction);
     list.hidden = true;
     document.body.appendChild(list);
     this.#list = list;
 
     const input = this.#input!;
     input.value = this.#text;
-    input.placeholder = this.getAttribute('placeholder') ?? 'مثلاً: جمعه ساعت ۷ شب';
+    input.placeholder = this.getAttribute('placeholder') ?? labels.nlpPlaceholder;
 
     input.addEventListener('input', () => {
       this.#text = input.value;
@@ -213,7 +215,7 @@ export class DoranNlpInputElement extends HTMLElement {
           this.#hint.classList.remove('doran-nlp__hint--unknown');
           this.#hint.hidden = false;
         } else {
-          this.#hint.textContent = 'نامشخص';
+          this.#hint.textContent = resolveCalendarLabels(this.#locale).unresolved;
           this.#hint.classList.add('doran-nlp__hint--unknown');
           this.#hint.hidden = false;
         }

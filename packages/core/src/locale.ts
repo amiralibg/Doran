@@ -1,14 +1,73 @@
 import { normalizeDigits, toLatinDigits, toPersianDigits } from './digits';
-import type { CalendarLabels, Locale, LocaleLike } from './types';
+import type { CalendarLabels, Locale, LocaleLike, ResolvedCalendarLabels } from './types';
 
-const DEFAULT_CALENDAR_LABELS: CalendarLabels = {
+/**
+ * The Persian fallback for every label. A locale supplying only some fields gets the
+ * rest from here, which is what keeps `CalendarLabels` fully optional.
+ */
+const DEFAULT_CALENDAR_LABELS: ResolvedCalendarLabels = {
   today: 'امروز',
   clear: 'پاک کردن',
+  datePlaceholder: 'انتخاب تاریخ',
+  calendar: 'تقویم',
+  openCalendar: 'باز کردن تقویم',
+  previousMonth: 'ماه قبل',
+  nextMonth: 'ماه بعد',
+  month: 'ماه',
+  year: 'سال',
+  hour: 'ساعت',
+  minute: 'دقیقه',
+  second: 'ثانیه',
+  meridiem: 'قبل یا بعد از ظهر',
+  increase: 'افزایش',
+  decrease: 'کاهش',
+  presets: 'بازه‌های آماده',
+  rangeSeparator: ' تا ',
+  rangeEmpty: '—',
+  rangeStart: 'از تاریخ',
+  rangeEnd: 'تا تاریخ',
+  nlpPlaceholder: 'مثلاً: جمعه ساعت ۷ شب',
+  unresolved: 'نامشخص',
+  listSeparator: '، ',
+  lastDays: '{count} روز اخیر',
+  thisMonth: 'این ماه',
+  thisYear: 'این سال',
+};
+
+/** English counterparts, for locales that read left to right. */
+const EN_CALENDAR_LABELS: ResolvedCalendarLabels = {
+  today: 'Today',
+  clear: 'Clear',
+  datePlaceholder: 'Pick a date',
+  calendar: 'Calendar',
+  openCalendar: 'Open calendar',
+  previousMonth: 'Previous month',
+  nextMonth: 'Next month',
+  month: 'Month',
+  year: 'Year',
+  hour: 'Hour',
+  minute: 'Minute',
+  second: 'Second',
+  meridiem: 'AM or PM',
+  increase: 'Increase',
+  decrease: 'Decrease',
+  presets: 'Quick ranges',
+  rangeSeparator: ' to ',
+  rangeEmpty: '—',
+  rangeStart: 'Start date',
+  rangeEnd: 'End date',
+  nlpPlaceholder: 'e.g. Friday at 7pm',
+  unresolved: 'Unresolved',
+  listSeparator: ', ',
+  lastDays: 'Last {count} days',
+  thisMonth: 'This month',
+  thisYear: 'This year',
 };
 
 /** The Persian (Iran) locale — the default for Doran. */
 export const faIR: Locale = {
   name: 'fa-IR',
+  direction: 'rtl',
   months: [
     'فروردین',
     'اردیبهشت',
@@ -52,6 +111,7 @@ export const faIR: Locale = {
 /** An English locale using transliterated Persian month/weekday names. */
 export const enUS: Locale = {
   name: 'en-US',
+  direction: 'ltr',
   months: [
     'Farvardin',
     'Ordibehesht',
@@ -73,10 +133,7 @@ export const enUS: Locale = {
   meridiem: ['AM', 'PM'],
   formatNumber: toLatinDigits,
   parseNumber: normalizeDigits,
-  calendarLabels: {
-    today: 'Today',
-    clear: 'Clear',
-  },
+  calendarLabels: EN_CALENDAR_LABELS,
   relativeTime: {
     future: 'in %s',
     past: '%s ago',
@@ -132,7 +189,28 @@ export function resolveLocale(locale?: LocaleLike): Locale {
   return locale;
 }
 
-/** Returns calendar-control labels, falling back to Persian for custom legacy locales. */
-export function resolveCalendarLabels(locale: Locale): CalendarLabels {
-  return locale.calendarLabels ?? DEFAULT_CALENDAR_LABELS;
+/**
+ * Returns calendar-control labels with every gap filled.
+ *
+ * Merges rather than replaces, so a locale defining only `today` and `clear` — as
+ * every locale written before the rest of these fields existed does — still gets a
+ * complete set.
+ */
+export function resolveCalendarLabels(locale: Locale): ResolvedCalendarLabels {
+  if (!locale.calendarLabels) return DEFAULT_CALENDAR_LABELS;
+  return { ...DEFAULT_CALENDAR_LABELS, ...stripUndefined(locale.calendarLabels) };
+}
+
+/** Drops explicitly-undefined keys so they don't shadow a default during the spread. */
+function stripUndefined(labels: CalendarLabels): CalendarLabels {
+  const defined: Record<string, string> = {};
+  for (const [key, value] of Object.entries(labels)) {
+    if (value !== undefined) defined[key] = value;
+  }
+  return defined;
+}
+
+/** The writing direction for a locale. Defaults to right-to-left. */
+export function resolveDirection(locale: Locale): 'rtl' | 'ltr' {
+  return locale.direction ?? 'rtl';
 }

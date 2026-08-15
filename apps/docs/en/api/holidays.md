@@ -74,3 +74,19 @@ import { hijriToJdn, jdnToHijri, hijriMonthLength } from '@doranjs/holidays';
 
 hijriMonthLength(1447, 1); // 30 (Muharram)
 ```
+
+## Which years are exact?
+
+Iran announces its religious holidays by moon sighting, so they cannot be computed
+exactly in advance. Authoritative dates are on file for **1404 and 1405**; other years
+use the arithmetic tabular calendar and are flagged `approximate`.
+
+```ts
+getOfficialLunarYears(); // [1404, 1405]
+hasOfficialLunarDates(1410); // false
+
+const { official, approximate, total } = getHolidayCoverage(1410);
+```
+
+Keep future years exact with `registerOfficialLunarYear(year, dates)` as Iran
+announces them.

@@ -1,4 +1,4 @@
-import { DoranDate, type Locale } from '@doranjs/core';
+import { DoranDate, type Locale, resolveDirection } from '@doranjs/core';
 import { esc, parseJalaliAttr, resolveLocaleAttr } from './util';
 
 /** A single event rendered in the agenda. */
@@ -109,7 +109,7 @@ export class DoranAgendaElement extends HTMLElement {
     }
 
     this.classList.add('doran-agenda');
-    this.setAttribute('dir', 'rtl');
+    this.setAttribute('dir', resolveDirection(this.#locale));
 
     let html = '';
     for (let i = 0; i < this.#days; i += 1) {

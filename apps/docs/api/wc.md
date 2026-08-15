@@ -83,6 +83,47 @@ document.querySelector('doran-nlp-input').addEventListener('resolve', (e) => {
 });
 ```
 
+## ویجت روزها
+
+روزها را نشانه‌گذاری کنید — نرخ بلیت، شمار صندلی، وضعیت ظرفیت. این‌ها به‌جای attribute،
+پراپرتیِ جاوااسکریپت‌اند، چون نگاشتِ روزها و تابعِ شرط به رشته تبدیل نمی‌شوند.
+
+```js
+const picker = document.querySelector('doran-datepicker');
+
+picker.dayData = {
+  '1404-5-12': { text: '۱٬۲۰۰٬۰۰۰', tone: 'low' },
+  '1404-5-14': { disabled: true, disabledReason: 'ظرفیت تکمیل' },
+};
+
+picker.disabledDates = (day) => day.dayOfWeek === 6;
+```
+
+روی `<doran-calendar>`، `<doran-datepicker>` و `<doran-rangepicker>` در دسترس است.
+کلیدها جلالیِ `YYYY-M-D` هستند؛ شکل‌های صفرداده و با ارقام فارسی به همان روز می‌رسند.
+
+`tone` به `data-tone` تبدیل می‌شود: `low`/`positive` و `high`/`negative` از پیش استایل
+دارند و هر مقدار دیگری برای CSS خودتان عبور می‌کند.
+
+روزِ بسته به‌جای ویژگی `disabled` مقدار `aria-disabled` می‌گیرد، پس قابل فوکوس می‌ماند و
+`disabledReason` آن — هم tooltip و هم بخشی از نامِ دسترس‌پذیر روز — واقعاً شنیده می‌شود.
+
+## اسلات‌ها
+
+نواحی `legend`، `aside` و `footer` فرزندانِ light-DOM را می‌پذیرند، پس قالب‌های Vue،
+Svelte و Angular بدون هیچ پشتیبانیِ اضافه‌ای پرشان می‌کنند:
+
+```html
+<doran-datepicker>
+  <div slot="legend">ارزان‌ترین نرخ مشخص شده</div>
+  <div slot="footer">قیمت‌ها به تومان است</div>
+</doran-datepicker>
+```
+
+`<doran-datepicker>` هم `dayData`، هم `disabledDates` و هم فرزندانِ اسلاتش را به تقویمِ
+پاپ‌اور می‌فرستد. `<doran-rangepicker>` نوار کناری‌اش را بین اسلاتِ `aside` و میان‌برهای
+آماده تقسیم می‌کند.
+
 ## Theming
 
 این elementها همان class nameها و CSS variableهای کامپوننت‌های React را به‌کار می‌برند، پس
@@ -92,3 +133,19 @@ document.querySelector('doran-nlp-input').addEventListener('resolve', (e) => {
 <doran-calendar style="--doran-day-selected-bg: #e11d48; --doran-calendar-radius: 22px">
 </doran-calendar>
 ```
+
+## انتخاب بازه با ورودی
+
+```html
+<doran-rangedatepicker presets months="2"></doran-rangedatepicker>
+```
+
+یک تریگر با دو فیلد که هم تایپ می‌شوند و هم از جدول پر، با حفظ ترتیب دو سر. `dayData`
+و `disabledDates` را به‌صورت پراپرتی می‌گیرد و همان اسلات‌های `legend`/`aside`/`footer`
+را دارد. `<doran-rangepicker>` همان نسخهٔ inline است.
+
+## انتخاب زمان
+
+`hour-step` و `minute-step` تعیین می‌کنند یک فشار فلش هر واحد را چقدر جابه‌جا کند و
+پیش‌فرضِ هر دو `1` است. هر فیلد را می‌شود تایپ هم کرد، و `readonly` تایپ را می‌بندد
+بدون اینکه فلش‌ها را از کار بیندازد.

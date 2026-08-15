@@ -25,6 +25,12 @@ export interface UseCalendarOptions extends DoranDateOptions {
   min?: DoranDate;
   /** Latest selectable day (inclusive). */
   max?: DoranDate;
+  /**
+   * Blocks individual days that fall inside `min`/`max` — blackout dates, days
+   * already booked, a sold-out departure. Return `true` to make the day
+   * unselectable. Called once per rendered cell, so keep it cheap and stable.
+   */
+  disabledDates?: (day: DoranDate) => boolean;
   /** Render a stable 6-week grid. */
   fixedWeeks?: 5 | 6;
 }
@@ -45,6 +51,14 @@ export interface UseCalendarReturn {
   setMonth: (value: YearMonth) => void;
   select: (day: DoranDate) => void;
   isDisabled: (day: DoranDate) => boolean;
+  /**
+   * Whether a day falls outside `min`/`max`, ignoring `disabledDates`.
+   *
+   * Keyboard navigation uses this to tell a *boundary* from a *hole*: it skips past
+   * out-of-bounds days, which can run to decades, but lands on individually blocked
+   * ones so they can announce why they are unavailable.
+   */
+  isOutOfBounds: (day: DoranDate) => boolean;
   isSelected: (day: DoranDate) => boolean;
 }
 
@@ -66,6 +80,7 @@ export function useCalendar(options: UseCalendarOptions = {}): UseCalendarReturn
     defaultMonth,
     min,
     max,
+    disabledDates,
     fixedWeeks,
     today,
     ...dateOptions
@@ -97,13 +112,18 @@ export function useCalendar(options: UseCalendarOptions = {}): UseCalendarReturn
     [view.year, view.month, dateOptions.timeZone, resolvedToday, fixedWeeks],
   );
 
-  const isDisabled = useCallback(
+  const isOutOfBounds = useCallback(
     (day: DoranDate) => {
       if (min && day.isBefore(min.startOf('day'))) return true;
       if (max && day.isAfter(max.endOf('day'))) return true;
       return false;
     },
     [min, max],
+  );
+
+  const isDisabled = useCallback(
+    (day: DoranDate) => isOutOfBounds(day) || (disabledDates?.(day) ?? false),
+    [isOutOfBounds, disabledDates],
   );
 
   const isSelected = useCallback(
@@ -136,6 +156,7 @@ export function useCalendar(options: UseCalendarOptions = {}): UseCalendarReturn
     setMonth: setView,
     select,
     isDisabled,
+    isOutOfBounds,
     isSelected,
   };
 }

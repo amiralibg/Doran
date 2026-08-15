@@ -39,11 +39,46 @@ export {
   type DoranProviderProps,
 } from './provider';
 
+// Day annotations and calendar slots.
+export {
+  useDoranCalendar,
+  type CalendarSlots,
+  type DoranCalendarContextValue,
+} from './calendar-context';
+// Re-exported from @doranjs/core so day widgets need only one import.
+export {
+  dayKey,
+  normalizeDayKey,
+  type DayDataMap,
+  type DayDatum,
+  type DayMeta,
+  type DayTone,
+} from '@doranjs/core';
+
 // Components.
-export { DoranMonthView, type DoranMonthViewProps } from './month-view';
-export { DoranCalendar, type CalendarFooterAction, type DoranCalendarProps } from './calendar';
-export { DoranDatePicker, type DoranDatePickerProps } from './date-picker';
+export {
+  DoranMonthView,
+  type DayPropsResult,
+  type DoranMonthViewProps,
+  type MonthViewClassNames,
+} from './month-view';
+export {
+  DoranCalendar,
+  type CalendarClassNames,
+  type CalendarFooterAction,
+  type DoranCalendarProps,
+} from './calendar';
+export {
+  DoranDatePicker,
+  type DatePickerClassNames,
+  type DoranDatePickerProps,
+} from './date-picker';
 export { DoranRangePicker, type DoranRangePickerProps } from './range-picker';
+export {
+  DoranRangeDatePicker,
+  type DateInputRange,
+  type DoranRangeDatePickerProps,
+} from './range-date-picker';
 export { defaultRangePresets, type RangePreset } from './presets';
 export { DoranAgenda, type AgendaEvent, type DoranAgendaProps } from './agenda';
 export { DoranTimePicker, type DoranTimePickerProps, type TimeValue } from './time-picker';

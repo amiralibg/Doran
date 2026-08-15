@@ -1,7 +1,7 @@
 'use client';
 
-import { DoranDate, type Locale } from '@doranjs/core';
-import { useResolvedLocale } from './provider';
+import { DoranDate, resolveCalendarLabels, type Locale } from '@doranjs/core';
+import { useDirection, useResolvedLocale } from './provider';
 import {
   parse,
   suggest,
@@ -61,6 +61,8 @@ export interface DoranNlpInputProps {
   /** Reference "now" used to resolve relative expressions. */
   reference?: DoranDate;
   placeholder?: string;
+  /** Writing direction. Defaults to the locale's. */
+  dir?: 'rtl' | 'ltr';
   /** Format for the resolved-date hint/preview. Defaults to `dddd D MMMM` (+ time). */
   format?: string;
   /** Show the resolved-date hint at the opposite end of the input. Defaults `true`. */
@@ -120,7 +122,8 @@ export function DoranNlpInput({
   onResolve,
   locale: localeProp,
   reference,
-  placeholder = 'مثلاً: جمعه ساعت ۷ شب',
+  placeholder,
+  dir,
   format,
   showHint = true,
   showSuggestions = true,
@@ -129,6 +132,9 @@ export function DoranNlpInput({
   className,
 }: DoranNlpInputProps) {
   const locale = useResolvedLocale(localeProp);
+  const direction = useDirection(locale, dir);
+  const labels = resolveCalendarLabels(locale);
+  const resolvedPlaceholder = placeholder ?? labels.nlpPlaceholder;
   const isControlled = value !== undefined;
   const [internal, setInternal] = useState(defaultValue ?? '');
   const text = isControlled ? value : internal;
@@ -218,16 +224,16 @@ export function DoranNlpInput({
   const hintUnknown = showHint && text.trim().length > 0 && !result;
 
   return (
-    <div ref={rootRef} className={cn('doran-nlp', className)} dir="rtl">
+    <div ref={rootRef} className={cn('doran-nlp', className)} dir={direction}>
       <div className="doran-nlp__field">
         <input
           ref={inputRef}
           type="text"
           className="doran-nlp__input"
           value={text}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           disabled={disabled}
-          dir="rtl"
+          dir={direction}
           autoComplete="off"
           spellCheck={false}
           role="combobox"
@@ -249,7 +255,7 @@ export function DoranNlpInput({
         )}
         {hintUnknown && (
           <span className="doran-nlp__hint doran-nlp__hint--unknown" aria-hidden>
-            نامشخص
+            {labels.unresolved}
           </span>
         )}
       </div>
@@ -261,7 +267,7 @@ export function DoranNlpInput({
             className="doran-nlp__suggestions"
             id={listId}
             role="listbox"
-            dir="rtl"
+            dir={direction}
             style={listPosition ?? { visibility: 'hidden' }}
           >
             {suggestions.map((s, i) => (

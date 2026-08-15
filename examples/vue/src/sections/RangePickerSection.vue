@@ -2,6 +2,8 @@
 import { useApp } from '../i18n/context';
 import DemoCard from '../demo/DemoCard.vue';
 import Section from '../demo/Section.vue';
+import WithTrigger from '../demos/rangepicker/WithTrigger.vue';
+import WithTriggerSrc from '../demos/rangepicker/WithTrigger.vue?raw';
 import Default from '../demos/rangepicker/Default.vue';
 import DefaultSrc from '../demos/rangepicker/Default.vue?raw';
 import Presets from '../demos/rangepicker/Presets.vue';
@@ -16,16 +18,41 @@ const app = useApp();
 
 <template>
   <Section id="rangepicker" title="<DoranRangePicker>" :intro="app.t('rpIntro')">
-    <DemoCard :title="app.t('rpDefaultTitle')" :description="app.t('rpDefaultDesc')" :code="DefaultSrc">
+    <DemoCard
+      :title="app.t('rpTriggerTitle')"
+      :description="app.t('rpTriggerDesc')"
+      :code="WithTriggerSrc"
+    >
+      <WithTrigger :lang="app.lang()" />
+    </DemoCard>
+    <DemoCard
+      :title="app.t('rpDefaultTitle')"
+      :description="app.t('rpDefaultDesc')"
+      :code="DefaultSrc"
+    >
       <Default :lang="app.lang()" />
     </DemoCard>
-    <DemoCard :title="app.t('rpPresetsTitle')" :description="app.t('rpPresetsDesc')" :code="PresetsSrc" wide>
+    <DemoCard
+      :title="app.t('rpPresetsTitle')"
+      :description="app.t('rpPresetsDesc')"
+      :code="PresetsSrc"
+      wide
+    >
       <Presets :lang="app.lang()" />
     </DemoCard>
-    <DemoCard :title="app.t('rpMultiTitle')" :description="app.t('rpMultiDesc')" :code="MultiMonthSrc" wide>
+    <DemoCard
+      :title="app.t('rpMultiTitle')"
+      :description="app.t('rpMultiDesc')"
+      :code="MultiMonthSrc"
+      wide
+    >
       <MultiMonth :lang="app.lang()" />
     </DemoCard>
-    <DemoCard :title="app.t('rpHolidaysTitle')" :description="app.t('rpHolidaysDesc')" :code="HolidaysSrc">
+    <DemoCard
+      :title="app.t('rpHolidaysTitle')"
+      :description="app.t('rpHolidaysDesc')"
+      :code="HolidaysSrc"
+    >
       <Holidays :lang="app.lang()" />
     </DemoCard>
   </Section>

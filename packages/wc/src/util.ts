@@ -1,10 +1,23 @@
-import { DoranDate, type DoranDateOptions, enUS, faIR, type Locale } from '@doranjs/core';
+import {
+  DoranDate,
+  type DoranDateOptions,
+  enUS,
+  faIR,
+  type Locale,
+  getDefaultLocale,
+  getLocale,
+} from '@doranjs/core';
 
 export type FooterAction = 'today' | 'clear';
 
 /** Resolves a locale attribute (`fa`, `fa-IR`, `en`, `en-US`) to a {@link Locale}. */
 export function resolveLocaleAttr(name: string | null): Locale {
-  if (!name) return faIR;
+  // No attribute means the ambient default, so `setDefaultLocale()` reaches web
+  // components too — it previously stopped at a hardcoded `faIR`.
+  if (!name) return getDefaultLocale();
+  // Registered names win, so `registerLocale()` works from plain HTML.
+  const registered = getLocale(name);
+  if (registered) return registered;
   return /^en/i.test(name) ? enUS : faIR;
 }
 

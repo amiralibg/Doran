@@ -464,3 +464,17 @@ body {
     position: static;
   }
 }
+
+/* ── Day-widget demos ─────────────────────────────────────────────────
+   `dayProps` forwards any `data-*` attribute to the day button, which is the
+   hook for styling days from your own stylesheet without touching Doran's
+   class names. The fares demo marks its cheapest departure with
+   `data-cheapest`, and the tone colours come from the built-in tokens. */
+.doran-day[data-cheapest='true'] {
+  outline: 1px solid var(--doran-success);
+  outline-offset: -1px;
+}
+
+.doran-day[data-cheapest='true'] .doran-day__content {
+  font-weight: var(--doran-font-weight-bold, 700);
+}

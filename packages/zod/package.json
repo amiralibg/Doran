@@ -53,7 +53,7 @@
     "clean": "rm -rf dist .turbo coverage"
   },
   "dependencies": {
-    "@doranjs/core": "workspace:*"
+    "@doranjs/core": "workspace:^"
   },
   "peerDependencies": {
     "zod": "^3.23.0 || ^4.0.0"

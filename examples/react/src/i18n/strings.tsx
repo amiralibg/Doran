@@ -27,6 +27,7 @@ const fa: Dict = {
   navAgenda: 'برنامه — DoranAgenda',
   navNlpInput: 'ورودی زبان طبیعی — DoranNlpInput',
   navTimePicker: 'انتخاب زمان — DoranTimePicker',
+  navWidgets: 'ویجت روزها و اسلات‌ها',
   navTheming: 'پوسته و تم',
 
   // Toolbar buttons (label reflects the action that will happen on click).
@@ -84,12 +85,34 @@ const fa: Dict = {
   dpFormatDesc: 'با format قالبِ نمایش تاریخ و با placeholder متنِ راهنما را تعیین می‌کنید.',
   dpRangeTitle: 'حداقل/حداکثر و غیرفعال',
   dpRangeDesc: 'با min و max بازهٔ مجاز را محدود می‌کنید؛ با disabled کل ورودی غیرفعال می‌شود.',
+  dpTypingTitle: 'تایپ تاریخ',
+  dpTypingDesc:
+    'تریگر یک ورودی متنی واقعی است: ۱۴۰۲/۵/۱۲ یا 1402-5-12 را تایپ کنید. با valueFormat خروجی همان رشته‌ای می‌شود که در query param نگه می‌دارید. خطا هنگام خروج از فیلد نشان داده می‌شود، نه با هر کلید.',
   dpCustomizationTitle: 'اکشن‌ها و چیدمان',
   dpCustomizationDesc:
     'فوترِ مرتبِ امروز/پاک کردن، جای آیکن، تراز متن و عرض هماهنگِ ورودی و dropdown را یک‌جا تنظیم کنید.',
 
+  // ── Day widgets & slots ────────────────────────────────────────────
+  wgIntro:
+    'زیر هر روز محتوای دلخواه بگذارید و نواحی legend، aside و footer را با اجزای خودتان پر کنید.',
+  wgFaresTitle: 'نرخ بلیت زیر هر روز',
+  wgFaresDesc:
+    'با dayContent قیمت را زیر عدد روز نشان می‌دهیم، با dayProps ارزان‌ترین روز را نشانه‌گذاری می‌کنیم و روزهای تکمیل‌شده با disabledDates بسته می‌شوند — دلیلِ بسته بودن هم برای صفحه‌خوان خوانده می‌شود.',
+  wgEventsTitle: 'شمار جلسه‌های هر روز',
+  wgEventsDesc:
+    'همین کار با dayData انجام می‌شود: یک آبجکت سادهٔ قابل‌سریال‌سازی که می‌تواند مستقیماً از API بیاید و در Vue، Svelte، Angular و HTML ساده هم کار می‌کند.',
+  wgHotelTitle: 'ظرفیت اتاق در بازهٔ اقامت',
+  wgHotelDesc:
+    'شب‌های پرظرفیت و رو به اتمام با tone از هم جدا می‌شوند و شب‌های تکمیل با disabledReason بسته می‌شوند؛ روزِ بسته همچنان با صفحه‌کلید قابل دسترسی است تا دلیلش شنیده شود.',
+  wgSlotsTitle: 'اسلات‌ها و useDoranCalendar',
+  wgSlotsDesc:
+    'محتوای اسلات بیرون از جدول روزهاست، پس می‌تواند کاملاً تعاملی باشد. ویجت کناری با useDoranCalendar ماه را جابه‌جا می‌کند و فوتر انتخاب جاری را نشان می‌دهد.',
+
   // ── <DoranRangePicker> ─────────────────────────────────────────────
   rpIntro: 'انتخاب بازهٔ تاریخ با همان منطقِ تقویم؛ با میان‌برهای آماده و نمایش چندماهه.',
+  rpTriggerTitle: 'با ورودی — DoranRangeDatePicker',
+  rpTriggerDesc:
+    'یک تریگر با دو فیلد که هم تایپ می‌شوند و هم از جدول پر. ترتیب دو سر حفظ می‌شود: اگر پایان را قبل از شروع بدهید جابه‌جا می‌شوند.',
   rpDefaultTitle: 'پیش‌فرض',
   rpDefaultDesc: 'با کلیک روی روزِ شروع و سپس روزِ پایان، بازه انتخاب می‌شود.',
   rpPresetsTitle: 'میان‌برهای آماده',
@@ -126,7 +149,8 @@ const fa: Dict = {
   tpDefaultTitle: 'پیش‌فرض',
   tpDefaultDesc: 'انتخابِ ساعت و دقیقه با کلیدهای بالا/پایین یا کلیدهای جهت‌نما.',
   tpStepTitle: 'پلهٔ دقیقه',
-  tpStepDesc: 'با minuteStep گامِ تغییرِ دقیقه را تعیین می‌کنید (مثلاً ۱۵ دقیقه‌ای).',
+  tpStepDesc:
+    'هر واحد گام خودش را دارد و پیش‌فرض همه ۱ است. اینجا دقیقه ۱۵تایی جابه‌جا می‌شود ولی ساعت همچنان یکی‌یکی. هر فیلد را می‌شود تایپ هم کرد.',
 
   // ── Theming ────────────────────────────────────────────────────────
   thIntro:
@@ -153,6 +177,7 @@ const en: Dict = {
   navAgenda: 'Agenda — DoranAgenda',
   navNlpInput: 'Natural-language input — DoranNlpInput',
   navTimePicker: 'Time picker — DoranTimePicker',
+  navWidgets: 'Day widgets & slots',
   navTheming: 'Theming',
 
   themeToDark: '🌙 Dark',
@@ -207,13 +232,35 @@ const en: Dict = {
   dpFormatDesc: 'format controls how the date is displayed; placeholder sets the empty-state hint.',
   dpRangeTitle: 'Min/max and disabled',
   dpRangeDesc: 'min and max bound the selectable range; disabled turns the whole input off.',
+  dpTypingTitle: 'Typing a date',
+  dpTypingDesc:
+    'The trigger is a real text field: type 1402/5/12 or ۱۴۰۲/۰۵/۱۲. valueFormat makes the output the same string you keep in a query param. Errors appear on blur, not on every keystroke.',
   dpCustomizationTitle: 'Actions and layout',
   dpCustomizationDesc:
     'Configure ordered Today/Clear actions, icon position, text alignment, and matching input/dropdown widths together.',
 
+  // ── Day widgets & slots ────────────────────────────────────────────
+  wgIntro:
+    'Put your own content under each day, and fill the legend, aside, and footer regions with your own components.',
+  wgFaresTitle: 'Fares under each day',
+  wgFaresDesc:
+    'dayContent renders the price under the day number, dayProps marks the cheapest departure, and disabledDates blocks sold-out days — with the reason announced to screen readers.',
+  wgEventsTitle: 'Meeting counts',
+  wgEventsDesc:
+    'The same idea via dayData: a plain serializable object that can come straight from an API response, and works identically in Vue, Svelte, Angular, and plain HTML.',
+  wgHotelTitle: 'Rooms left across a stay',
+  wgHotelDesc:
+    'Tones separate plentiful nights from nearly-full ones, and fully-booked nights carry a disabledReason. A blocked day stays keyboard-focusable so the reason can actually be heard.',
+  wgSlotsTitle: 'Slots and useDoranCalendar',
+  wgSlotsDesc:
+    'Slot content sits outside the day grid, so it may be fully interactive. The sidebar widget drives the month through useDoranCalendar(), and the footer reflects the current selection.',
+
   // ── <DoranRangePicker> ─────────────────────────────────────────────
   rpIntro:
     'Pick a date range with the same calendar logic — with ready-made shortcuts and multi-month view.',
+  rpTriggerTitle: 'With an input — DoranRangeDatePicker',
+  rpTriggerDesc:
+    'One trigger holding two fields, either typable or fillable from the grid. The ends are kept in order: an end before the start swaps them rather than producing a backwards range.',
   rpDefaultTitle: 'Default',
   rpDefaultDesc: 'Click the start day, then the end day, to select a range.',
   rpPresetsTitle: 'Preset shortcuts',
@@ -249,7 +296,8 @@ const en: Dict = {
   tpDefaultTitle: 'Default',
   tpDefaultDesc: 'Pick hour and minute with the up/down buttons or the arrow keys.',
   tpStepTitle: 'Minute step',
-  tpStepDesc: 'minuteStep sets the minute increment (15-minute steps, for example).',
+  tpStepDesc:
+    'Each unit has its own step and every one defaults to 1. Here the minutes jump in 15s while the hour still moves one at a time. Any field can also be typed into.',
 
   // ── Theming ────────────────────────────────────────────────────────
   thIntro:

@@ -8,6 +8,7 @@ import { RangePickerSection } from './sections/RangePickerSection';
 import { AgendaSection } from './sections/AgendaSection';
 import { NlpInputSection } from './sections/NlpInputSection';
 import { TimePickerSection } from './sections/TimePickerSection';
+import { WidgetsSection } from './sections/WidgetsSection';
 import { ThemingSection } from './sections/ThemingSection';
 
 // The side nav. Each entry's `id` must match a <Section id="…"> and `labelKey` a
@@ -19,6 +20,7 @@ const NAV = [
   { id: 'agenda', labelKey: 'navAgenda' },
   { id: 'nlp-input', labelKey: 'navNlpInput' },
   { id: 'time-picker', labelKey: 'navTimePicker' },
+  { id: 'widgets', labelKey: 'navWidgets' },
   { id: 'theming', labelKey: 'navTheming' },
 ] as const;
 
@@ -116,6 +118,7 @@ function Shell() {
         <AgendaSection />
         <NlpInputSection />
         <TimePickerSection />
+        <WidgetsSection />
         <ThemingSection />
       </main>
     </div>

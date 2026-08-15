@@ -6,6 +6,8 @@
 
 export {
   clearCustomHolidays,
+  getHolidayCoverage,
+  type HolidayCoverage,
   getHolidays,
   getHolidaysOn,
   isHoliday,
@@ -26,6 +28,8 @@ export { hijriMonthLength, hijriToJdn, jdnToHijri } from './hijri';
 export { LUNAR_HOLIDAYS, SOLAR_HOLIDAYS } from './data';
 export {
   getOfficialLunarDates,
+  getOfficialLunarYears,
+  hasOfficialLunarDates,
   registerOfficialLunarYear,
   resetOfficialLunarYears,
   type OfficialLunarDate,

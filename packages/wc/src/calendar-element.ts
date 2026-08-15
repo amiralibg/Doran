@@ -1,7 +1,18 @@
-import { DoranDate, resolveCalendarLabels, type Locale } from '@doranjs/core';
-import { getHolidaysOn } from '@doranjs/holidays';
+import {
+  DoranDate,
+  indexDayData,
+  resolveCalendarLabels,
+  type DayDataMap,
+  type DayDatum,
+  type Locale,
+  resolveDirection,
+  normalizeDigits,
+} from '@doranjs/core';
+import { isDayBlocked, renderDayCell } from './day-render';
 import { buildMonthGrid, navigateFocus, type GridNav, type MonthGrid } from './grid';
+import { hasHolidayOn } from './holidays-cache';
 import { chevronDown, chevronLeft, chevronRight, chevronUp } from './icons';
+import { captureSlots, restoreSlots, slotPlaceholder, type SlotName } from './slots';
 import {
   boolAttr,
   esc,
@@ -38,6 +49,8 @@ export class DoranCalendarElement extends HTMLElement {
       'hide-footer',
       'footer-actions',
       'year-span',
+      'hour-step',
+      'minute-step',
     ];
   }
 
@@ -47,6 +60,39 @@ export class DoranCalendarElement extends HTMLElement {
   #time = { hour: 0, minute: 0 };
   #panel: Panel = 'days';
   #initialized = false;
+  #dayData: DayDataMap | null = null;
+  #dayIndex: Map<string, DayDatum> | null = null;
+  #disabledDates: ((day: DoranDate) => boolean) | null = null;
+  /** Author-supplied `[slot]` children, captured before the first render. */
+  #slots: Map<SlotName, Element> = new Map();
+
+  /**
+   * Per-day annotations keyed by Jalali `YYYY-M-D` — a fare, a count, a sold-out
+   * flag. Set as a JS property (render functions can't cross an HTML attribute):
+   *
+   * ```js
+   * picker.dayData = { '1404-5-12': { text: '۱٬۲۰۰٬۰۰۰', tone: 'low' } };
+   * ```
+   */
+  get dayData(): DayDataMap | null {
+    return this.#dayData;
+  }
+
+  set dayData(value: DayDataMap | null) {
+    this.#dayData = value;
+    this.#dayIndex = indexDayData(value);
+    if (this.#initialized) this.#render();
+  }
+
+  /** Blocks individual days beyond `min`/`max` — booked dates, sold-out departures. */
+  get disabledDates(): ((day: DoranDate) => boolean) | null {
+    return this.#disabledDates;
+  }
+
+  set disabledDates(value: ((day: DoranDate) => boolean) | null) {
+    this.#disabledDates = value;
+    if (this.#initialized) this.#render();
+  }
   /** The day reachable via keyboard (roving tabindex). */
   #focusDate: DoranDate | null = null;
   /** When true, the next render moves DOM focus onto the focusable day. */
@@ -59,11 +105,14 @@ export class DoranCalendarElement extends HTMLElement {
       this.#viewYear = base.year;
       this.#viewMonth = base.month;
       if (this.#selected) this.#time = { hour: this.#selected.hour, minute: this.#selected.minute };
+      // Must happen before the first render: innerHTML would discard these children.
+      this.#slots = captureSlots(this);
       this.#initialized = true;
     }
     this.addEventListener('click', this.#onClick);
     this.addEventListener('change', this.#onNativeChange, true);
     this.addEventListener('keydown', this.#onKeyDown);
+    this.addEventListener('input', this.#onTimeInput);
     this.#render();
   }
 
@@ -71,6 +120,7 @@ export class DoranCalendarElement extends HTMLElement {
     this.removeEventListener('click', this.#onClick);
     this.removeEventListener('change', this.#onNativeChange, true);
     this.removeEventListener('keydown', this.#onKeyDown);
+    this.removeEventListener('input', this.#onTimeInput);
   }
 
   attributeChangedCallback(name: string, _old: string | null, value: string | null): void {
@@ -123,12 +173,22 @@ export class DoranCalendarElement extends HTMLElement {
     return Number.isFinite(n) && n > 0 ? n : 60;
   }
 
-  #isDisabled(date: DoranDate): boolean {
+  /**
+   * Whether a day is outside `min`/`max`. Keyboard navigation skips these — a bounds
+   * gap can span decades — but lands on individually blocked days so they announce why.
+   */
+  #isOutOfBounds(date: DoranDate): boolean {
     const min = parseJalaliAttr(this.getAttribute('min'));
     const max = parseJalaliAttr(this.getAttribute('max'));
     if (min && date.isBefore(min.startOf('day'))) return true;
     if (max && date.isAfter(max.endOf('day'))) return true;
     return false;
+  }
+
+  #isDisabled(date: DoranDate): boolean {
+    if (this.#isOutOfBounds(date)) return true;
+    if (this.#disabledDates?.(date)) return true;
+    return isDayBlocked(date, false, this.#dayIndex);
   }
 
   #emit(date: DoranDate | null): void {
@@ -225,16 +285,7 @@ export class DoranCalendarElement extends HTMLElement {
         break;
       }
       case 'time': {
-        const field = btn.dataset.field;
-        const delta = Number(btn.dataset.delta);
-        if (field === 'hour') this.#time.hour = (((this.#time.hour + delta) % 24) + 24) % 24;
-        else this.#time.minute = (((this.#time.minute + delta) % 60) + 60) % 60;
-        if (this.#selected) {
-          const next = withTime(this.#selected, this.#time);
-          this.#selected = next;
-          this.#emit(next);
-        }
-        this.#render();
+        this.#stepTime(btn.dataset.field ?? 'hour', Number(btn.dataset.delta));
         break;
       }
       default:
@@ -256,7 +307,114 @@ export class DoranCalendarElement extends HTMLElement {
     return (inMonth[0] ?? cells[0]!).date;
   }
 
+  /**
+   * Commits a typed time field.
+   *
+   * Deliberately does not re-render: rebuilding the markup mid-keystroke would drop
+   * the caret. The value is stored and the display catches up on the next render.
+   */
+  #onTimeInput = (event: Event): void => {
+    const input = event.target as HTMLInputElement;
+    if (!input.classList.contains('doran-time__value')) return;
+
+    const field = input.dataset.field ?? 'hour';
+    const max = Number(input.dataset.max ?? 59);
+    // Accept Persian and Arabic numerals, which is what a Persian keyboard produces.
+    const digits = normalizeDigits(input.value).replace(/\D/g, '');
+    if (digits === '') return;
+
+    const parsed = Number(digits);
+    if (!Number.isFinite(parsed) || parsed > max) return;
+
+    if (field === 'hour') this.#time.hour = parsed;
+    else this.#time.minute = parsed;
+
+    // Update the announced value in place. A re-render would keep it in sync too, but
+    // would also rebuild the input and drop the caret mid-keystroke.
+    input.setAttribute('aria-valuenow', String(parsed));
+    input.setAttribute('aria-valuetext', String(parsed).padStart(2, '0'));
+
+    if (this.#selected) {
+      const next = withTime(this.#selected, this.#time);
+      this.#selected = next;
+      this.#emit(next);
+    }
+  };
+
+  /** How much one arrow press moves a unit. Every unit defaults to 1. */
+  #stepFor(field: string): number {
+    const attr = this.getAttribute(field === 'hour' ? 'hour-step' : 'minute-step');
+    const n = Number(attr);
+    return Number.isInteger(n) && n > 0 ? n : 1;
+  }
+
+  /** Applies a delta to one time field, wrapping, and re-renders. */
+  #stepTime(field: string, delta: number): void {
+    const step = delta * this.#stepFor(field);
+    if (field === 'hour') this.#time.hour = (((this.#time.hour + step) % 24) + 24) % 24;
+    else this.#time.minute = (((this.#time.minute + step) % 60) + 60) % 60;
+    this.#commitTime();
+  }
+
+  /** Jumps one time field straight to a value, for Home and End. */
+  #setTime(field: string, value: number): void {
+    if (field === 'hour') this.#time.hour = value;
+    else this.#time.minute = value;
+    this.#commitTime();
+  }
+
+  #commitTime(): void {
+    if (this.#selected) {
+      const next = withTime(this.#selected, this.#time);
+      this.#selected = next;
+      this.#emit(next);
+    }
+    this.#render();
+  }
+
+  /**
+   * Arrow keys on a time spinbutton. Without this the only way to change the time
+   * was to Tab onto a chevron and press Enter.
+   */
+  #onTimeKeyDown(event: KeyboardEvent, spin: HTMLElement): boolean {
+    const field = spin.dataset.field ?? 'hour';
+    const max = Number(spin.dataset.max ?? 59);
+    const PAGE = 5;
+
+    switch (event.key) {
+      case 'ArrowUp':
+        this.#stepTime(field, 1);
+        break;
+      case 'ArrowDown':
+        this.#stepTime(field, -1);
+        break;
+      case 'PageUp':
+        this.#stepTime(field, PAGE);
+        break;
+      case 'PageDown':
+        this.#stepTime(field, -PAGE);
+        break;
+      case 'Home':
+        this.#setTime(field, 0);
+        break;
+      case 'End':
+        this.#setTime(field, max);
+        break;
+      default:
+        return false;
+    }
+    event.preventDefault();
+    // The re-render replaced the node, so put focus back where the user left it.
+    this.querySelector<HTMLElement>(`.doran-time__value[data-field="${field}"]`)?.focus();
+    return true;
+  }
+
   #onKeyDown = (event: KeyboardEvent): void => {
+    const spin = (event.target as HTMLElement).closest<HTMLElement>('.doran-time__value');
+    if (spin) {
+      this.#onTimeKeyDown(event, spin);
+      return;
+    }
     if (this.#panel !== 'days') return;
     if (!(event.target as HTMLElement).closest('.doran-month')) return;
 
@@ -299,7 +457,7 @@ export class DoranCalendarElement extends HTMLElement {
     ) {
       const dir = move === 'prev-day' || move === 'prev-week' ? -1 : 1;
       let guard = 0;
-      while (this.#isDisabled(target) && guard < 366) {
+      while (this.#isOutOfBounds(target) && guard < 366) {
         target = target.addDays(dir);
         guard += 1;
       }
@@ -322,11 +480,17 @@ export class DoranCalendarElement extends HTMLElement {
     const headerMode = this.getAttribute('header-mode') === 'separate' ? 'separate' : 'dropdown';
 
     this.classList.add('doran-calendar');
-    this.setAttribute('dir', 'rtl');
+    this.setAttribute('dir', resolveDirection(locale));
 
     const header = this.#renderHeader(locale, headerMode, num);
-    const body =
+    const legend = slotPlaceholder(this.#slots, 'legend');
+    const panel =
       this.#panel === 'days' ? this.#renderMonth(locale, num) : this.#renderPanel(locale, num);
+    // The row wrapper only appears when there is an aside to place, so the default
+    // markup — and anyone's CSS targeting it — is unchanged.
+    const body = this.#slots.has('aside')
+      ? `<div class="doran-calendar__body">${slotPlaceholder(this.#slots, 'aside')}<div class="doran-calendar__main">${panel}</div></div>`
+      : panel;
     const time = this.#withTime && this.#panel === 'days' ? this.#renderTime(num) : '';
     const footerActions = parseFooterActions(this.getAttribute('footer-actions'), ['today']);
     const todayDisabled = this.#isDisabled(DoranDate.now());
@@ -337,12 +501,14 @@ export class DoranCalendarElement extends HTMLElement {
           : `<button type="button" class="doran-btn doran-btn--outline doran-calendar__footer-action doran-calendar__footer-action--clear" data-action="clear" data-footer-action="clear">${esc(labels.clear)}</button>`,
       )
       .join('');
+    const footerSlot = slotPlaceholder(this.#slots, 'footer');
     const footer =
-      boolAttr(this, 'hide-footer') || footerButtons === ''
+      boolAttr(this, 'hide-footer') || (footerButtons === '' && footerSlot === '')
         ? ''
-        : `<div class="doran-calendar__footer">${footerButtons}</div>`;
+        : `<div class="doran-calendar__footer">${footerSlot}${footerButtons}</div>`;
 
-    this.innerHTML = header + body + time + footer;
+    this.innerHTML = header + legend + body + time + footer;
+    restoreSlots(this, this.#slots);
 
     if (this.#focusDayAfterRender) {
       this.#focusDayAfterRender = false;
@@ -355,6 +521,11 @@ export class DoranCalendarElement extends HTMLElement {
     mode: 'dropdown' | 'separate',
     num: (n: number | string) => string,
   ): string {
+    const labels = resolveCalendarLabels(locale);
+    // "Previous" points back along the reading direction.
+    const rtl = resolveDirection(locale) === 'rtl';
+    const prevChevron = rtl ? chevronRight : chevronLeft;
+    const nextChevron = rtl ? chevronLeft : chevronRight;
     let heading: string;
     if (mode === 'separate') {
       const months = locale.months
@@ -368,7 +539,7 @@ export class DoranCalendarElement extends HTMLElement {
       for (let y = from; y <= to; y += 1) {
         years += `<option value="${y}" ${y === this.#viewYear ? 'selected' : ''}>${esc(num(y))}</option>`;
       }
-      heading = `<select class="doran-calendar__heading-btn" data-role="month" aria-label="ماه">${months}</select><select class="doran-calendar__heading-btn" data-role="year" aria-label="سال">${years}</select>`;
+      heading = `<select class="doran-calendar__heading-btn" data-role="month" aria-label="${esc(labels.month)}">${months}</select><select class="doran-calendar__heading-btn" data-role="year" aria-label="${esc(labels.year)}">${years}</select>`;
     } else {
       heading =
         `<button type="button" class="doran-calendar__heading-btn ${this.#panel === 'months' ? 'doran-calendar__heading-btn--active' : ''}" data-action="toggle-panel" data-panel="months">${esc(locale.months[this.#viewMonth - 1]!)}${chevronDown}</button>` +
@@ -377,9 +548,9 @@ export class DoranCalendarElement extends HTMLElement {
 
     return (
       `<div class="doran-calendar__header">` +
-      `<button type="button" class="doran-calendar__nav" data-action="prev" aria-label="ماه قبل">${chevronRight}</button>` +
+      `<button type="button" class="doran-calendar__nav" data-action="prev" aria-label="${esc(labels.previousMonth)}">${prevChevron}</button>` +
       `<div class="doran-calendar__heading" aria-live="polite">${heading}</div>` +
-      `<button type="button" class="doran-calendar__nav" data-action="next" aria-label="ماه بعد">${chevronLeft}</button>` +
+      `<button type="button" class="doran-calendar__nav" data-action="next" aria-label="${esc(labels.nextMonth)}">${nextChevron}</button>` +
       `</div>`
     );
   }
@@ -410,35 +581,26 @@ export class DoranCalendarElement extends HTMLElement {
     const weeks = grid.weeks
       .map((week) => {
         const cells = week
-          .map((cell) => {
-            const disabled = this.#isDisabled(cell.date);
-            const selected = this.#selected ? cell.date.isSame(this.#selected, 'day') : false;
-            const weekend = weekends.includes(cell.weekday);
-            const holiday =
-              showHolidays && cell.inCurrentMonth && getHolidaysOn(cell.date).length > 0;
-            const cls = [
-              'doran-day',
-              !cell.inCurrentMonth ? 'doran-day--outside' : '',
-              weekend ? 'doran-day--weekend' : '',
-              holiday ? 'doran-day--holiday' : '',
-              cell.isToday ? 'doran-day--today' : '',
-              selected ? 'doran-day--selected' : '',
-            ]
-              .filter(Boolean)
-              .join(' ');
-            const isActive = cell.date.isSame(active, 'day');
-            return (
-              `<div class="doran-month__cell" role="gridcell" aria-selected="${selected}">` +
-              `<button type="button" class="${cls}" ${disabled ? 'disabled' : ''} tabindex="${isActive ? 0 : -1}" data-action="select-day" data-y="${cell.date.year}" data-m="${cell.date.month}" data-d="${cell.date.day}" aria-label="${esc(cell.date.withLocale(locale).format('dddd D MMMM YYYY'))}">${esc(num(cell.day))}</button>` +
-              `</div>`
-            );
-          })
+          .map((cell) =>
+            renderDayCell(
+              cell,
+              {
+                selected: this.#selected ? cell.date.isSame(this.#selected, 'day') : false,
+                disabled: this.#isDisabled(cell.date),
+                holiday: showHolidays && cell.inCurrentMonth && hasHolidayOn(cell.date),
+                weekend: weekends.includes(cell.weekday),
+                active: cell.date.isSame(active, 'day'),
+              },
+              { locale, num, dayIndex: this.#dayIndex },
+            ),
+          )
           .join('');
         return `<div class="doran-month__week" role="row">${cells}</div>`;
       })
       .join('');
 
-    return `<div class="doran-month" role="grid" aria-label="${gridLabel}"><div class="doran-month__weekdays" role="row">${weekdays}</div>${weeks}</div>`;
+    const richClass = this.#dayIndex ? ' doran-month--rich' : '';
+    return `<div class="doran-month${richClass}" role="grid" aria-label="${gridLabel}"><div class="doran-month__weekdays" role="row">${weekdays}</div>${weeks}</div>`;
   }
 
   #renderPanel(locale: Locale, num: (n: number | string) => string): string {
@@ -460,18 +622,24 @@ export class DoranCalendarElement extends HTMLElement {
   }
 
   #renderTime(num: (n: number | string) => string): string {
+    const labels = resolveCalendarLabels(this.#locale);
     const pad = (n: number) => num(String(n).padStart(2, '0'));
-    const field = (label: string, value: string, fieldName: string) =>
-      `<div class="doran-time__field" role="group" aria-label="${label}">` +
-      `<button type="button" class="doran-time__btn" data-action="time" data-field="${fieldName}" data-delta="1" aria-label="افزایش ${label}">${chevronUp}</button>` +
-      `<span class="doran-time__value">${value}</span>` +
-      `<button type="button" class="doran-time__btn" data-action="time" data-field="${fieldName}" data-delta="-1" aria-label="کاهش ${label}">${chevronDown}</button>` +
+    // The value is a `spinbutton`, so the field is a tab stop that answers to the
+    // arrow keys. Previously the only route was Tab onto a chevron and press Enter.
+    const field = (label: string, value: number, max: number, fieldName: string) =>
+      `<div class="doran-time__field" role="group" aria-label="${esc(label)}">` +
+      `<button type="button" class="doran-time__btn" tabindex="-1" data-action="time" data-field="${fieldName}" data-delta="1" aria-label="${esc(`${labels.increase} ${label}`)}">${chevronUp}</button>` +
+      `<input type="text" class="doran-time__value" inputmode="numeric" autocomplete="off" size="2"` +
+      ` role="spinbutton" data-field="${fieldName}" data-max="${max}"` +
+      ` aria-label="${esc(label)}" aria-valuenow="${value}" aria-valuemin="0" aria-valuemax="${max}"` +
+      ` aria-valuetext="${esc(pad(value))}" value="${esc(pad(value))}" />` +
+      `<button type="button" class="doran-time__btn" tabindex="-1" data-action="time" data-field="${fieldName}" data-delta="-1" aria-label="${esc(`${labels.decrease} ${label}`)}">${chevronDown}</button>` +
       `</div>`;
     return (
       `<div class="doran-time" dir="ltr">` +
-      field('ساعت', pad(this.#time.hour), 'hour') +
+      field(labels.hour, this.#time.hour, 23, 'hour') +
       `<span class="doran-time__sep">:</span>` +
-      field('دقیقه', pad(this.#time.minute), 'minute') +
+      field(labels.minute, this.#time.minute, 59, 'minute') +
       `</div>`
     );
   }

@@ -32,6 +32,11 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./holidays": {
+      "types": "./dist/holidays.d.ts",
+      "import": "./dist/holidays.js",
+      "require": "./dist/holidays.cjs"
+    },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
@@ -54,11 +59,12 @@
     "clean": "rm -rf dist .turbo coverage"
   },
   "dependencies": {
-    "@doranjs/core": "workspace:*",
-    "@doranjs/nlp": "workspace:*"
+    "@doranjs/core": "workspace:^",
+    "@doranjs/holidays": "workspace:^",
+    "@doranjs/nlp": "workspace:^"
   },
   "peerDependencies": {
-    "@doranjs/ui": "workspace:*",
+    "@doranjs/ui": "workspace:^",
     "react": ">=18",
     "react-dom": ">=18"
   },

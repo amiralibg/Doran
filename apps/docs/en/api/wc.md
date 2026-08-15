@@ -82,6 +82,48 @@ document.querySelector('doran-nlp-input').addEventListener('resolve', (e) => {
 });
 ```
 
+## Day widgets
+
+Annotate individual days — a fare, a seat count, an availability badge. These are JS
+properties rather than attributes, since a day map and a predicate can't be stringified.
+
+```js
+const picker = document.querySelector('doran-datepicker');
+
+picker.dayData = {
+  '1404-5-12': { text: '1,200,000', tone: 'low' },
+  '1404-5-14': { disabled: true, disabledReason: 'Sold out' },
+};
+
+picker.disabledDates = (day) => day.dayOfWeek === 6;
+```
+
+Available on `<doran-calendar>`, `<doran-datepicker>`, and `<doran-rangepicker>`. Keys
+are Jalali `YYYY-M-D`; zero-padded and Persian-digit forms resolve to the same day.
+
+`tone` becomes `data-tone` on the annotation: `low`/`positive` and `high`/`negative`
+are styled out of the box, and any other value passes through for your own CSS.
+
+A blocked day carries `aria-disabled` rather than the `disabled` attribute, so it stays
+focusable and its `disabledReason` — a tooltip _and_ part of the day's accessible name —
+can actually be heard.
+
+## Slots
+
+`legend`, `aside`, and `footer` accept light-DOM children, so Vue, Svelte, and Angular
+templates fill them with no wrapper support needed:
+
+```html
+<doran-datepicker>
+  <div slot="legend">Cheapest fare highlighted</div>
+  <div slot="footer">Prices in toman</div>
+</doran-datepicker>
+```
+
+`<doran-datepicker>` forwards `dayData`, `disabledDates`, and its slot children to the
+pop-over calendar. `<doran-rangepicker>` shares its sidebar between an `aside` slot and
+its presets.
+
 ## Theming
 
 The elements reuse the same class names and CSS variables as the React components, so
@@ -91,3 +133,19 @@ The elements reuse the same class names and CSS variables as the React component
 <doran-calendar style="--doran-day-selected-bg: #e11d48; --doran-calendar-radius: 22px">
 </doran-calendar>
 ```
+
+## Range picker with a trigger
+
+```html
+<doran-rangedatepicker presets months="2"></doran-rangedatepicker>
+```
+
+One trigger holding two fields, either typable or fillable from the grid, with the
+ends kept in order. Accepts `dayData` and `disabledDates` as properties and the same
+`legend`/`aside`/`footer` slots. `<doran-rangepicker>` remains the inline version.
+
+## Time picker
+
+`hour-step` and `minute-step` control how far one arrow press moves each unit, both
+defaulting to `1`. Every field can be typed into as well as stepped, and `readonly`
+stops typing while leaving the steppers usable.

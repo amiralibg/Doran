@@ -1,8 +1,18 @@
-import { DoranDate, resolveCalendarLabels, type Locale } from '@doranjs/core';
-import { getHolidaysOn } from '@doranjs/holidays';
+import {
+  DoranDate,
+  indexDayData,
+  resolveCalendarLabels,
+  type DayDataMap,
+  type DayDatum,
+  type Locale,
+  resolveDirection,
+} from '@doranjs/core';
+import { isDayBlocked, renderDayCell } from './day-render';
 import { buildMonthGrid, navigateFocus, type GridNav } from './grid';
+import { hasHolidayOn } from './holidays-cache';
 import { chevronDown, chevronLeft, chevronRight } from './icons';
 import { defaultRangePresets, type RangePreset } from './presets';
+import { captureSlots, restoreSlots, slotPlaceholder, type SlotName } from './slots';
 import { boolAttr, esc, parseFooterActions, resolveLocaleAttr } from './util';
 
 type Panel = 'days' | 'months' | 'years';
@@ -43,12 +53,47 @@ export class DoranRangePickerElement extends HTMLElement {
   #focusDayAfterRender = false;
   /** Custom presets set via JS property; falls back to the defaults when the attribute is present. */
   #customPresets: RangePreset[] | null = null;
+  #dayData: DayDataMap | null = null;
+  #dayIndex: Map<string, DayDatum> | null = null;
+  #disabledDates: ((day: DoranDate) => boolean) | null = null;
+  /** Author-supplied `[slot]` children, captured before the first render. */
+  #slots: Map<SlotName, Element> = new Map();
+
+  /**
+   * Per-day annotations keyed by Jalali `YYYY-M-D` — a nightly rate, availability,
+   * a sold-out flag. Set as a JS property:
+   *
+   * ```js
+   * picker.dayData = { '1404-5-12': { text: '۲ اتاق', tone: 'low' } };
+   * ```
+   */
+  get dayData(): DayDataMap | null {
+    return this.#dayData;
+  }
+
+  set dayData(value: DayDataMap | null) {
+    this.#dayData = value;
+    this.#dayIndex = indexDayData(value);
+    if (this.#initialized) this.#render();
+  }
+
+  /** Blocks individual days beyond `min`/`max` — dates already booked, for instance. */
+  get disabledDates(): ((day: DoranDate) => boolean) | null {
+    return this.#disabledDates;
+  }
+
+  set disabledDates(value: ((day: DoranDate) => boolean) | null) {
+    this.#disabledDates = value;
+    if (this.#initialized) this.#render();
+  }
 
   connectedCallback(): void {
     if (!this.#initialized) {
       const today = DoranDate.now();
       this.#viewYear = today.year;
       this.#viewMonth = today.month;
+      // Must happen before the first render: innerHTML would discard these children.
+      this.#slots = captureSlots(this);
       this.#initialized = true;
     }
     this.addEventListener('click', this.#onClick);
@@ -99,7 +144,7 @@ export class DoranRangePickerElement extends HTMLElement {
   /** The presets to show: custom ones if set, the defaults if the attribute is present, else none. */
   get #presetList(): RangePreset[] {
     if (this.#customPresets) return this.#customPresets;
-    return boolAttr(this, 'presets') ? defaultRangePresets() : [];
+    return boolAttr(this, 'presets') ? defaultRangePresets(this.#locale) : [];
   }
 
   /** How many month grids to show side by side. */
@@ -122,7 +167,14 @@ export class DoranRangePickerElement extends HTMLElement {
     return Number.isFinite(n) && n > 0 ? n : 60;
   }
 
+  /** Whether a day is blocked, by either the `disabledDates` hook or `dayData`. */
+  #isDisabled(date: DoranDate): boolean {
+    if (this.#disabledDates?.(date)) return true;
+    return isDayBlocked(date, false, this.#dayIndex);
+  }
+
   #selectDay(date: DoranDate): void {
+    if (this.#isDisabled(date)) return;
     const d = date.startOf('day');
     if (!this.#start || this.#end) {
       this.#start = d;
@@ -321,7 +373,7 @@ export class DoranRangePickerElement extends HTMLElement {
 
     this.classList.add('doran-calendar', 'doran-rangepicker');
     this.classList.toggle('doran-rangepicker--multi', multi);
-    this.setAttribute('dir', 'rtl');
+    this.setAttribute('dir', resolveDirection(locale));
 
     const header = multi
       ? this.#renderMultiHeader(locale, num, months)
@@ -354,8 +406,10 @@ export class DoranRangePickerElement extends HTMLElement {
     }
 
     const presets = this.#presetList;
-    const presetsHtml = presets.length
-      ? `<div class="doran-rangepicker__presets" role="group" aria-label="بازه‌های آماده">` +
+    // The aside shares the sidebar with the presets, sitting above them. The presets
+    // keep their own labelled group so the aside doesn't join their accessible name.
+    const presetGroup = presets.length
+      ? `<div class="doran-rangepicker__preset-group" role="group" aria-label="${esc(labels.presets)}">` +
         presets
           .map(
             (p, i) =>
@@ -364,9 +418,13 @@ export class DoranRangePickerElement extends HTMLElement {
           .join('') +
         `</div>`
       : '';
+    const sidebar =
+      presets.length || this.#slots.has('aside')
+        ? `<div class="doran-rangepicker__presets">${slotPlaceholder(this.#slots, 'aside')}${presetGroup}</div>`
+        : '';
 
     const fmt = (d: DoranDate | null) => (d ? d.withLocale(locale).format('YYYY/MM/DD') : '—');
-    const summary = `${fmt(this.#start)} تا ${fmt(this.#end)}`;
+    const summary = `${fmt(this.#start)}${labels.rangeSeparator}${fmt(this.#end)}`;
     const footerActions = parseFooterActions(
       this.getAttribute('footer-actions'),
       ['clear'],
@@ -378,17 +436,21 @@ export class DoranRangePickerElement extends HTMLElement {
           `<button type="button" class="doran-btn doran-btn--outline doran-calendar__footer-action doran-calendar__footer-action--clear" data-action="clear" data-footer-action="clear">${esc(labels.clear)}</button>`,
       )
       .join('');
+    const footerSlot = slotPlaceholder(this.#slots, 'footer');
     const footer =
-      boolAttr(this, 'hide-footer') || footerButtons === ''
+      boolAttr(this, 'hide-footer') || (footerButtons === '' && footerSlot === '')
         ? ''
         : `<div class="doran-calendar__footer doran-rangepicker__footer">` +
           `<span class="doran-rangepicker__summary">${esc(summary)}</span>` +
+          footerSlot +
           footerButtons +
           `</div>`;
 
     this.innerHTML =
-      `<div class="doran-rangepicker__body">${presetsHtml}<div class="doran-rangepicker__calendar">${header}${body}</div></div>` +
+      slotPlaceholder(this.#slots, 'legend') +
+      `<div class="doran-rangepicker__body">${sidebar}<div class="doran-rangepicker__calendar">${header}${body}</div></div>` +
       footer;
+    restoreSlots(this, this.#slots);
 
     if (this.#focusDayAfterRender) {
       this.#focusDayAfterRender = false;
@@ -398,6 +460,12 @@ export class DoranRangePickerElement extends HTMLElement {
 
   /** A simplified arrows-only header for the multi-month layout. */
   #renderMultiHeader(locale: Locale, num: (n: number | string) => string, months: number): string {
+    const labels = resolveCalendarLabels(locale);
+    // "Previous" points back along the reading direction.
+    const rtl = resolveDirection(locale) === 'rtl';
+    const prevChevron = rtl ? chevronRight : chevronLeft;
+    const nextChevron = rtl ? chevronLeft : chevronRight;
+
     const label = (idx: number) => {
       const y = Math.floor(idx / 12);
       const m = (idx % 12) + 1;
@@ -407,9 +475,9 @@ export class DoranRangePickerElement extends HTMLElement {
     const caption = esc(`${label(startIdx)} – ${label(startIdx + months - 1)}`);
     return (
       `<div class="doran-calendar__header">` +
-      `<button type="button" class="doran-calendar__nav" data-action="prev" aria-label="ماه قبل">${chevronRight}</button>` +
+      `<button type="button" class="doran-calendar__nav" data-action="prev" aria-label="${esc(labels.previousMonth)}">${prevChevron}</button>` +
       `<div class="doran-calendar__heading" aria-live="polite">${caption}</div>` +
-      `<button type="button" class="doran-calendar__nav" data-action="next" aria-label="ماه بعد">${chevronLeft}</button>` +
+      `<button type="button" class="doran-calendar__nav" data-action="next" aria-label="${esc(labels.nextMonth)}">${nextChevron}</button>` +
       `</div>`
     );
   }
@@ -419,6 +487,11 @@ export class DoranRangePickerElement extends HTMLElement {
     mode: 'dropdown' | 'separate',
     num: (n: number | string) => string,
   ): string {
+    const labels = resolveCalendarLabels(locale);
+    // "Previous" points back along the reading direction.
+    const rtl = resolveDirection(locale) === 'rtl';
+    const prevChevron = rtl ? chevronRight : chevronLeft;
+    const nextChevron = rtl ? chevronLeft : chevronRight;
     let heading: string;
     if (mode === 'separate') {
       const months = locale.months
@@ -432,7 +505,7 @@ export class DoranRangePickerElement extends HTMLElement {
       for (let y = from; y <= to; y += 1) {
         years += `<option value="${y}" ${y === this.#viewYear ? 'selected' : ''}>${esc(num(y))}</option>`;
       }
-      heading = `<select class="doran-calendar__heading-btn" data-role="month" aria-label="ماه">${months}</select><select class="doran-calendar__heading-btn" data-role="year" aria-label="سال">${years}</select>`;
+      heading = `<select class="doran-calendar__heading-btn" data-role="month" aria-label="${esc(labels.month)}">${months}</select><select class="doran-calendar__heading-btn" data-role="year" aria-label="${esc(labels.year)}">${years}</select>`;
     } else {
       heading =
         `<button type="button" class="doran-calendar__heading-btn ${this.#panel === 'months' ? 'doran-calendar__heading-btn--active' : ''}" data-action="toggle-panel" data-panel="months">${esc(locale.months[this.#viewMonth - 1]!)}${chevronDown}</button>` +
@@ -440,9 +513,9 @@ export class DoranRangePickerElement extends HTMLElement {
     }
     return (
       `<div class="doran-calendar__header">` +
-      `<button type="button" class="doran-calendar__nav" data-action="prev" aria-label="ماه قبل">${chevronRight}</button>` +
+      `<button type="button" class="doran-calendar__nav" data-action="prev" aria-label="${esc(labels.previousMonth)}">${prevChevron}</button>` +
       `<div class="doran-calendar__heading" aria-live="polite">${heading}</div>` +
-      `<button type="button" class="doran-calendar__nav" data-action="next" aria-label="ماه بعد">${chevronLeft}</button>` +
+      `<button type="button" class="doran-calendar__nav" data-action="next" aria-label="${esc(labels.nextMonth)}">${nextChevron}</button>` +
       `</div>`
     );
   }
@@ -476,28 +549,19 @@ export class DoranRangePickerElement extends HTMLElement {
           .map((cell) => {
             const isStart = start ? cell.date.isSame(start, 'day') : false;
             const isEnd = end ? cell.date.isSame(end, 'day') : false;
-            const inRange = start && end ? cell.date.isBetween(start, end.endOf('day')) : false;
-            const weekend = weekends.includes(cell.weekday);
-            const holiday =
-              showHolidays && cell.inCurrentMonth && getHolidaysOn(cell.date).length > 0;
-            const cls = [
-              'doran-day',
-              !cell.inCurrentMonth ? 'doran-day--outside' : '',
-              weekend ? 'doran-day--weekend' : '',
-              holiday ? 'doran-day--holiday' : '',
-              cell.isToday ? 'doran-day--today' : '',
-              isStart ? 'doran-day--range-start' : '',
-              isEnd ? 'doran-day--range-end' : '',
-              inRange && !isStart && !isEnd ? 'doran-day--in-range' : '',
-              isStart || isEnd ? 'doran-day--selected' : '',
-            ]
-              .filter(Boolean)
-              .join(' ');
-            const isActive = cell.date.isSame(active, 'day');
-            return (
-              `<div class="doran-month__cell" role="gridcell" aria-selected="${isStart || isEnd}">` +
-              `<button type="button" class="${cls}" tabindex="${isActive ? 0 : -1}" data-action="select-day" data-y="${cell.date.year}" data-m="${cell.date.month}" data-d="${cell.date.day}" aria-label="${esc(cell.date.withLocale(locale).format('dddd D MMMM YYYY'))}">${esc(num(cell.day))}</button>` +
-              `</div>`
+            return renderDayCell(
+              cell,
+              {
+                selected: isStart || isEnd,
+                disabled: this.#disabledDates?.(cell.date) ?? false,
+                holiday: showHolidays && cell.inCurrentMonth && hasHolidayOn(cell.date),
+                weekend: weekends.includes(cell.weekday),
+                active: cell.date.isSame(active, 'day'),
+                inRange: start && end ? cell.date.isBetween(start, end.endOf('day')) : false,
+                rangeStart: isStart,
+                rangeEnd: isEnd,
+              },
+              { locale, num, dayIndex: this.#dayIndex },
             );
           })
           .join('');
@@ -505,7 +569,8 @@ export class DoranRangePickerElement extends HTMLElement {
       })
       .join('');
 
-    return `<div class="doran-month" role="grid" aria-multiselectable="true" aria-label="${gridLabel}"><div class="doran-month__weekdays" role="row">${weekdays}</div>${weeks}</div>`;
+    const richClass = this.#dayIndex ? ' doran-month--rich' : '';
+    return `<div class="doran-month${richClass}" role="grid" aria-multiselectable="true" aria-label="${gridLabel}"><div class="doran-month__weekdays" role="row">${weekdays}</div>${weeks}</div>`;
   }
 
   #renderPanel(locale: Locale, num: (n: number | string) => string): string {

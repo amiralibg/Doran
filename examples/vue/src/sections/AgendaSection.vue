@@ -14,13 +14,22 @@ const app = useApp();
 
 <template>
   <Section id="agenda" title="<DoranAgenda>" :intro="app.t('agIntro')">
-    <DemoCard :title="app.t('agDefaultTitle')" :description="app.t('agDefaultDesc')" :code="DefaultSrc" wide>
+    <DemoCard
+      :title="app.t('agDefaultTitle')"
+      :description="app.t('agDefaultDesc')"
+      :code="DefaultSrc"
+      wide
+    >
       <Default :lang="app.lang()" />
     </DemoCard>
     <DemoCard :title="app.t('agDaysTitle')" :description="app.t('agDaysDesc')" :code="DaysSrc">
       <Days :lang="app.lang()" />
     </DemoCard>
-    <DemoCard :title="app.t('agRenderTitle')" :description="app.t('agRenderDesc')" :code="CustomRenderSrc">
+    <DemoCard
+      :title="app.t('agRenderTitle')"
+      :description="app.t('agRenderDesc')"
+      :code="CustomRenderSrc"
+    >
       <CustomRender :lang="app.lang()" />
     </DemoCard>
   </Section>

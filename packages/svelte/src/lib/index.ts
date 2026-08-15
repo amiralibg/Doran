@@ -13,6 +13,7 @@
 export { default as DoranDatePicker } from './DoranDatePicker.svelte';
 export { default as DoranCalendar } from './DoranCalendar.svelte';
 export { default as DoranRangePicker } from './DoranRangePicker.svelte';
+export { default as DoranRangeDatePicker } from './DoranRangeDatePicker.svelte';
 export { default as DoranNlpInput } from './DoranNlpInput.svelte';
 export { default as DoranAgenda } from './DoranAgenda.svelte';
 export type { DoranDateRange, GregorianDateRange } from './DoranRangePicker.svelte';

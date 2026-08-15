@@ -1,4 +1,4 @@
-import { type DoranDate } from '@doranjs/core';
+import { type DayDataMap, type DoranDate } from '@doranjs/core';
 import { type AgendaEvent } from '@doranjs/wc';
 import { defineComponent, h, onMounted, type PropType, shallowRef, watch } from 'vue';
 import { type DoranDefaults, injectDoranDefaults } from './provider';
@@ -24,15 +24,39 @@ function ensureElements(): Promise<unknown> {
 
 // DoranDate carries private fields — never let Vue deep-proxy it. Element refs and
 // any DoranDate values live in shallowRef, and props are shallowReactive already.
-function useElement<E extends { value: unknown }>(read: () => E['value']) {
+function useElement<E extends { value: unknown }>(
+  read: () => E['value'],
+  /**
+   * Values that must be assigned as element *properties* rather than attributes —
+   * `dayData` maps and `disabledDates` predicates can't be stringified. Vue would
+   * normally infer this, but only once the custom element has upgraded, and
+   * `ensureElements()` resolves after the first render.
+   */
+  readProperties?: () => Record<string, unknown>,
+) {
   const el = shallowRef<E | null>(null);
   const sync = () => {
-    if (el.value) el.value.value = read();
+    if (!el.value) return;
+    el.value.value = read();
+    if (!readProperties) return;
+    for (const [key, value] of Object.entries(readProperties())) {
+      if (value !== undefined) (el.value as unknown as Record<string, unknown>)[key] = value;
+    }
   };
   onMounted(() => ensureElements().then(sync));
   watch(read, sync);
+  if (readProperties) watch(readProperties, sync);
   return el;
 }
+
+/** Props every calendar-like element accepts but that cannot travel as attributes. */
+const dayWidgetProps = {
+  dayData: { type: Object as PropType<DayDataMap | null>, default: undefined },
+  disabledDates: {
+    type: Function as unknown as PropType<((day: DoranDate) => boolean) | null>,
+    default: undefined,
+  },
+} as const;
 
 function detail<T>(e: Event): T {
   return (e as CustomEvent<T>).detail;
@@ -51,13 +75,19 @@ function mergeDefaults(
 export const DoranDatePicker = defineComponent({
   name: 'DoranDatePicker',
   inheritAttrs: false,
-  props: { modelValue: { type: Object as PropType<DoranDate | null>, default: null } },
+  props: {
+    modelValue: { type: Object as PropType<DoranDate | null>, default: null },
+    ...dayWidgetProps,
+  },
   emits: {
     'update:modelValue': (_d: DoranDate | null) => true,
     change: (_d: DoranDate | null, _g: Date | null) => true,
   },
   setup(props, { attrs, emit, slots }) {
-    const el = useElement<HTMLElement & { value: DoranDate | null }>(() => props.modelValue);
+    const el = useElement<HTMLElement & { value: DoranDate | null }>(
+      () => props.modelValue,
+      () => ({ dayData: props.dayData, disabledDates: props.disabledDates }),
+    );
     const defaults = injectDoranDefaults();
     const onChange = (e: Event) => {
       const date = detail<{ date: DoranDate | null }>(e).date;
@@ -78,20 +108,32 @@ export const DoranDatePicker = defineComponent({
 export const DoranCalendar = defineComponent({
   name: 'DoranCalendar',
   inheritAttrs: false,
-  props: { modelValue: { type: Object as PropType<DoranDate | null>, default: null } },
+  props: {
+    modelValue: { type: Object as PropType<DoranDate | null>, default: null },
+    ...dayWidgetProps,
+  },
   emits: {
     'update:modelValue': (_d: DoranDate | null) => true,
     change: (_d: DoranDate | null, _g: Date | null) => true,
   },
-  setup(props, { attrs, emit }) {
-    const el = useElement<HTMLElement & { value: DoranDate | null }>(() => props.modelValue);
+  setup(props, { attrs, emit, slots }) {
+    const el = useElement<HTMLElement & { value: DoranDate | null }>(
+      () => props.modelValue,
+      () => ({ dayData: props.dayData, disabledDates: props.disabledDates }),
+    );
     const defaults = injectDoranDefaults();
     const onChange = (e: Event) => {
       const date = detail<{ date: DoranDate }>(e).date;
       emit('update:modelValue', date);
       emit('change', date, date ? date.toGregorian() : null);
     };
-    return () => h('doran-calendar', { ref: el, ...mergeDefaults(defaults, attrs), onChange });
+    // Children carry `slot="legend"|"aside"|"footer"` straight through to the element.
+    return () =>
+      h(
+        'doran-calendar',
+        { ref: el, ...mergeDefaults(defaults, attrs), onChange },
+        slots.default?.(),
+      );
   },
 });
 
@@ -104,13 +146,17 @@ export const DoranRangePicker = defineComponent({
       type: Object as PropType<DoranDateRange>,
       default: () => ({ start: null, end: null }),
     },
+    ...dayWidgetProps,
   },
   emits: {
     'update:modelValue': (_r: DoranDateRange) => true,
     change: (_r: DoranDateRange, _g: GregorianDateRange) => true,
   },
-  setup(props, { attrs, emit }) {
-    const el = useElement<HTMLElement & { value: DoranDateRange }>(() => props.modelValue);
+  setup(props, { attrs, emit, slots }) {
+    const el = useElement<HTMLElement & { value: DoranDateRange }>(
+      () => props.modelValue,
+      () => ({ dayData: props.dayData, disabledDates: props.disabledDates }),
+    );
     const defaults = injectDoranDefaults();
     const onChange = (e: Event) => {
       const range = detail<DoranDateRange>(e);
@@ -120,7 +166,50 @@ export const DoranRangePicker = defineComponent({
         end: range.end ? range.end.toGregorian() : null,
       });
     };
-    return () => h('doran-rangepicker', { ref: el, ...mergeDefaults(defaults, attrs), onChange });
+    return () =>
+      h(
+        'doran-rangepicker',
+        { ref: el, ...mergeDefaults(defaults, attrs), onChange },
+        slots.default?.(),
+      );
+  },
+});
+
+/** `<doran-rangedatepicker>` — a range input with a pop-over grid. `v-model` is `{ start, end }`. */
+export const DoranRangeDatePicker = defineComponent({
+  name: 'DoranRangeDatePicker',
+  inheritAttrs: false,
+  props: {
+    modelValue: {
+      type: Object as PropType<DoranDateRange>,
+      default: () => ({ start: null, end: null }),
+    },
+    ...dayWidgetProps,
+  },
+  emits: {
+    'update:modelValue': (_r: DoranDateRange) => true,
+    change: (_r: DoranDateRange, _g: GregorianDateRange) => true,
+  },
+  setup(props, { attrs, emit, slots }) {
+    const el = useElement<HTMLElement & { value: DoranDateRange }>(
+      () => props.modelValue,
+      () => ({ dayData: props.dayData, disabledDates: props.disabledDates }),
+    );
+    const defaults = injectDoranDefaults();
+    const onChange = (e: Event) => {
+      const range = detail<DoranDateRange>(e);
+      emit('update:modelValue', range);
+      emit('change', range, {
+        start: range.start ? range.start.toGregorian() : null,
+        end: range.end ? range.end.toGregorian() : null,
+      });
+    };
+    return () =>
+      h(
+        'doran-rangedatepicker',
+        { ref: el, ...mergeDefaults(defaults, attrs), onChange },
+        slots.default?.(),
+      );
   },
 });
 

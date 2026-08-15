@@ -60,9 +60,9 @@
     "clean": "rm -rf dist .turbo coverage"
   },
   "dependencies": {
-    "@doranjs/core": "workspace:*",
-    "@doranjs/holidays": "workspace:*",
-    "@doranjs/nlp": "workspace:*"
+    "@doranjs/core": "workspace:^",
+    "@doranjs/holidays": "workspace:^",
+    "@doranjs/nlp": "workspace:^"
   },
   "devDependencies": {
     "jsdom": "^29.1.1"

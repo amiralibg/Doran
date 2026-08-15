@@ -132,3 +132,29 @@ import { DoranProvider, DoranDatePicker } from '@doranjs/angular';
 ```
 
 Components resolve locale as **explicit input → provider**. See the [SSR guide](/en/guide/ssr).
+
+## Day widgets and slots
+
+`dayData` and `disabledDates` are `@Input()`s assigned as element properties, since a
+map and a predicate cannot travel as attributes.
+
+```html
+<dr-calendar [(ngModel)]="value" [dayData]="dayData" [disabledDates]="isBooked">
+  <span slot="legend">Remaining capacity</span>
+</dr-calendar>
+```
+
+`legend`, `aside`, and `footer` project through to the element.
+
+## Range picker with a trigger
+
+```html
+<dr-range-date-picker [(ngModel)]="range" [presets]="true" [months]="2" />
+```
+
+`dr-range-picker` remains the inline version.
+
+## Time picker and presentation
+
+`[hourStep]`, `[minuteStep]`, `[withTime]`, `[readOnly]`, and `[mode]` are all inputs.
+Every step defaults to `1`; `mode="auto"` switches to a bottom sheet under 640px.

@@ -9,7 +9,7 @@
  * import '@doranjs/wc/styles.css';
  * ```
  *
- * Then use `<doran-calendar>`, `<doran-datepicker>`, `<doran-rangepicker>`,
+ * Then use `<doran-calendar>`, `<doran-datepicker>`, `<doran-rangepicker>`, `<doran-rangedatepicker>`,
  * `<doran-nlp-input>`, and `<doran-agenda>` anywhere in your HTML. Call
  * {@link defineDoranElements} yourself if you import the element classes without the
  * side-effect.
@@ -19,6 +19,7 @@
 
 export { DoranCalendarElement } from './calendar-element';
 export { DoranDatePickerElement } from './datepicker-element';
+export { DoranRangeDatePickerElement } from './rangedatepicker-element';
 export { DoranRangePickerElement } from './rangepicker-element';
 export { DoranNlpInputElement } from './nlp-input-element';
 export { DoranAgendaElement, type AgendaEvent } from './agenda-element';

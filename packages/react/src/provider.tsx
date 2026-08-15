@@ -1,6 +1,12 @@
 'use client';
 
-import { getDefaultLocale, type Locale, type LocaleLike, resolveLocale } from '@doranjs/core';
+import {
+  getDefaultLocale,
+  resolveDirection,
+  resolveLocale,
+  type Locale,
+  type LocaleLike,
+} from '@doranjs/core';
 import { createContext, type ReactNode, useContext, useMemo } from 'react';
 
 /** Subtree defaults supplied by {@link DoranProvider}. */
@@ -48,4 +54,16 @@ export function useDoranContext(): DoranDefaults {
 export function useResolvedLocale(locale?: Locale): Locale {
   const ctx = useContext(DoranContext);
   return locale ?? ctx.locale ?? getDefaultLocale();
+}
+
+/**
+ * The writing direction a component should render in: an explicit `dir` prop wins,
+ * otherwise the resolved locale decides.
+ *
+ * Components used to hardcode `dir="rtl"`, so switching to a Latin locale left an
+ * RTL widget behind — the symptom `iconPosition` and `textAlign` were added to
+ * paper over.
+ */
+export function useDirection(locale: Locale, dir?: 'rtl' | 'ltr'): 'rtl' | 'ltr' {
+  return dir ?? resolveDirection(locale);
 }

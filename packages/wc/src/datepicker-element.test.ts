@@ -16,25 +16,31 @@ function mount(attrs: Record<string, string> = {}): DoranDatePickerElement {
   return el;
 }
 
-const trigger = (el: HTMLElement) => el.querySelector<HTMLButtonElement>('[data-action="toggle"]')!;
+const trigger = (el: HTMLElement) => el.querySelector<HTMLElement>('.doran-datepicker__input')!;
+const openButton = (el: HTMLElement) =>
+  el.querySelector<HTMLButtonElement>('.doran-datepicker__icon')!;
+const control = (el: HTMLElement) =>
+  el.querySelector<HTMLInputElement>('.doran-datepicker__control')!;
 // The pop-over is portaled to <body>, so dialogs are queried on the document.
 const dialog = () => document.querySelector('[role="dialog"]');
 
 describe('<doran-datepicker>', () => {
   it('shows the placeholder until a value is set', () => {
     const el = mount({ placeholder: 'یک تاریخ' });
-    expect(el.querySelector('.doran-datepicker__placeholder')?.textContent).toBe('یک تاریخ');
+    const control = el.querySelector<HTMLInputElement>('.doran-datepicker__control')!;
+    expect(control.getAttribute('placeholder')).toBe('یک تاریخ');
+    expect(control.value).toBe('');
     expect(dialog()).toBeNull();
   });
 
   it('formats a value attribute in the trigger', () => {
     const el = mount({ value: '1405/03/15' });
-    expect(trigger(el).textContent).toContain('۱۴۰۵/۰۳/۱۵');
+    expect(control(el).value).toBe('۱۴۰۵/۰۳/۱۵');
   });
 
   it('opens a calendar dialog when the trigger is clicked', () => {
     const el = mount({ value: '1405/03/15' });
-    trigger(el).click();
+    openButton(el).click();
     expect(dialog()).not.toBeNull();
     expect(dialog()!.querySelector('doran-calendar .doran-month')).not.toBeNull();
   });
@@ -46,7 +52,7 @@ describe('<doran-datepicker>', () => {
     const el = document.createElement('doran-datepicker') as DoranDatePickerElement;
     el.setAttribute('value', '1405/03/15');
     wrapper.appendChild(el);
-    trigger(el).click();
+    openButton(el).click();
     expect(dialog()).not.toBeNull();
     expect(el.contains(dialog())).toBe(false);
     expect(dialog()!.parentElement).toBe(document.body);
@@ -56,7 +62,7 @@ describe('<doran-datepicker>', () => {
     const el = mount({ value: '1405/03/15' });
     const onChange = vi.fn();
     el.addEventListener('change', (e) => onChange((e as CustomEvent).detail));
-    trigger(el).click();
+    openButton(el).click();
     document
       .querySelector<HTMLButtonElement>(
         '[data-action="select-day"][data-y="1405"][data-m="3"][data-d="22"]',
@@ -78,7 +84,7 @@ describe('<doran-datepicker>', () => {
       weekends: '5,6',
       'footer-actions': '',
     });
-    trigger(el).click();
+    openButton(el).click();
     const calendar = dialog()!.querySelector('doran-calendar')!;
     expect(calendar.getAttribute('min')).toBe('1405/03/10');
     expect(calendar.getAttribute('max')).toBe('1405/03/20');
@@ -97,7 +103,7 @@ describe('<doran-datepicker>', () => {
     });
     const onChange = vi.fn();
     el.addEventListener('change', (e) => onChange((e as CustomEvent).detail));
-    trigger(el).click();
+    openButton(el).click();
 
     dialog()!.querySelector<HTMLButtonElement>('[data-action="clear"]')!.click();
 
@@ -108,13 +114,13 @@ describe('<doran-datepicker>', () => {
 
   it('closes after plain Today but stays open for Today with time', () => {
     const plain = mount({ value: '1405/03/15' });
-    trigger(plain).click();
+    openButton(plain).click();
     dialog()!.querySelector<HTMLButtonElement>('[data-action="today"]')!.click();
     expect(dialog()).toBeNull();
 
     plain.remove();
     const timed = mount({ value: '1405/03/15', 'with-time': '' });
-    trigger(timed).click();
+    openButton(timed).click();
     dialog()!.querySelector<HTMLButtonElement>('[data-action="today"]')!.click();
     expect(dialog()).not.toBeNull();
   });
@@ -130,17 +136,17 @@ describe('<doran-datepicker>', () => {
     expect(el.dataset.textAlign).toBe('left');
     expect(el.classList.contains('doran-datepicker--icon-right')).toBe(true);
     expect(input.dataset.iconPosition).toBe('right');
-    expect(input.querySelector('.doran-datepicker__value')?.getAttribute('data-text-align')).toBe(
+    expect(input.querySelector('.doran-datepicker__control')?.getAttribute('data-text-align')).toBe(
       'left',
     );
     expect(input.style.flexDirection).toBe('row-reverse');
     expect(input.style.width).toBe('18rem');
-    expect((input.querySelector('.doran-datepicker__value') as HTMLElement).style.textAlign).toBe(
+    expect((input.querySelector('.doran-datepicker__control') as HTMLElement).style.textAlign).toBe(
       'left',
     );
     // Bidi isolation: without dir="auto" the RTL host reorders digit-only
     // values like `1405-04-16 03:24` into time-before-date.
-    expect(input.querySelector('.doran-datepicker__value')?.getAttribute('dir')).toBe('auto');
+    expect(input.querySelector('.doran-datepicker__control')?.getAttribute('dir')).toBe('auto');
     expect(el.style.getPropertyValue('--doran-input-width')).toBe('18rem');
   });
 
@@ -157,12 +163,12 @@ describe('<doran-datepicker>', () => {
       toJSON: () => ({}),
     });
     const matched = mount({ 'dropdown-width': 'trigger' });
-    trigger(matched).click();
+    openButton(matched).click();
     expect((dialog() as HTMLElement).style.width).toBe('240px');
     matched.remove();
 
     const custom = mount({ 'dropdown-width': '22rem' });
-    trigger(custom).click();
+    openButton(custom).click();
     expect(custom.dataset.dropdownWidth).toBe('custom');
     expect((dialog() as HTMLElement).style.width).toBe('22rem');
     expect((dialog() as HTMLElement).dataset.dropdownWidth).toBe('custom');
@@ -171,14 +177,16 @@ describe('<doran-datepicker>', () => {
 
   it('propagates disabled to the trigger and prevents opening', () => {
     const el = mount({ disabled: '' });
-    expect(trigger(el).disabled).toBe(true);
-    trigger(el).click();
+    expect(control(el).disabled).toBe(true);
+    expect(openButton(el).disabled).toBe(true);
+    expect(trigger(el).dataset.disabled).toBe('true');
+    openButton(el).click();
     expect(dialog()).toBeNull();
   });
 
   it('closes the popover on Escape', () => {
     const el = mount({ value: '1405/03/15' });
-    trigger(el).click();
+    openButton(el).click();
     expect(dialog()).not.toBeNull();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(dialog()).toBeNull();
@@ -186,7 +194,7 @@ describe('<doran-datepicker>', () => {
 
   it('keeps the popover open when clicking inside it', () => {
     const el = mount({ value: '1405/03/15' });
-    trigger(el).click();
+    openButton(el).click();
     dialog()!.dispatchEvent(new Event('pointerdown', { bubbles: true }));
     expect(dialog()).not.toBeNull();
     document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
@@ -195,7 +203,7 @@ describe('<doran-datepicker>', () => {
 
   it('removes the popover when the element is disconnected', () => {
     const el = mount({ value: '1405/03/15' });
-    trigger(el).click();
+    openButton(el).click();
     expect(dialog()).not.toBeNull();
     el.remove();
     expect(dialog()).toBeNull();
