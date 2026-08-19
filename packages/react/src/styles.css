@@ -745,6 +745,18 @@
   outline: none;
 }
 
+/* `editable={false}`: the trigger is a button, so it has to be talked back out of
+   looking like one and into looking like the field it replaces. */
+.doran-datepicker__control--button {
+  display: block;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: normal;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 /* Compatibility with markup from before the trigger became a real input.
    `.doran-datepicker__value` named the text span the input replaced, and
    `.doran-datepicker__placeholder` its empty state — both are still honoured so
@@ -775,6 +787,13 @@
   background: transparent;
   color: var(--doran-icon-color, var(--doran-text-muted));
   cursor: pointer;
+  /* The artwork is ~17px, which is a miss on a phone more often than a hit — and on
+     a typable field this button is the only way to reach the calendar. Grow the
+     button rather than overlaying the text, so the two targets stay disjoint and
+     tapping next to the icon still places the caret. The field's width is unchanged:
+     the input flexes and gives up the difference. */
+  min-width: var(--doran-tap-target, 1.75rem);
+  align-self: stretch;
 }
 
 .doran-datepicker__icon:disabled {

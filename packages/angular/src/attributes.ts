@@ -73,6 +73,8 @@ export interface DatePickerAttributeInputs {
   hideIcon?: boolean;
   /** Stops the user typing a date while leaving the calendar usable. */
   readOnly?: boolean;
+  /** `false` swaps the text field for a button trigger; defaults to `true`. */
+  editable?: boolean;
   /** How the calendar is presented: anchored, a bottom sheet, or auto by width. */
   mode?: 'popover' | 'sheet' | 'auto';
 }
@@ -99,5 +101,8 @@ export function applyDatePickerAttributes(
   setBool(el, 'disabled', inputs.disabled === true || formDisabled);
   setBool(el, 'hide-icon', inputs.hideIcon);
   setBool(el, 'readonly', inputs.readOnly);
+  // Not a boolean attribute: the element reads `editable="false"` as a string, so
+  // absence has to mean "editable" rather than "not present".
+  setAttr(el, 'editable', inputs.editable === false ? 'false' : undefined);
   setAttr(el, 'mode', inputs.mode);
 }

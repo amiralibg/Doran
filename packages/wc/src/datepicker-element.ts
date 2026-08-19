@@ -53,6 +53,7 @@ export class DoranDatePickerElement extends HTMLElement {
       'dropdown-width',
       'disabled',
       'readonly',
+      'editable',
       'mode',
     ];
   }
@@ -166,6 +167,30 @@ export class DoranDatePickerElement extends HTMLElement {
     return window.matchMedia('(max-width: 639px)').matches ? 'sheet' : 'popover';
   }
 
+  /**
+   * Whether the trigger is a text field. `editable="false"` renders a button
+   * instead, so the whole field opens the calendar and a date can only come from
+   * the grid — worth preferring on touch-first screens, where a text field raises
+   * the on-screen keyboard over the calendar.
+   *
+   * Read as a string rather than by presence so `:editable="false"` and
+   * `[editable]="false"` from Vue, Svelte, and Angular all say what they mean.
+   */
+  get #editable(): boolean {
+    return this.getAttribute('editable') !== 'false';
+  }
+
+  /**
+   * Whether the primary pointer is a finger — i.e. focusing the text field raises
+   * an on-screen keyboard. The picker gives up the caret when the calendar opens,
+   * because the first tap on a day would otherwise dismiss the keyboard, resize the
+   * viewport mid-gesture, and lose the tap.
+   */
+  get #coarsePointer(): boolean {
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
+    return window.matchMedia('(pointer: coarse)').matches;
+  }
+
   get #iconPosition(): 'left' | 'right' {
     return this.getAttribute('icon-position') === 'right' ? 'right' : 'left';
   }
@@ -199,7 +224,14 @@ export class DoranDatePickerElement extends HTMLElement {
     const trigger = (event.target as HTMLElement).closest('[data-action="toggle"]');
     if (trigger && this.contains(trigger)) {
       if (boolAttr(this, 'disabled')) return;
-      this.#open = !this.#open;
+      if (this.#open) {
+        this.#open = false;
+      } else {
+        // Surrender the caret on touch so the on-screen keyboard is gone before the
+        // panel is measured and placed. Only a text field raises one.
+        if (this.#editable && this.#coarsePointer) this.#field?.blur();
+        this.#open = true;
+      }
       this.#render();
     }
   };
@@ -248,7 +280,19 @@ export class DoranDatePickerElement extends HTMLElement {
 
   /** The text field inside the trigger, once rendered. */
   get #field(): HTMLInputElement | null {
-    return this.querySelector<HTMLInputElement>('.doran-datepicker__control');
+    return this.querySelector<HTMLInputElement>('input.doran-datepicker__control');
+  }
+
+  /** The button trigger's label: the formatted value, or the placeholder when empty. */
+  #triggerLabel(placeholder: string): string {
+    return this.#text
+      ? esc(this.#text)
+      : `<span class="doran-datepicker__placeholder">${esc(placeholder)}</span>`;
+  }
+
+  /** The focusable trigger: the text field, or the button under `editable="false"`. */
+  get #trigger(): HTMLElement | null {
+    return this.querySelector<HTMLElement>('.doran-datepicker__control');
   }
 
   /** Whether a date sits inside `min`/`max`. */
@@ -279,7 +323,7 @@ export class DoranDatePickerElement extends HTMLElement {
    */
   #onInput = (event: Event): void => {
     const field = event.target as HTMLInputElement;
-    if (!field.classList.contains('doran-datepicker__control')) return;
+    if (field !== this.#field) return;
 
     // Flow typed digits into the developer's format as they go — `14020512` becomes
     // `1402/05/12` without the user typing separators. In place, so the caret and the
@@ -320,8 +364,10 @@ export class DoranDatePickerElement extends HTMLElement {
    * the user can see and fix their input rather than watch it vanish.
    */
   #onFieldBlur = (event: Event): void => {
-    const field = event.target as HTMLElement;
-    if (!field.classList.contains('doran-datepicker__control')) return;
+    // Only the text field settles on blur. A button trigger carries the same class,
+    // and letting it through re-rendered the pop-over out from under the press that
+    // caused the blur — so the click never reached the day.
+    if (event.target !== this.#field) return;
 
     const raw = this.#text.trim();
     if (raw === '' || this.#readDate(this.#text)) {
@@ -334,8 +380,9 @@ export class DoranDatePickerElement extends HTMLElement {
   };
 
   #onFieldKeyDown = (event: KeyboardEvent): void => {
-    const field = event.target as HTMLElement;
-    if (!field.classList.contains('doran-datepicker__control')) return;
+    // Likewise text-field only: a button trigger already opens on Enter and Space,
+    // and closing here would just let its own click re-open it.
+    if (event.target !== this.#field) return;
 
     if (event.key === 'ArrowDown' && !this.#open) {
       // The conventional way to reach a picker's calendar from its input.
@@ -409,23 +456,36 @@ export class DoranDatePickerElement extends HTMLElement {
       ? ''
       : `<button type="button" class="doran-datepicker__icon" data-action="toggle" tabindex="-1" aria-label="${esc(openLabel)}" aria-haspopup="dialog" aria-expanded="${this.#open}" ${disabled ? 'disabled' : ''}>${this.#customIcon ? '' : calendarIcon}</button>`;
 
-    // Rebuilding the trigger would wipe the caret and the selection mid-typing, so
-    // once the field has focus only the pop-over is re-rendered.
-    const fieldHasFocus = this.#field !== null && document.activeElement === this.#field;
-
-    this.#destroyPopover();
-
-    if (!fieldHasFocus) {
-      // dir="auto": digit-only values (e.g. `YYYY-MM-DD HH:mm`) resolve LTR so the
-      // host's RTL context can't reorder the date/time runs, while Persian
-      // placeholders and month-name formats still resolve RTL.
-      this.innerHTML =
-        `<div class="doran-datepicker__input" data-icon-position="${iconPosition}" data-text-align="${textAlign}"${disabled ? ' data-disabled="true"' : ''}${this.#unparseable ? ' data-invalid="true"' : ''}>` +
-        `<input type="text" class="doran-datepicker__control" inputmode="numeric" autocomplete="off" dir="auto"` +
+    const editable = this.#editable;
+    // dir="auto": digit-only values (e.g. `YYYY-MM-DD HH:mm`) resolve LTR so the
+    // host's RTL context can't reorder the date/time runs, while Persian
+    // placeholders and month-name formats still resolve RTL.
+    const controlMarkup = editable
+      ? `<input type="text" class="doran-datepicker__control" inputmode="numeric" autocomplete="off" dir="auto"` +
         ` value="${esc(this.#text)}" placeholder="${esc(placeholder)}" aria-label="${esc(fieldLabel)}"` +
         ` data-text-align="${textAlign}"` +
         ` aria-haspopup="dialog" aria-expanded="${this.#open}"${this.#unparseable ? ' aria-invalid="true"' : ''}` +
-        `${disabled ? ' disabled' : ''}${boolAttr(this, 'readonly') ? ' readonly' : ''} />` +
+        `${disabled ? ' disabled' : ''}${boolAttr(this, 'readonly') ? ' readonly' : ''} />`
+      : // `editable="false"`: the whole field is the control. No text entry, so no
+        // caret to protect and no on-screen keyboard to fight.
+        `<button type="button" class="doran-datepicker__control doran-datepicker__control--button doran-datepicker__value"` +
+        ` data-action="toggle" dir="auto" aria-label="${esc(fieldLabel)}"` +
+        ` data-text-align="${textAlign}"` +
+        ` aria-haspopup="dialog" aria-expanded="${this.#open}"` +
+        `${disabled ? ' disabled' : ''}>${this.#triggerLabel(placeholder)}</button>`;
+
+    // Rebuilding the trigger would wipe the caret and the selection mid-typing, so
+    // once the field has focus only the pop-over is re-rendered. A button trigger has
+    // no caret but its focus is still worth keeping, so it is updated in place too.
+    const focused = this.#trigger;
+    const triggerHasFocus = focused !== null && document.activeElement === focused;
+
+    this.#destroyPopover();
+
+    if (!triggerHasFocus) {
+      this.innerHTML =
+        `<div class="doran-datepicker__input" data-icon-position="${iconPosition}" data-text-align="${textAlign}"${disabled ? ' data-disabled="true"' : ''}${this.#unparseable ? ' data-invalid="true"' : ''}>` +
+        controlMarkup +
         icon +
         `</div>`;
 
@@ -434,7 +494,7 @@ export class DoranDatePickerElement extends HTMLElement {
         trigger.style.flexDirection = iconPosition === 'left' ? 'row' : 'row-reverse';
         if (inputWidth) trigger.style.width = inputWidth;
       }
-      const control = this.#field;
+      const control = this.#trigger;
       if (control) {
         control.style.flex = '1';
         control.style.textAlign = textAlign;
@@ -444,9 +504,12 @@ export class DoranDatePickerElement extends HTMLElement {
       if (this.#customIcon && !boolAttr(this, 'hide-icon')) {
         this.querySelector('.doran-datepicker__icon')?.appendChild(this.#customIcon);
       }
-    } else if (this.#field) {
-      // Keep the pieces that can change while typing in sync, in place.
-      this.#field.setAttribute('aria-expanded', String(this.#open));
+    } else if (focused) {
+      // Keep the pieces that can change while focused in sync, in place.
+      focused.setAttribute('aria-expanded', String(this.#open));
+      // A button shows the value as its label, so unlike an input it also has to be
+      // retitled when the value changes underneath it.
+      if (!editable) focused.innerHTML = this.#triggerLabel(placeholder);
     }
 
     if (this.#open) {
@@ -539,7 +602,12 @@ export class DoranDatePickerElement extends HTMLElement {
 
     if (this.#focusTriggerOnRender) {
       this.#focusTriggerOnRender = false;
-      this.querySelector<HTMLElement>('[data-action="toggle"]')?.focus();
+      // Restoring focus is right for a keyboard user and wrong for a finger: on a
+      // phone it pops the on-screen keyboard straight back up the moment a date is
+      // picked.
+      if (!(this.#editable && this.#coarsePointer)) {
+        this.querySelector<HTMLElement>('[data-action="toggle"]')?.focus();
+      }
     }
   }
 }

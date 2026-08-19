@@ -14,6 +14,8 @@ import MinMax from '../demos/datepicker/MinMax';
 import MinMaxSrc from '../demos/datepicker/MinMax?raw';
 import Customization from '../demos/datepicker/Customization';
 import CustomizationSrc from '../demos/datepicker/Customization?raw';
+import PickOnly from '../demos/datepicker/PickOnly';
+import PickOnlySrc from '../demos/datepicker/PickOnly?raw';
 
 export function DatePickerSection() {
   const { t, locale } = useLang();
@@ -33,6 +35,9 @@ export function DatePickerSection() {
       </DemoCard>
       <DemoCard title={t('dpRangeTitle')} description={t('dpRangeDesc')} code={MinMaxSrc}>
         <MinMax locale={locale} />
+      </DemoCard>
+      <DemoCard title={t('dpPickOnlyTitle')} description={t('dpPickOnlyDesc')} code={PickOnlySrc}>
+        <PickOnly locale={locale} />
       </DemoCard>
       <DemoCard
         title={t('dpCustomizationTitle')}

@@ -55,6 +55,9 @@ const fa: Dict = {
   dpFormatDesc: 'با format قالبِ نمایش و با placeholder متنِ راهنما را تعیین می‌کنید.',
   dpHolidaysTitle: 'تعطیلات',
   dpHolidaysDesc: 'ویژگی show-holidays به تقویمِ داخلِ پاپ‌اوور هم منتقل می‌شود.',
+  dpPickOnlyTitle: 'تریگر دکمه‌ای (بدون تایپ)',
+  dpPickOnlyDesc:
+    'با editable="false" تریگر به دکمه تبدیل می‌شود: کل فیلد تقویم را باز می‌کند و تاریخ فقط از جدول انتخاب می‌شود. روی موبایل کیبورد صفحه‌کلید اصلاً بالا نمی‌آید.',
   dpCustomizationTitle: 'اکشن‌ها و چیدمان',
   dpCustomizationDesc:
     'فوترِ مرتبِ امروز/پاک کردن، جای آیکن، تراز متن و عرض هماهنگِ ورودی و dropdown را یک‌جا تنظیم کنید.',
@@ -155,6 +158,9 @@ const en: Dict = {
   dpFormatDesc: 'format controls the display; placeholder sets the empty-state hint.',
   dpHolidaysTitle: 'Holidays',
   dpHolidaysDesc: 'The show-holidays attribute is forwarded to the popover calendar.',
+  dpPickOnlyTitle: 'Button trigger (no typing)',
+  dpPickOnlyDesc:
+    'editable="false" turns the trigger into a button: the whole field opens the calendar and a date can only come from the grid. On a phone no on-screen keyboard ever appears.',
   dpCustomizationTitle: 'Actions and layout',
   dpCustomizationDesc:
     'Configure ordered Today/Clear actions, icon position, text alignment, and matching input/dropdown widths together.',

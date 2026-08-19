@@ -7,11 +7,12 @@ import { DpDefault } from '../demos/datepicker/default.component';
 import { DpWithTime } from '../demos/datepicker/with-time.component';
 import { DpFormat } from '../demos/datepicker/format.component';
 import { DpCustomization } from '../demos/datepicker/customization.component';
+import { DpPickOnly } from '../demos/datepicker/pick-only.component';
 
 @Component({
   selector: 'demo-datepicker-section',
   standalone: true,
-  imports: [Section, DemoCard, DpDefault, DpWithTime, DpFormat, DpCustomization],
+  imports: [Section, DemoCard, DpDefault, DpWithTime, DpFormat, DpCustomization, DpPickOnly],
   template: `
     <demo-section id="datepicker" [title]="'<DoranDatePicker>'" [intro]="app.t('dpIntro')">
       <demo-card
@@ -34,6 +35,13 @@ import { DpCustomization } from '../demos/datepicker/customization.component';
         [code]="src['datepicker/format']"
       >
         <demo-dp-format [lang]="app.lang()" />
+      </demo-card>
+      <demo-card
+        [title]="app.t('dpPickOnlyTitle')"
+        [description]="app.t('dpPickOnlyDesc')"
+        [code]="src['datepicker/pick-only']"
+      >
+        <demo-dp-pick-only [lang]="app.lang()" />
       </demo-card>
       <demo-card
         [title]="app.t('dpCustomizationTitle')"

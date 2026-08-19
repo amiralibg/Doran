@@ -11,6 +11,8 @@ import Holidays from '../demos/datepicker/Holidays';
 import HolidaysSrc from '../demos/datepicker/Holidays?raw';
 import Customization from '../demos/datepicker/Customization';
 import CustomizationSrc from '../demos/datepicker/Customization?raw';
+import PickOnly from '../demos/datepicker/PickOnly';
+import PickOnlySrc from '../demos/datepicker/PickOnly?raw';
 
 export function datePickerSection(): HTMLElement {
   return createSection('datepicker', '<doran-datepicker>', 'dpIntro', [
@@ -37,6 +39,12 @@ export function datePickerSection(): HTMLElement {
       descKey: 'dpHolidaysDesc',
       code: HolidaysSrc,
       build: Holidays,
+    }),
+    createCard({
+      titleKey: 'dpPickOnlyTitle',
+      descKey: 'dpPickOnlyDesc',
+      code: PickOnlySrc,
+      build: PickOnly,
     }),
     createCard({
       titleKey: 'dpCustomizationTitle',

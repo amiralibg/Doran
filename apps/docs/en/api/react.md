@@ -178,6 +178,40 @@ The calendar opens on the icon, on `ArrowDown`, and deliberately not on focus, w
 would fight typing. It also does not take focus when it opens — that would pull the
 caret out of the field.
 
+## A trigger that isn't typable
+
+Pass `editable={false}` to turn the trigger into a button. The whole field opens the
+calendar, and a date can only come from the grid.
+
+```tsx
+<DoranDatePicker editable={false} />
+```
+
+Worth preferring on touch-first screens. A text field raises the on-screen keyboard
+over the calendar, and reaching the picker means hitting the icon rather than
+anywhere in the field.
+
+This is not `readOnly`, which keeps a real `<input>` — focusable, selectable,
+submitted the same way — and only refuses new text. Reach for `readOnly` for a field
+that is temporarily locked, `editable={false}` for one that was never meant to be
+typed into. Under `editable={false}` the forwarded ref receives the trigger
+`<button>`.
+
+## On phones
+
+Where the pointer is coarse, the picker gives up the caret as the calendar opens, so
+the on-screen keyboard is gone before the panel is placed, and it does not take focus
+back after a date is picked. Both avoid the keyboard covering the calendar — and,
+worse, dismissing itself mid-tap, which moves the panel out from under the finger and
+loses the tap.
+
+The panel is measured against the visual viewport rather than `window.innerHeight`,
+which on iOS stays at full height while the keyboard covers half the screen, and it
+holds still for the length of any gesture that starts on it.
+
+Set `mode="auto"` to present the calendar as a bottom sheet under 640px instead of
+anchoring it to the trigger.
+
 ## Value types
 
 `value`, `defaultValue`, `min`, and `max` accept a `DoranDate`, a native `Date`, epoch
@@ -201,7 +235,7 @@ Latin digits, since it is bound for a query string or an API rather than the scr
 ## Forms
 
 The picker forwards its ref to the input and accepts `name`, `required`, `readOnly`,
-`invalid`, `onBlur`, and `aria-describedby`. A named picker submits through a hidden
+`editable`, `invalid`, `onBlur`, and `aria-describedby`. A named picker submits through a hidden
 input carrying a Latin-digit machine value.
 
 ```tsx

@@ -37,3 +37,17 @@ export function usePresentation(mode: PickerMode = 'popover'): 'popover' | 'shee
   if (mode === 'popover') return 'popover';
   return isNarrow ? 'sheet' : 'popover';
 }
+
+/**
+ * Whether the primary pointer is a finger — i.e. focusing a text field raises an
+ * on-screen keyboard.
+ *
+ * The picker uses this to give up the caret when the calendar opens. A keyboard
+ * covering the lower half of the screen is bad enough on its own; worse is that
+ * the first tap on a day dismisses it, which resizes the viewport mid-gesture,
+ * moves the panel out from under the finger, and loses the tap entirely.
+ */
+export function isCoarsePointer(): boolean {
+  if (typeof window === 'undefined' || !window.matchMedia) return false;
+  return window.matchMedia('(pointer: coarse)').matches;
+}

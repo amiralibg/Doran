@@ -10,6 +10,8 @@ import Format from '../demos/datepicker/Format.vue';
 import FormatSrc from '../demos/datepicker/Format.vue?raw';
 import Customization from '../demos/datepicker/Customization.vue';
 import CustomizationSrc from '../demos/datepicker/Customization.vue?raw';
+import PickOnly from '../demos/datepicker/PickOnly.vue';
+import PickOnlySrc from '../demos/datepicker/PickOnly.vue?raw';
 
 const app = useApp();
 </script>
@@ -32,6 +34,13 @@ const app = useApp();
       :code="FormatSrc"
     >
       <Format :lang="app.lang()" />
+    </DemoCard>
+    <DemoCard
+      :title="app.t('dpPickOnlyTitle')"
+      :description="app.t('dpPickOnlyDesc')"
+      :code="PickOnlySrc"
+    >
+      <PickOnly :lang="app.lang()" />
     </DemoCard>
     <DemoCard
       :title="app.t('dpCustomizationTitle')"

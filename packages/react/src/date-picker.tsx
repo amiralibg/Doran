@@ -32,7 +32,7 @@ import {
 import { createPortal } from 'react-dom';
 import { DoranCalendar, type CalendarFooterAction, type DoranCalendarProps } from './calendar';
 import { usePopoverPosition } from './use-popover-position';
-import { usePresentation, type PickerMode } from './use-presentation';
+import { isCoarsePointer, usePresentation, type PickerMode } from './use-presentation';
 
 export interface DoranDatePickerProps<F extends ValueFormat = 'doran'> extends Pick<
   DoranCalendarProps,
@@ -133,6 +133,26 @@ export interface DoranDatePickerProps<F extends ValueFormat = 'doran'> extends P
    * when a date must come from the grid — the input remains focusable and readable.
    */
   readOnly?: boolean;
+  /**
+   * Whether the trigger is a text field the user can type into. Defaults to `true`.
+   *
+   * `editable={false}` renders the trigger as a button instead, so the whole field
+   * opens the calendar and a date can only come from the grid:
+   *
+   * ```tsx
+   * <DoranDatePicker editable={false} />
+   * ```
+   *
+   * Worth preferring on touch-first screens. A text field raises the on-screen
+   * keyboard over the calendar, and reaching the picker means hitting the small
+   * icon; a button trigger has neither problem.
+   *
+   * Different from {@link readOnly}, which keeps a real `<input>` — focusable,
+   * selectable, submitted the same way — and only refuses new text. Use `readOnly`
+   * for a field that is temporarily locked, `editable={false}` for one that was
+   * never meant to be typed into.
+   */
+  editable?: boolean;
   /**
    * Marks the field invalid: sets `aria-invalid` and a `data-invalid` styling hook.
    * The picker sets this on its own when the typed text can't be parsed, so pass it
@@ -240,6 +260,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
       name,
       required,
       readOnly,
+      editable = true,
       invalid,
       onBlur,
       onFocus,
@@ -291,6 +312,9 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
     // the user sees, and a consumer's padding on the root would skew that.
     const fieldRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
+    // The focusable trigger — the text field, or the button under `editable={false}`.
+    // `inputRef` stays input-only because the caret work has no button equivalent.
+    const triggerElementRef = useRef<HTMLElement | null>(null);
     const popoverRef = useRef<HTMLDivElement>(null);
     const popoverId = useId();
     const matchesTriggerWidth = dropdownWidth === 'trigger';
@@ -337,14 +361,40 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
     /** Keeps the internal ref working while still honouring a forwarded one. */
     function setInputRef(node: HTMLInputElement | null) {
       inputRef.current = node;
+      triggerElementRef.current = node;
       if (typeof forwardedRef === 'function') forwardedRef(node);
       else if (forwardedRef) forwardedRef.current = node;
+    }
+
+    /**
+     * The `editable={false}` counterpart. The forwarded ref receives the trigger
+     * `<button>` — still an element you can focus, blur, and measure, which is what
+     * a ref on a field is for, even though the declared type says `HTMLInputElement`.
+     */
+    function setButtonRef(node: HTMLButtonElement | null) {
+      triggerElementRef.current = node;
+      const asField = node as unknown as HTMLInputElement | null;
+      if (typeof forwardedRef === 'function') forwardedRef(asField);
+      else if (forwardedRef) forwardedRef.current = asField;
     }
 
     /** Close the popover, optionally returning focus to the input. */
     function close(restoreFocus: boolean) {
       setOpen(false);
-      if (restoreFocus) inputRef.current?.focus();
+      // Restoring focus is right for a keyboard user and wrong for a finger: on a
+      // phone it pops the on-screen keyboard straight back up over the page the
+      // moment a date is picked.
+      if (restoreFocus && !isCoarsePointer()) triggerElementRef.current?.focus();
+    }
+
+    /**
+     * Opens the calendar, surrendering the caret on touch devices so the on-screen
+     * keyboard is gone before the panel is measured and placed.
+     */
+    function openCalendar() {
+      // Only a text field raises a keyboard; a button trigger keeps its focus.
+      if (editable && isCoarsePointer()) triggerElementRef.current?.blur();
+      setOpen(true);
     }
 
     function commit(date: DoranDate | null) {
@@ -437,7 +487,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
       onBlur?.(event);
     }
 
-    function handleTriggerKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+    function handleTriggerKeyDown(event: ReactKeyboardEvent<HTMLElement>) {
       if (event.key === 'ArrowDown' && !open) {
         // The conventional way to reach a picker's calendar from its input.
         event.preventDefault();
@@ -575,41 +625,93 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
           {/* dir="auto": digit-only values (e.g. `YYYY-MM-DD HH:mm`) resolve LTR so
             the surrounding RTL context can't reorder the date/time runs, while
             Persian placeholders and month-name formats still resolve RTL. */}
-          <input
-            ref={setInputRef}
-            type="text"
-            // Persian date entry is digits and separators; this brings up the right
-            // phone keyboard without rejecting a pasted month name.
-            inputMode="numeric"
-            autoComplete="off"
-            dir="auto"
-            // `doran-datepicker__value` is kept as an alias: it named the text span
-            // this input replaced, so stylesheets written against the old markup keep
-            // applying rather than silently losing their rules.
-            className={cn(
-              'doran-datepicker__control',
-              'doran-datepicker__value',
-              classNames?.input,
-            )}
-            style={{ flex: 1, textAlign }}
-            value={text}
-            placeholder={resolvedPlaceholder}
-            disabled={disabled}
-            readOnly={readOnly}
-            required={required}
-            aria-haspopup="dialog"
-            aria-expanded={open}
-            aria-controls={open ? popoverId : undefined}
-            aria-invalid={isInvalid || undefined}
-            {...(ariaDescribedBy ? { 'aria-describedby': ariaDescribedBy } : {})}
-            {...(ariaLabelledBy
-              ? { 'aria-labelledby': ariaLabelledBy }
-              : { 'aria-label': fieldLabel })}
-            onChange={handleInput}
-            onBlur={handleBlur}
-            {...(onFocus ? { onFocus } : {})}
-            onKeyDown={handleTriggerKeyDown}
-          />
+          {!editable ? (
+            /* `editable={false}`: the whole field is the control. No text entry, so
+               no caret to protect and no on-screen keyboard to fight — the trigger
+               is simply a button that announces the value and opens the calendar. */
+            <button
+              ref={setButtonRef}
+              type="button"
+              dir="auto"
+              className={cn(
+                'doran-datepicker__control',
+                'doran-datepicker__control--button',
+                'doran-datepicker__value',
+                classNames?.input,
+              )}
+              style={{ flex: 1, textAlign }}
+              disabled={disabled}
+              aria-haspopup="dialog"
+              aria-expanded={open}
+              aria-controls={open ? popoverId : undefined}
+              aria-invalid={isInvalid || undefined}
+              {...(ariaDescribedBy ? { 'aria-describedby': ariaDescribedBy } : {})}
+              {...(ariaLabelledBy
+                ? { 'aria-labelledby': ariaLabelledBy }
+                : { 'aria-label': fieldLabel })}
+              onClick={() => (open ? close(false) : openCalendar())}
+              // A button already opens on Enter and Space, and closing on Enter here
+              // would only let its own click re-open it. Just teach it ArrowDown.
+              onKeyDown={(event) => {
+                if (event.key === 'ArrowDown' && !open) {
+                  event.preventDefault();
+                  openCalendar();
+                }
+              }}
+              // The public handlers are typed against the input this trigger stands in
+              // for; the event is the same shape either way.
+              {...(onBlur
+                ? {
+                    onBlur: (e: FocusEvent<HTMLButtonElement>) =>
+                      onBlur(e as unknown as FocusEvent<HTMLInputElement>),
+                  }
+                : {})}
+              {...(onFocus
+                ? {
+                    onFocus: (e: FocusEvent<HTMLButtonElement>) =>
+                      onFocus(e as unknown as FocusEvent<HTMLInputElement>),
+                  }
+                : {})}
+            >
+              {text || <span className="doran-datepicker__placeholder">{resolvedPlaceholder}</span>}
+            </button>
+          ) : (
+            <input
+              ref={setInputRef}
+              type="text"
+              // Persian date entry is digits and separators; this brings up the right
+              // phone keyboard without rejecting a pasted month name.
+              inputMode="numeric"
+              autoComplete="off"
+              dir="auto"
+              // `doran-datepicker__value` is kept as an alias: it named the text span
+              // this input replaced, so stylesheets written against the old markup keep
+              // applying rather than silently losing their rules.
+              className={cn(
+                'doran-datepicker__control',
+                'doran-datepicker__value',
+                classNames?.input,
+              )}
+              style={{ flex: 1, textAlign }}
+              value={text}
+              placeholder={resolvedPlaceholder}
+              disabled={disabled}
+              readOnly={readOnly}
+              required={required}
+              aria-haspopup="dialog"
+              aria-expanded={open}
+              aria-controls={open ? popoverId : undefined}
+              aria-invalid={isInvalid || undefined}
+              {...(ariaDescribedBy ? { 'aria-describedby': ariaDescribedBy } : {})}
+              {...(ariaLabelledBy
+                ? { 'aria-labelledby': ariaLabelledBy }
+                : { 'aria-label': fieldLabel })}
+              onChange={handleInput}
+              onBlur={handleBlur}
+              {...(onFocus ? { onFocus } : {})}
+              onKeyDown={handleTriggerKeyDown}
+            />
+          )}
           {/* Native submission needs a machine-readable value, not the Persian-digit
               text on screen. The visible field stays unnamed so only this submits. */}
           {name && <input type="hidden" name={name} value={submitValue} />}
@@ -617,15 +719,16 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
             <button
               type="button"
               className={cn('doran-datepicker__icon', classNames?.icon)}
-              // The input owns typing, so the calendar needs its own control — this is
-              // also the only pointer-free way to open it besides ArrowDown.
+              // A typable field owns its own clicks, so the calendar needs a separate
+              // control. Under `editable={false}` the trigger opens it too, and this
+              // is left in place so the field looks the same either way.
               aria-label={openLabel}
               aria-haspopup="dialog"
               aria-expanded={open}
               aria-controls={open ? popoverId : undefined}
               disabled={disabled}
               tabIndex={-1}
-              onClick={() => setOpen((o) => !o)}
+              onClick={() => (open ? close(false) : openCalendar())}
             >
               {icon ?? <CalendarIcon />}
             </button>
