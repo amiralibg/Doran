@@ -1,5 +1,12 @@
 # @doranjs/vue
 
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies [[`ff4d608`](https://github.com/amiralibg/Doran/commit/ff4d608a3f62a03f08c5ebc844b9955872683f08)]:
+  - @doranjs/wc@0.5.0
+
 ## 0.3.1
 
 ### Patch Changes
