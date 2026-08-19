@@ -53,6 +53,7 @@ import '@doranjs/wc/styles.css'; // tokens + component styles in one file
 | `input-width`    | datepicker                             | CSS trigger width, such as `18rem`                                                                                     |
 | `dropdown-width` | datepicker                             | `auto`, `trigger`, or a custom CSS width                                                                               |
 | `disabled`       | datepicker                             | Disables the trigger and closes an open popover                                                                        |
+| `editable`       | datepicker                             | `editable="false"` makes the trigger a button rather than a text field                                                 |
 
 `footer-actions="today,clear"` preserves the declared button order. Today selects the current
 date and emits `change`; Clear removes the value and emits `null` in `detail.date` and
@@ -62,6 +63,22 @@ date and emits `change`; Clear removes the value and emits `null` in `detail.dat
 `dropdown-width="auto"` uses the intrinsic popover width, `trigger` matches the trigger, and any
 other value such as `24rem` is used as a custom CSS width. When `disabled` is present, the
 datepicker's native trigger is disabled, cannot open on click, and closes any open popover.
+
+`editable="false"` turns the trigger into a button: the whole field opens the
+calendar and a date can only come from the grid. Worth preferring on touch-first
+screens, where a text field raises the on-screen keyboard over the calendar and
+reaching the picker means hitting the icon. It is read as a string, not by presence,
+so `:editable="false"` and `[editable]="false"` from Vue, Svelte, and Angular all say
+what they mean. Unlike `readonly`, which keeps a real `<input>` and only refuses new
+text, there is no text field at all.
+
+On a coarse pointer the datepicker gives up the caret as the calendar opens, so the
+keyboard is gone before the panel is placed, and it does not take focus back after a
+date is picked — the keyboard would otherwise cover the calendar and, dismissing
+itself mid-tap, move the panel out from under the finger. The panel is measured
+against the visual viewport rather than `window.innerHeight`, and holds still for the
+length of any gesture that starts on it. `mode="auto"` presents the calendar as a
+bottom sheet under 640px.
 
 `format` drives typing as well as display. Digits flow into the pattern as they are
 entered — `14020512` becomes `۱۴۰۲/۰۵/۱۲` with no separators typed — and fields

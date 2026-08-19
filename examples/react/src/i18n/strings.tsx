@@ -88,6 +88,9 @@ const fa: Dict = {
   dpTypingTitle: 'تایپ تاریخ',
   dpTypingDesc:
     'تریگر یک ورودی متنی واقعی است: ۱۴۰۲/۵/۱۲ یا 1402-5-12 را تایپ کنید. با valueFormat خروجی همان رشته‌ای می‌شود که در query param نگه می‌دارید. خطا هنگام خروج از فیلد نشان داده می‌شود، نه با هر کلید.',
+  dpPickOnlyTitle: 'تریگر دکمه‌ای (بدون تایپ)',
+  dpPickOnlyDesc:
+    'با editable={false} تریگر به دکمه تبدیل می‌شود: کل فیلد تقویم را باز می‌کند و تاریخ فقط از جدول انتخاب می‌شود. روی موبایل کیبورد صفحه‌کلید اصلاً بالا نمی‌آید.',
   dpCustomizationTitle: 'اکشن‌ها و چیدمان',
   dpCustomizationDesc:
     'فوترِ مرتبِ امروز/پاک کردن، جای آیکن، تراز متن و عرض هماهنگِ ورودی و dropdown را یک‌جا تنظیم کنید.',
@@ -235,6 +238,9 @@ const en: Dict = {
   dpTypingTitle: 'Typing a date',
   dpTypingDesc:
     'The trigger is a real text field: type 1402/5/12 or ۱۴۰۲/۰۵/۱۲. valueFormat makes the output the same string you keep in a query param. Errors appear on blur, not on every keystroke.',
+  dpPickOnlyTitle: 'Button trigger (no typing)',
+  dpPickOnlyDesc:
+    'editable={false} turns the trigger into a button: the whole field opens the calendar and a date can only come from the grid. On a phone no on-screen keyboard ever appears.',
   dpCustomizationTitle: 'Actions and layout',
   dpCustomizationDesc:
     'Configure ordered Today/Clear actions, icon position, text alignment, and matching input/dropdown widths together.',

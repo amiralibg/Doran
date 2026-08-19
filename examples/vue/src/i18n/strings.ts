@@ -70,6 +70,9 @@ const fa: Dict = {
   dpTimeDesc: 'با with-time علاوه بر تاریخ، زمان هم انتخاب می‌شود.',
   dpFormatTitle: 'قالب و متن راهنما',
   dpFormatDesc: 'با format قالبِ نمایشِ تاریخ و با placeholder متنِ راهنما را تعیین می‌کنید.',
+  dpPickOnlyTitle: 'تریگر دکمه‌ای (بدون تایپ)',
+  dpPickOnlyDesc:
+    'با editable="false" تریگر به دکمه تبدیل می‌شود: کل فیلد تقویم را باز می‌کند و تاریخ فقط از جدول انتخاب می‌شود. روی موبایل کیبورد صفحه‌کلید اصلاً بالا نمی‌آید.',
   dpCustomizationTitle: 'اکشن‌ها و چیدمان',
   dpCustomizationDesc:
     'فوترِ مرتبِ امروز/پاک کردن، جای آیکن، تراز متن و عرض هماهنگِ ورودی و dropdown را یک‌جا تنظیم کنید.',
@@ -172,6 +175,9 @@ const en: Dict = {
   dpTimeDesc: 'with-time lets the user pick a time of day alongside the date.',
   dpFormatTitle: 'Format and placeholder',
   dpFormatDesc: 'format controls how the date is displayed; placeholder sets the empty-state hint.',
+  dpPickOnlyTitle: 'Button trigger (no typing)',
+  dpPickOnlyDesc:
+    'editable="false" turns the trigger into a button: the whole field opens the calendar and a date can only come from the grid. On a phone no on-screen keyboard ever appears.',
   dpCustomizationTitle: 'Actions and layout',
   dpCustomizationDesc:
     'Configure ordered Today/Clear actions, icon position, text alignment, and matching input/dropdown widths together.',

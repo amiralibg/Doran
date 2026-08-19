@@ -10,6 +10,8 @@
   import FormatSrc from '../demos/datepicker/Format.svelte?raw';
   import Customization from '../demos/datepicker/Customization.svelte';
   import CustomizationSrc from '../demos/datepicker/Customization.svelte?raw';
+  import PickOnly from '../demos/datepicker/PickOnly.svelte';
+  import PickOnlySrc from '../demos/datepicker/PickOnly.svelte?raw';
 </script>
 
 <Section id="datepicker" title="<DoranDatePicker>" intro={$t('dpIntro')}>
@@ -21,6 +23,9 @@
   </DemoCard>
   <DemoCard title={$t('dpFormatTitle')} description={$t('dpFormatDesc')} code={FormatSrc}>
     <Format lang={$lang} />
+  </DemoCard>
+  <DemoCard title={$t('dpPickOnlyTitle')} description={$t('dpPickOnlyDesc')} code={PickOnlySrc}>
+    <PickOnly lang={$lang} />
   </DemoCard>
   <DemoCard
     title={$t('dpCustomizationTitle')}
