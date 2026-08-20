@@ -129,6 +129,22 @@ export class DoranRangeDatePickerElement extends HTMLElement {
   }
 
   /** How the grid is presented: anchored, a bottom sheet, or auto by viewport width. */
+  /**
+   * Whether the trigger should refuse to raise an on-screen keyboard.
+   *
+   * This element opens on focus, so unlike `<doran-datepicker>` it cannot give up the
+   * caret when the calendar appears — that is the very thing that opened it. The
+   * field stays focusable and goes `readonly`, the one signal browsers honour for
+   * "focus this, but do not raise a keyboard". Only when it is actually a sheet on an
+   * actual finger: a narrow desktop window is also a sheet, and there typing should
+   * still work.
+   */
+  get #suppressKeyboard(): boolean {
+    if (this.#presentation !== 'sheet') return false;
+    if (typeof window === 'undefined' || !window.matchMedia) return false;
+    return window.matchMedia('(pointer: coarse)').matches;
+  }
+
   get #presentation(): 'popover' | 'sheet' {
     const mode = this.getAttribute('mode');
     if (mode === 'sheet') return 'sheet';
@@ -283,7 +299,9 @@ export class DoranRangeDatePickerElement extends HTMLElement {
     const labels = resolveCalendarLabels(locale);
     const direction = resolveDirection(locale);
     const disabled = boolAttr(this, 'disabled');
-    const readonly = boolAttr(this, 'readonly');
+    // The attribute is borrowed for keyboard suppression; `#onFocusIn` still reads the
+    // real attribute, so a sheet opens even while its keyboard is being suppressed.
+    const readonly = boolAttr(this, 'readonly') || this.#suppressKeyboard;
 
     const display = (date: DoranDate | null) =>
       date ? date.withLocale(locale).format(this.#format) : '';

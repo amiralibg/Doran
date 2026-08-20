@@ -26,7 +26,7 @@ import { createPortal } from 'react-dom';
 import { useDirection, useResolvedLocale } from './provider';
 import { DoranRangePicker, type DoranRangePickerProps } from './range-picker';
 import { usePopover } from './use-popover';
-import { usePresentation, type PickerMode } from './use-presentation';
+import { isCoarsePointer, usePresentation, type PickerMode } from './use-presentation';
 import type { DateRange, GregorianDateRange } from './hooks';
 
 /** Which end of the range the user is editing. */
@@ -282,6 +282,21 @@ export function DoranRangeDatePicker({
   }
 
   const normalizedInputWidth = normalizeWidth(inputWidth);
+
+  /**
+   * Whether the trigger should refuse to raise an on-screen keyboard.
+   *
+   * This picker opens on focus, so unlike the single one it cannot simply give up the
+   * caret when the calendar appears — that is the very thing that opened it. Instead
+   * the field stays focusable and goes `readonly`, which is the one signal browsers
+   * honour for "focus this, but do not raise a keyboard".
+   *
+   * Only when it is actually a sheet on an actual finger: a narrow desktop window is
+   * also a sheet, and there a keyboard costs nothing and typing should still work.
+   * `presentation` only becomes `sheet` after mount, so this stays false through
+   * hydration and cannot mismatch the server.
+   */
+  const suppressKeyboard = presentation === 'sheet' && isCoarsePointer();
   const rootStyle =
     normalizedInputWidth !== undefined || style
       ? ({
@@ -307,7 +322,10 @@ export function DoranRangeDatePicker({
           : (endPlaceholder ?? labels.datePlaceholder)
       }
       disabled={disabled}
-      readOnly={readOnly}
+      // `readOnly` the prop still means what it did; `suppressKeyboard` only borrows
+      // the attribute. The open-on-focus check below deliberately reads the prop, so
+      // a sheet still opens when the keyboard is being suppressed.
+      readOnly={readOnly || suppressKeyboard}
       aria-label={endpoint === 'start' ? labels.rangeStart : labels.rangeEnd}
       aria-haspopup="dialog"
       aria-expanded={popover.open}
