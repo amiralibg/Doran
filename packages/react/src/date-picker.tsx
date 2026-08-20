@@ -188,8 +188,11 @@ export interface DoranDatePickerProps<F extends ValueFormat = 'doran'> extends P
   /** Writing direction. Defaults to the locale's. */
   dir?: 'rtl' | 'ltr';
   /**
-   * How the calendar is presented: anchored to the trigger (`popover`, the default),
-   * as a bottom sheet (`sheet`), or `auto` to switch to a sheet on narrow viewports.
+   * How the calendar is presented: anchored to the trigger (`popover`), as a bottom
+   * sheet (`sheet`), or `auto` — the default — which switches to a sheet under 640px.
+   *
+   * A panel anchored to a field near the bottom of a phone can only flip and clamp,
+   * so it ends up squeezed against an edge. Pass `popover` to anchor it everywhere.
    */
   mode?: PickerMode;
   /** Explicit trigger width. Numeric values are interpreted as pixels. */
@@ -268,7 +271,7 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
       classNames,
       portalContainer,
       dir,
-      mode = 'popover',
+      mode = 'auto',
       inputWidth,
       dropdownWidth = 'auto',
       withTime,

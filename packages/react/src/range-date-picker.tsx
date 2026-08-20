@@ -26,6 +26,7 @@ import { createPortal } from 'react-dom';
 import { useDirection, useResolvedLocale } from './provider';
 import { DoranRangePicker, type DoranRangePickerProps } from './range-picker';
 import { usePopover } from './use-popover';
+import { usePresentation, type PickerMode } from './use-presentation';
 import type { DateRange, GregorianDateRange } from './hooks';
 
 /** Which end of the range the user is editing. */
@@ -90,6 +91,14 @@ export interface DoranRangeDatePickerProps extends Pick<
   inputWidth?: CSSProperties['width'];
   /** Where the pop-over is portaled. Defaults to `document.body`. */
   portalContainer?: HTMLElement | null;
+  /**
+   * How the calendar is presented: anchored to the trigger (`popover`), as a bottom
+   * sheet (`sheet`), or `auto` — the default — which switches to a sheet under 640px.
+   *
+   * A range picker is the widest thing this library renders; anchored to a field on a
+   * phone it runs off the bottom of the screen with no way to scroll it.
+   */
+  mode?: PickerMode;
 }
 
 function normalizeWidth(width: CSSProperties['width']): CSSProperties['width'] {
@@ -124,6 +133,7 @@ export function DoranRangeDatePicker({
   icon,
   inputWidth,
   portalContainer,
+  mode = 'auto',
   ...rangeProps
 }: DoranRangeDatePickerProps) {
   const locale = useResolvedLocale(localeProp);
@@ -148,7 +158,9 @@ export function DoranRangeDatePicker({
   const startRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLInputElement>(null);
 
+  const presentation = usePresentation(mode);
   const popover = usePopover({
+    positioned: presentation !== 'sheet',
     onClose: (restoreFocus) => {
       if (restoreFocus) (editing === 'end' ? endRef : startRef).current?.focus();
     },
@@ -364,8 +376,16 @@ export function DoranRangeDatePicker({
             aria-modal="false"
             aria-label={labels.calendar}
             dir={direction}
-            className="doran-datepicker__popover"
-            style={popover.position ?? { visibility: 'hidden' }}
+            className={cn(
+              'doran-datepicker__popover',
+              presentation === 'sheet' && 'doran-datepicker__popover--sheet',
+            )}
+            data-presentation={presentation}
+            // A sheet is pinned to the viewport by CSS, so measuring it against the
+            // trigger would only fight the stylesheet.
+            style={
+              presentation === 'sheet' ? undefined : (popover.position ?? { visibility: 'hidden' })
+            }
             onKeyDown={popover.onKeyDown}
           >
             <DoranRangePicker

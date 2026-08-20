@@ -19,7 +19,7 @@ export const SHEET_BREAKPOINT = 640;
  * SSR-safe: renders as a pop-over on the server and corrects after hydration, since
  * viewport width is not knowable until then.
  */
-export function usePresentation(mode: PickerMode = 'popover'): 'popover' | 'sheet' {
+export function usePresentation(mode: PickerMode = 'auto'): 'popover' | 'sheet' {
   const [isNarrow, setIsNarrow] = useState(false);
 
   useEffect(() => {

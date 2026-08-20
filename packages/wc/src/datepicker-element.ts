@@ -162,7 +162,9 @@ export class DoranDatePickerElement extends HTMLElement {
   get #presentation(): 'popover' | 'sheet' {
     const mode = this.getAttribute('mode');
     if (mode === 'sheet') return 'sheet';
-    if (mode !== 'auto') return 'popover';
+    // `auto` is the default: a panel anchored to a field near the bottom of a phone
+    // can only flip and clamp, so it ends up squeezed against an edge.
+    if (mode === 'popover') return 'popover';
     if (typeof window === 'undefined' || !window.matchMedia) return 'popover';
     return window.matchMedia('(max-width: 639px)').matches ? 'sheet' : 'popover';
   }

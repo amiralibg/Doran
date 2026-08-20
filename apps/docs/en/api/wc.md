@@ -77,8 +77,17 @@ keyboard is gone before the panel is placed, and it does not take focus back aft
 date is picked — the keyboard would otherwise cover the calendar and, dismissing
 itself mid-tap, move the panel out from under the finger. The panel is measured
 against the visual viewport rather than `window.innerHeight`, and holds still for the
-length of any gesture that starts on it. `mode="auto"` presents the calendar as a
-bottom sheet under 640px.
+length of any gesture that starts on it.
+
+Under 640px the calendar is presented as a **bottom sheet** rather than anchored to
+the trigger — that is `mode="auto"`, and it is the default for `<doran-datepicker>`
+and `<doran-rangedatepicker>` alike. Pass `mode="popover"` to anchor it everywhere, or
+`mode="sheet"` for a sheet at every width. The sheet is full-bleed, dims the page
+behind it, and scrolls internally; inside it days grow to a 44px touch target, the
+range picker's months stack rather than sitting side by side, and its presets become a
+horizontal strip. Tune it with `--doran-sheet-bg`, `--doran-sheet-backdrop`,
+`--doran-sheet-radius`, `--doran-sheet-padding`, `--doran-sheet-content-width`, and
+`--doran-day-size-touch`.
 
 `format` drives typing as well as display. Digits flow into the pattern as they are
 entered — `14020512` becomes `۱۴۰۲/۰۵/۱۲` with no separators typed — and fields
