@@ -1,5 +1,43 @@
 # @doranjs/wc
 
+## 0.7.0
+
+### Minor Changes
+
+- [#61](https://github.com/amiralibg/Doran/pull/61) [`ed02eb5`](https://github.com/amiralibg/Doran/commit/ed02eb56f518dedc77e55377e9e6b9055da6d398) Thanks [@amiralibg](https://github.com/amiralibg)! - Stop the range picker's keyboard covering its own sheet
+
+  `DoranRangeDatePicker` and `<doran-rangedatepicker>` open on focus, so unlike the
+  single picker they cannot give up the caret when the calendar appears — that is the
+  very thing that opened it. On a phone the on-screen keyboard therefore rose over the
+  sheet the focus had just opened.
+
+  Their fields now go `readonly` while presenting as a sheet on a coarse pointer, which
+  is the one signal browsers honour for "focus this, but do not raise a keyboard". The
+  field stays focusable, so focus still opens the picker, and the open-on-focus check
+  still reads the real `readOnly` prop rather than this.
+
+  Scoped deliberately: only a sheet, and only an actual finger. A narrow desktop window
+  is also a sheet, and there a mouse raises no keyboard, so taking typing away would
+  cost something and buy nothing. `mode="popover"` opts out entirely.
+
+### Patch Changes
+
+- [#61](https://github.com/amiralibg/Doran/pull/61) [`ed02eb5`](https://github.com/amiralibg/Doran/commit/ed02eb56f518dedc77e55377e9e6b9055da6d398) Thanks [@amiralibg](https://github.com/amiralibg)! - Rebuild the web-component stylesheet when the styles it is built from change
+
+  `@doranjs/wc` composes `dist/styles.css` by concatenating `packages/ui/src/styles.css`
+  and `packages/react/src/styles.css` in a `build:done` hook. It declares no dependency
+  on either package, so Turbo had no idea those files were inputs: editing React's
+  stylesheet left the `wc` build cached, and the published bundle kept the old CSS.
+
+  This was not theoretical. A styling change landed in React and every web-component
+  example kept rendering the previous rules until the build was forced —
+  `grep -c "max-width: 400px" packages/wc/dist/styles.css` returned `0` against a
+  stylesheet that contained it.
+
+  A package-level `turbo.json` now names both files as build inputs via `$TURBO_ROOT$`,
+  so the task hash tracks them. Verified by hashing the task either side of an edit to
+  React's stylesheet: identical before, different after.
+
 ## 0.6.0
 
 ### Minor Changes
