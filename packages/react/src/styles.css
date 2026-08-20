@@ -807,24 +807,53 @@
 
 /* --- Sheet presentation -------------------------------------------------
    Under the breakpoint the calendar stops trying to anchor itself to a trigger
-   near the bottom of a phone viewport and becomes a bottom sheet instead. The
-   backdrop is a pseudo-element so no extra DOM is needed. */
+   near the bottom of a phone viewport and becomes a bottom sheet instead. */
 
-.doran-datepicker__popover--sheet {
+.doran-datepicker__popover.doran-datepicker__popover--sheet {
   position: fixed;
   inset: auto 0 0 0;
   width: 100%;
-  max-width: 100%;
-  max-height: 90dvh;
+  /* Beats the anchored pop-over's `calc(100vw - 1rem)`. A sheet is full-bleed;
+     inset alone loses to that cap and leaves it floating short of both edges. */
+  max-width: none;
+  max-height: 88dvh;
   overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex;
-  justify-content: center;
-  padding: var(--doran-sheet-padding, var(--doran-space-md));
+  flex-direction: column;
+  align-items: center;
+  /* Room for the grabber above the calendar. */
+  padding: calc(var(--doran-space-md) + 0.5rem) var(--doran-sheet-padding, var(--doran-space-md))
+    var(--doran-space-md);
   /* Clear the home indicator and any on-screen keyboard inset. */
   padding-bottom: calc(var(--doran-space-md) + env(safe-area-inset-bottom, 0px));
+  /* The surface itself. Without this the sheet is transparent and the calendar
+     inside it reads as a slab floating over the page, framed by a stray shadow. */
+  background: var(--doran-sheet-bg, var(--doran-surface));
   border-radius: var(--doran-sheet-radius, var(--doran-radius-lg) var(--doran-radius-lg) 0 0);
-  box-shadow: var(--doran-sheet-shadow, var(--doran-shadow-lg));
-  animation: doran-sheet-in var(--doran-transition, 0.15s ease);
+  /* A hairline for the edge, plus the dimmed page behind. The spread shadow is the
+     backdrop: it paints behind the sheet, needs no extra DOM, and — being a shadow —
+     never intercepts the tap that closes the sheet. */
+  box-shadow:
+    var(--doran-sheet-shadow, inset 0 1px 0 var(--doran-border)),
+    0 0 0 100vmax var(--doran-sheet-backdrop, rgb(0 0 0 / 0.32));
+  animation: doran-sheet-in var(--doran-transition, 0.22s cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+/* The grabber. Says "sheet" before the user has touched anything, and is the one
+   affordance every native bottom sheet shares. Decorative only — dragging is not
+   wired up, so it must never eat a tap meant for the calendar. */
+.doran-datepicker__popover.doran-datepicker__popover--sheet::before {
+  content: '';
+  position: absolute;
+  top: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: var(--doran-sheet-grabber-width, 2.25rem);
+  height: 0.25rem;
+  border-radius: var(--doran-radius-full);
+  background: var(--doran-sheet-grabber-color, var(--doran-border));
+  pointer-events: none;
 }
 
 @keyframes doran-sheet-in {
@@ -836,6 +865,13 @@
   }
 }
 
+/* A sheet is the width of the phone, so the calendar should use it rather than sit
+   at its desktop width with the difference as dead margin. */
+.doran-datepicker__popover--sheet .doran-calendar,
+.doran-datepicker__popover--sheet .doran-rangepicker {
+  width: 100%;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .doran-datepicker__popover--sheet {
     animation: none;
@@ -844,10 +880,12 @@
 
 /* The calendar fills the sheet rather than keeping its desktop width. */
 .doran-datepicker__popover--sheet .doran-calendar {
-  width: 100%;
-  max-width: 22rem;
+  /* `min(…, 100%)`: the cap is a readability limit on a big phone, never a reason to
+     grow past the sheet on a small one. */
+  max-width: min(var(--doran-sheet-content-width, 26rem), 100%);
   border: none;
   box-shadow: none;
+  background: transparent;
 }
 
 /* --- Range trigger ------------------------------------------------------
@@ -988,6 +1026,129 @@
   font-size: 0.82rem;
   color: var(--doran-text-muted);
   font-variant-numeric: tabular-nums;
+}
+
+/* ===========================================================================
+ * Narrow viewports
+ *
+ * Everything above is laid out for a mouse and a wide window. These rules are the
+ * phone's share of the design — not a shrink of the desktop layout, but the pieces
+ * re-stacked so each one keeps its full size.
+ *
+ * 640px matches `SHEET_BREAKPOINT` in the components, so a picker that switches to
+ * a sheet and the layout inside it change over together.
+ * ======================================================================== */
+
+@media (max-width: 639px) {
+  /* A finger is roughly 44px wide and has no cursor to aim with. Days are the whole
+     point of the widget, so they get the room first; everything else follows from
+     the grid being wider. */
+  .doran-calendar,
+  .doran-rangepicker {
+    --doran-day-size: var(--doran-day-size-touch, 2.75rem);
+    --doran-day-font-size: 0.95rem;
+  }
+
+  /* The calendar sizes to the screen rather than a fixed desktop width, and never
+     past whatever is holding it. */
+  .doran-calendar {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* The touch target is a ceiling, not a floor.
+     
+     A fixed 2.75rem day is 308px of grid before padding, which does not fit a 375px
+     phone once an inline calendar has a legend beside it — the grid stops shrinking
+     and the page scrolls sideways instead. Filling the cell and capping at the touch
+     size gives a full 44px wherever there is room and degrades smoothly where there
+     is not, rather than overflowing. The cell is `aspect-ratio: 1`, so the day stays
+     square and its full-radius circle stays a circle. */
+  .doran-day {
+    width: 100%;
+    height: 100%;
+    max-width: var(--_day-size);
+    max-height: var(--_day-size);
+  }
+
+  /* --- Range picker ----------------------------------------------------
+     Two months side by side and a preset sidebar is three columns of content on a
+     screen that has room for one. Each becomes a row of its own instead. */
+  .doran-rangepicker,
+  .doran-rangepicker--multi,
+  .doran-rangepicker:has(.doran-rangepicker__presets) {
+    width: 100%;
+  }
+
+  .doran-rangepicker__body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Months stack and the panel scrolls, the way a phone date range is normally
+     browsed — rather than two grids fighting over one screen's width. */
+  .doran-rangepicker__months {
+    flex-direction: column;
+    gap: var(--doran-space-lg, 1rem);
+    /* Side by side, `flex-start` kept each month at its natural width. Stacked, that
+       same rule leaves them at min-content — a 228px grid adrift in a 375px sheet —
+       so each month takes the full row instead. */
+    align-items: stretch;
+  }
+
+  .doran-rangepicker__months > * {
+    width: 100%;
+  }
+
+  /* Presets become a horizontal strip above the months: reachable with a thumb,
+     and costing one row instead of a whole column. */
+  .doran-rangepicker__presets {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    padding-inline-end: 0;
+    padding-bottom: var(--doran-space-sm, 8px);
+    /* The divider turns with the layout: it separated columns, now it separates rows. */
+    border-inline-end: none;
+    border-bottom: 1px solid var(--doran-calendar-border-color, var(--doran-border));
+  }
+
+  .doran-rangepicker__presets::-webkit-scrollbar {
+    display: none;
+  }
+
+  .doran-rangepicker__preset-group {
+    flex-direction: row;
+  }
+
+  .doran-rangepicker__preset {
+    flex: 0 0 auto;
+    /* Same reasoning as the days: a thumb target, not a menu row. */
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--doran-calendar-border-color, var(--doran-border));
+  }
+
+  /* The summary and Clear stop competing for one line once the range is spelled out. */
+  .doran-rangepicker__footer {
+    flex-wrap: wrap;
+    gap: var(--doran-space-sm, 8px);
+  }
+}
+
+/* 375px is the floor this library designs for — an iPhone SE or a Galaxy S in
+   portrait. At that width the frame around the grid costs more than the grid can
+   spare, so the chrome gives its padding back to the days. */
+@media (max-width: 400px) {
+  .doran-datepicker__popover.doran-datepicker__popover--sheet {
+    --doran-sheet-padding: var(--doran-space-sm, 8px);
+  }
+
+  .doran-datepicker__popover--sheet .doran-calendar,
+  .doran-datepicker__popover--sheet .doran-rangepicker {
+    --doran-calendar-padding: var(--doran-space-sm, 8px);
+  }
 }
 
 /* ===========================================================================

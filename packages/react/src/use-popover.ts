@@ -8,6 +8,12 @@ export interface UsePopoverOptions {
   matchTriggerWidth?: boolean;
   /** Called after the pop-over closes, so the caller can restore focus its own way. */
   onClose?: (restoreFocus: boolean) => void;
+  /**
+   * Whether to measure and track the trigger. Off for a sheet, which CSS pins to the
+   * viewport — tracking it would only fight the stylesheet, and the scroll and resize
+   * listeners would run for nothing.
+   */
+  positioned?: boolean;
 }
 
 export interface PopoverState {
@@ -33,7 +39,7 @@ export interface PopoverState {
  * whether the calendar steals focus and on what `matchTriggerWidth` measures.
  */
 export function usePopover(options: UsePopoverOptions = {}): PopoverState {
-  const { matchTriggerWidth = false, onClose } = options;
+  const { matchTriggerWidth = false, onClose, positioned = true } = options;
 
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -43,7 +49,9 @@ export function usePopover(options: UsePopoverOptions = {}): PopoverState {
   const popoverRef = useRef<HTMLDivElement>(null);
   const popoverId = useId();
 
-  const position = usePopoverPosition(open, fieldRef, popoverRef, { matchTriggerWidth });
+  const position = usePopoverPosition(open && positioned, fieldRef, popoverRef, {
+    matchTriggerWidth,
+  });
 
   function close(restoreFocus: boolean) {
     setOpen(false);

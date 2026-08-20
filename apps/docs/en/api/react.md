@@ -209,8 +209,18 @@ The panel is measured against the visual viewport rather than `window.innerHeigh
 which on iOS stays at full height while the keyboard covers half the screen, and it
 holds still for the length of any gesture that starts on it.
 
-Set `mode="auto"` to present the calendar as a bottom sheet under 640px instead of
-anchoring it to the trigger.
+Under 640px the calendar is presented as a **bottom sheet** rather than anchored to
+the trigger — that is `mode="auto"`, and it is the default for both the date picker
+and the range picker. A panel anchored to a field near the bottom of a phone can only
+flip and clamp, so it ends up squeezed against an edge; the range picker, being the
+widest panel here, simply ran off the screen. Pass `mode="popover"` to anchor it
+everywhere, or `mode="sheet"` to use a sheet at every width.
+
+The sheet is full-bleed, dims the page behind it, and scrolls internally. Inside it
+days grow to a 44px touch target, the range picker's months stack instead of sitting
+side by side, and its presets become a horizontal strip. Tune it with
+`--doran-sheet-bg`, `--doran-sheet-backdrop`, `--doran-sheet-radius`,
+`--doran-sheet-padding`, `--doran-sheet-content-width`, and `--doran-day-size-touch`.
 
 ## Value types
 
