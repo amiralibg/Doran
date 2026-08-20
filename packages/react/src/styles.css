@@ -291,7 +291,8 @@
   align-items: center;
   justify-content: center;
   width: var(--doran-time-btn-width, 1.75rem);
-  height: var(--doran-time-btn-height, 1.25rem);
+  /* 24px is the floor WCAG 2.5.8 sets for a pointer target; this was 20. */
+  height: var(--doran-time-btn-height, 1.5rem);
   border: none;
   background: transparent;
   color: var(--doran-time-btn-color, var(--doran-text-muted));
@@ -745,16 +746,36 @@
   outline: none;
 }
 
+/* The field is 40px tall but the control inside it was 23px, so the padding around
+   the text was dead to a tap — you had to hit the middle of the field to focus it, or
+   to open the picker under `editable={false}`. The control fills the field instead.
+   An input centres its own text; the button is made a flex box below to match. */
+.doran-datepicker__control {
+  align-self: stretch;
+}
+
 /* `editable={false}`: the trigger is a button, so it has to be talked back out of
    looking like one and into looking like the field it replaces. */
 .doran-datepicker__control--button {
-  display: block;
+  display: flex;
+  align-items: center;
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
   line-height: normal;
   -webkit-appearance: none;
   appearance: none;
+}
+
+/* `text-align` does not reach an anonymous flex item, so the physical keywords carry
+   the intent instead — and they stay physical under `dir="rtl"`, where `flex-end`
+   would have quietly meant the opposite edge. */
+.doran-datepicker__control--button[data-text-align='right'] {
+  justify-content: right;
+}
+
+.doran-datepicker__control--button[data-text-align='left'] {
+  justify-content: left;
 }
 
 /* Compatibility with markup from before the trigger became a real input.
@@ -1069,6 +1090,39 @@
     height: 100%;
     max-width: var(--_day-size);
     max-height: var(--_day-size);
+  }
+
+  /* A day carrying a fare or a seat count is taller than it is wide on purpose, and
+     `--_day-size` is a width budget rather than its height. Capping it squashed the
+     annotation out of sight. */
+  .doran-month--rich .doran-day {
+    max-height: none;
+  }
+
+  /* --- Calendar slots --------------------------------------------------
+     `aside` is a sidebar beside the grid. At 375px that left the grid 23px columns —
+     it stopped overflowing once days became fluid, but only by shrinking to
+     unusable. The sidebar becomes a row above the grid instead. */
+  .doran-calendar__body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .doran-calendar__aside {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding-inline-end: 0;
+    padding-bottom: var(--doran-space-sm, 8px);
+    /* The divider turns with the layout: it separated columns, now it separates rows. */
+    border-inline-end: none;
+    border-bottom: 1px solid var(--doran-calendar-border-color, var(--doran-border));
+  }
+
+  /* --- Time picker ------------------------------------------------------
+     The steppers were 28x20 — a target you miss more often than you hit. */
+  .doran-time__btn {
+    --doran-time-btn-width: 2.25rem;
+    --doran-time-btn-height: 2rem;
   }
 
   /* --- Range picker ----------------------------------------------------
