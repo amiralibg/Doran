@@ -1,5 +1,12 @@
 # @doranjs/svelte
 
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [[`22261ef`](https://github.com/amiralibg/Doran/commit/22261effb5b24d7d2a9a25d8adb36e3365f8e582)]:
+  - @doranjs/wc@0.6.0
+
 ## 0.3.2
 
 ### Patch Changes
