@@ -643,6 +643,9 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
                 classNames?.input,
               )}
               style={{ flex: 1, textAlign }}
+              // Mirrors the web component, and gives the stylesheet something to align
+              // against now the button is a flex box rather than a run of text.
+              data-text-align={textAlign}
               disabled={disabled}
               aria-haspopup="dialog"
               aria-expanded={open}
