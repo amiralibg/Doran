@@ -222,6 +222,14 @@ side by side, and its presets become a horizontal strip. Tune it with
 `--doran-sheet-bg`, `--doran-sheet-backdrop`, `--doran-sheet-radius`,
 `--doran-sheet-padding`, `--doran-sheet-content-width`, and `--doran-day-size-touch`.
 
+`DoranRangeDatePicker` opens on focus, so on a touch device it cannot give up the
+caret the way the single picker does — that is the very thing that opened it. Its
+fields go `readonly` instead while they are presenting as a sheet on a coarse pointer,
+which is the one signal browsers honour for "focus this, but do not raise a keyboard".
+A keyboard would otherwise cover the sheet it just opened. Typing still works
+everywhere else, including a narrow desktop window, where a sheet costs no keyboard.
+Pass `mode="popover"` if you would rather type on a phone than see the whole calendar.
+
 ## Value types
 
 `value`, `defaultValue`, `min`, and `max` accept a `DoranDate`, a native `Date`, epoch

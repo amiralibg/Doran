@@ -89,6 +89,14 @@ horizontal strip. Tune it with `--doran-sheet-bg`, `--doran-sheet-backdrop`,
 `--doran-sheet-radius`, `--doran-sheet-padding`, `--doran-sheet-content-width`, and
 `--doran-day-size-touch`.
 
+`<doran-rangedatepicker>` opens on focus, so on a touch device it cannot give up the
+caret the way `<doran-datepicker>` does — that is the very thing that opened it. Its
+fields go `readonly` instead while presenting as a sheet on a coarse pointer, which is
+the one signal browsers honour for "focus this, but do not raise a keyboard"; a
+keyboard would otherwise cover the sheet it just opened. Typing still works everywhere
+else, including a narrow desktop window. Pass `mode="popover"` if you would rather
+type on a phone than see the whole calendar.
+
 `format` drives typing as well as display. Digits flow into the pattern as they are
 entered — `14020512` becomes `۱۴۰۲/۰۵/۱۲` with no separators typed — and fields
 advance the way a native date input does: `95` is no month, so the `9` becomes month

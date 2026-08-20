@@ -9,11 +9,15 @@ afterEach(() => {
 });
 
 /** jsdom has no layout, so stand in for a viewport of `width`. */
-function viewport(width: number): void {
+function viewport(width: number, pointer: 'coarse' | 'fine' = 'fine'): void {
   vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => {
     const max = /max-width:\s*(\d+)px/.exec(query);
     return {
-      matches: max ? width <= Number(max[1]) : false,
+      matches: query.includes('pointer: coarse')
+        ? pointer === 'coarse'
+        : max
+          ? width <= Number(max[1])
+          : false,
       media: query,
       addEventListener: () => {},
       removeEventListener: () => {},
@@ -60,6 +64,26 @@ describe('presentation', () => {
     openVia(el, '.doran-datepicker__icon');
 
     expect(panel().className).not.toContain('--sheet');
+  });
+
+  it('does not let the range trigger raise a keyboard over its own sheet', () => {
+    viewport(375, 'coarse');
+    const el = mount('doran-rangedatepicker');
+    const field = el.querySelector<HTMLInputElement>('input')!;
+    field.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+
+    expect(panel().className).toContain('doran-datepicker__popover--sheet');
+    expect(el.querySelector('input')!.hasAttribute('readonly')).toBe(true);
+  });
+
+  it('still lets a narrow desktop window type', () => {
+    viewport(375, 'fine');
+    const el = mount('doran-rangedatepicker');
+    el.querySelector<HTMLInputElement>('input')!.dispatchEvent(
+      new FocusEvent('focusin', { bubbles: true }),
+    );
+
+    expect(el.querySelector('input')!.hasAttribute('readonly')).toBe(false);
   });
 
   it('gives the range picker a sheet too', () => {
