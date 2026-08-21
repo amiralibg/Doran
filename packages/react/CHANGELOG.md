@@ -1,5 +1,54 @@
 # @doranjs/react
 
+## 0.9.2
+
+### Patch Changes
+
+- [#65](https://github.com/amiralibg/Doran/pull/65) [`1b8d737`](https://github.com/amiralibg/Doran/commit/1b8d7371902dd30d97f4b27353429a174a0be4ad) Thanks [@amiralibg](https://github.com/amiralibg)! - Make the calendar's navigation arrows follow the writing direction
+
+  The docs have always said the default navigation chevrons flip to match the direction.
+  They did not. `DoranCalendar` resolved a direction, put it on its root and handed it to
+  the month grid, but never passed it to `CalendarHeader` — whose own `direction` default
+  is `'rtl'`. So the arrows pointed right-to-left under an LTR locale, and under an
+  explicit `dir="ltr"`, in a calendar whose layout had correctly flipped around them.
+
+  `DoranRangePicker` had always passed `direction` to that same component, which is why
+  only the single calendar looked wrong and why passing a hand-picked `arrows` pair was
+  the usual workaround. That workaround is no longer needed, and still wins where it is
+  used — an explicit `arrows` prop is untouched by this.
+
+  `DoranDatePicker` also never forwarded its `dir` to the calendar it opens. The pop-over
+  carried the right direction, then the calendar inside re-derived its own from the locale
+  and contradicted the field it had opened from; `<DoranDatePicker dir="ltr" />` rendered
+  an RTL calendar. It now passes the resolved direction down, matching what
+  `DoranRangeDatePicker` already did.
+
+  If you were passing `arrows` purely to correct the chevrons under an LTR locale, you can
+  drop it. `@doranjs/wc` was already correct and is unchanged.
+
+- [#65](https://github.com/amiralibg/Doran/pull/65) [`713ee9f`](https://github.com/amiralibg/Doran/commit/713ee9f8322ddf9ba230fca8e06196e684d1e679) Thanks [@amiralibg](https://github.com/amiralibg)! - Fix the calendar going inert inside modal dialogs
+
+  Inside a modal Radix layer — a Dialog, an AlertDialog, a shadcn Sheet, a vaul Drawer,
+  anything opening with `disableOutsidePointerEvents` — the date picker's calendar
+  rendered correctly and on top, but tapping a day or a time stepper selected nothing and
+  closed the calendar instead.
+
+  Those layers set `pointer-events: none` on `<body>` for as long as they are open and
+  exempt only their own subtree. The pop-over is portaled to `<body>`, so it inherited the
+  `none` and went inert: the tap hit-tested straight through to `<html>`, and the picker's
+  own outside-pointerdown dismissal then saw a target it did not own and closed. Both
+  picking a date and adjusting the time died this way.
+
+  `.doran-datepicker__popover` now sets `pointer-events: auto`, the same reasoning as the
+  `position: fixed` that already protects it from `overflow: hidden` ancestors — it is the
+  topmost element on screen by construction, so there is no case where inheriting `none` is
+  wanted. The single rule covers `DoranDatePicker`, `DoranRangeDatePicker`, and the
+  `<doran-datepicker>` / `<doran-rangedatepicker>` elements, which share the class.
+  `DoranNlpInput`'s suggestion list is portaled the same way and had the same gap; it is
+  fixed too.
+
+  No API change, and nothing to do on upgrade beyond taking the new stylesheet.
+
 ## 0.9.1
 
 ### Patch Changes
