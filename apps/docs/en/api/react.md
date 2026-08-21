@@ -282,6 +282,12 @@ merge with Doran's. `portalContainer` moves the pop-over out of `document.body` 
 the dialog's element when the picker sits inside a focus-trapping dialog, since a
 body-level pop-over falls outside the trap.
 
+That is about focus, not clicks. Inside a modal Radix layer — a Dialog, an AlertDialog,
+a shadcn Sheet, a vaul Drawer, anything opening with `disableOutsidePointerEvents` —
+`<body>` carries `pointer-events: none` while the layer is open. The stylesheet opts the
+pop-over back in, so the calendar stays clickable at `document.body` and you do not need
+`portalContainer` to make selection work.
+
 ## Day widgets
 
 Put your own content under each day — a fare, a seat count, an availability badge.

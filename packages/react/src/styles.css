@@ -939,11 +939,22 @@
  * Rendered in a body-level portal and positioned `fixed` from the trigger rect
  * (top/left arrive as inline styles), so overflow:hidden/auto ancestors can
  * never clip it. Override the stacking level with `--doran-z-popover`.
+ *
+ * `pointer-events: auto` is that same protection applied to input instead of
+ * layout. A modal Radix layer — Dialog, AlertDialog, a shadcn Sheet, a vaul
+ * Drawer, anything using `disableOutsidePointerEvents` — parks
+ * `pointer-events: none` on <body> for as long as it is open and exempts only
+ * its own subtree. A body-portaled pop-over inherits the `none` and goes inert:
+ * the calendar paints on top but taps hit-test straight through to <html>, and
+ * the picker's own outside-pointerdown dismissal then sees a target it does not
+ * own and closes. The pop-over is the topmost element on screen by
+ * construction, so there is no case where inheriting `none` is wanted.
  */
 .doran-datepicker__popover {
   position: fixed;
   max-width: calc(100vw - 1rem);
   z-index: var(--doran-z-popover, 9999);
+  pointer-events: auto;
   animation: doran-pop-in 0.12s ease;
 }
 
@@ -1287,10 +1298,15 @@
 /*
  * Body-portaled and positioned `fixed` at the input's width (top/left/width
  * arrive as inline styles), so overflow ancestors can never clip it.
+ * `pointer-events: auto` for the reason spelled out on
+ * `.doran-datepicker__popover`: inside a modal Radix layer <body> carries
+ * `pointer-events: none`, and without this the suggestions would render in
+ * place but refuse every tap.
  */
 .doran-nlp__suggestions {
   position: fixed;
   z-index: var(--doran-z-popover, 9999);
+  pointer-events: auto;
   box-sizing: border-box;
   margin: 0;
   padding: var(--doran-space-xs);
