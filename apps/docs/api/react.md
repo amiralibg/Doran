@@ -34,6 +34,7 @@ import { DoranCalendar, DoranDatePicker } from '@doranjs/react';
 | `defaultValue`    | `DoranDate \| null`                                          | —                    | مقدار اولیهٔ uncontrolled                                                                                     |
 | `onChange`        | `(date: DoranDate \| null, gregorian: Date \| null) => void` | —                    | هنگام انتخاب یا پاک‌کردن؛ آرگومان دوم `Date` نیتیو برای backend                                               |
 | `locale`          | `Locale \| string`                                           | `getDefaultLocale()` | locale قالب‌بندی — از پیش‌فرض جهانی fallback می‌کند                                                           |
+| `dir`             | `'rtl' \| 'ltr'`                                             | جهتِ locale          | جهت نوشتار؛ به تقویمِ پاپ‌اور هم می‌رسد، از جمله جهتِ فلش‌های ناوبری                                          |
 | `format`          | `string`                                                     | `'YYYY/MM/DD'`       | الگوی نمایش؛ ارقامِ تایپ‌شده همین‌طور که وارد می‌شوند در این قالب mask می‌شوند و متن با همین الگو پارس می‌شود |
 | `placeholder`     | `string`                                                     | `'انتخاب تاریخ'`     | placeholder ورودی                                                                                             |
 | `footerActions`   | `readonly ('today' \| 'clear')[]`                            | `['today']`          | اکشن‌های مرتبِ فوتر؛ آرایهٔ خالی فوتر را پنهان می‌کند                                                         |
@@ -79,6 +80,7 @@ setDefaultLocale(enUS); // نام‌ها، ارقام و دکمه‌های فو�
 | `defaultValue`   | `DateRange`                                                 | —                    | بازهٔ اولیه                                           |
 | `onChange`       | `(range: DateRange, gregorian: GregorianDateRange) => void` | —                    | آرگومان دوم، شامل `Date` نیتیو برای start/end         |
 | `locale`         | `Locale \| string`                                          | `getDefaultLocale()` | از پیش‌فرض جهانی fallback می‌کند                      |
+| `dir`            | `'rtl' \| 'ltr'`                                            | جهتِ locale          | جهت نوشتار، از جمله جهتِ فلش‌های ناوبری               |
 | `numberOfMonths` | `number`                                                    | `1`                  | تعداد ماه‌های نمایش داده‌شده                          |
 | `presets`        | `boolean \| RangePreset[]`                                  | —                    | `true` برای presetهای آماده                           |
 | `footerActions`  | `readonly 'clear'[]`                                        | `['clear']`          | کنترل پاک‌کردن فوتر؛ آرایهٔ خالی فوتر را پنهان می‌کند |

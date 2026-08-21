@@ -265,6 +265,7 @@ export function DoranCalendar({
           onSelectMonth={selectMonth}
           onSelectYear={selectYear}
           yearRange={yearRange}
+          direction={direction}
           {...(arrows ? { arrows } : {})}
         />
 

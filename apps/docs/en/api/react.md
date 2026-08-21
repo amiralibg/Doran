@@ -34,6 +34,7 @@ import { DoranCalendar, DoranDatePicker } from '@doranjs/react';
 | `defaultValue`    | `DoranDate \| null`                                          | —                    | Uncontrolled initial value                                                                                                                    |
 | `onChange`        | `(date: DoranDate \| null, gregorian: Date \| null) => void` | —                    | Called on selection or Clear; second arg is the native `Date` for backend use                                                                 |
 | `locale`          | `Locale \| string`                                           | `getDefaultLocale()` | Formatting locale — falls back to the global default set by `setDefaultLocale()`                                                              |
+| `dir`             | `'rtl' \| 'ltr'`                                             | the locale's         | Writing direction. Flows to the pop-over calendar, including which way the navigation chevrons point                                          |
 | `format`          | `string`                                                     | `'YYYY/MM/DD'`       | Display pattern (`+ 'HH:mm'` when `withTime`); typed digits are masked into this shape as they are entered, and the text is parsed against it |
 | `placeholder`     | `string`                                                     | `'انتخاب تاریخ'`     | Input placeholder                                                                                                                             |
 | `footerActions`   | `readonly ('today' \| 'clear')[]`                            | `['today']`          | Ordered footer actions; an empty array hides the footer                                                                                       |
@@ -86,6 +87,7 @@ setDefaultLocale(enUS);
 | `defaultValue`   | `DateRange`                                                 | —                    | Uncontrolled initial range                                              |
 | `onChange`       | `(range: DateRange, gregorian: GregorianDateRange) => void` | —                    | Called on each selection step; second arg carries native `Date` objects |
 | `locale`         | `Locale \| string`                                          | `getDefaultLocale()` | Falls back to the global default                                        |
+| `dir`            | `'rtl' \| 'ltr'`                                            | the locale's         | Writing direction, including which way the navigation chevrons point    |
 | `numberOfMonths` | `number`                                                    | `1`                  | Side-by-side month grids                                                |
 | `presets`        | `boolean \| RangePreset[]`                                  | —                    | `true` for built-in presets, or a custom array                          |
 | `footerActions`  | `readonly 'clear'[]`                                        | `['clear']`          | Footer Clear control; an empty array hides the footer                   |

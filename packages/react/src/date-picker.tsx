@@ -765,6 +765,9 @@ const DatePickerImpl = forwardRef<HTMLInputElement, DoranDatePickerProps<ValueFo
                 locale={locale}
                 value={selected}
                 onChange={handleChange}
+                // Resolved, not the raw `dir` prop: the calendar would otherwise fall
+                // back to the locale's direction and contradict the field it opened from.
+                dir={direction}
                 {...(classNames?.calendar ? { className: classNames.calendar } : {})}
                 {...(footerActions ? { footerActions } : {})}
                 {...(hideFooter !== undefined ? { hideFooter } : {})}
