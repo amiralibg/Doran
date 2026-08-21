@@ -34,6 +34,7 @@ import { DoranCalendar, DoranDatePicker } from '@doranjs/react';
 | `defaultValue`    | `DoranDate \| null`                                          | —                    | مقدار اولیهٔ uncontrolled                                                                                     |
 | `onChange`        | `(date: DoranDate \| null, gregorian: Date \| null) => void` | —                    | هنگام انتخاب یا پاک‌کردن؛ آرگومان دوم `Date` نیتیو برای backend                                               |
 | `locale`          | `Locale \| string`                                           | `getDefaultLocale()` | locale قالب‌بندی — از پیش‌فرض جهانی fallback می‌کند                                                           |
+| `dir`             | `'rtl' \| 'ltr'`                                             | جهتِ locale          | جهت نوشتار؛ به تقویمِ پاپ‌اور هم می‌رسد، از جمله جهتِ فلش‌های ناوبری                                          |
 | `format`          | `string`                                                     | `'YYYY/MM/DD'`       | الگوی نمایش؛ ارقامِ تایپ‌شده همین‌طور که وارد می‌شوند در این قالب mask می‌شوند و متن با همین الگو پارس می‌شود |
 | `placeholder`     | `string`                                                     | `'انتخاب تاریخ'`     | placeholder ورودی                                                                                             |
 | `footerActions`   | `readonly ('today' \| 'clear')[]`                            | `['today']`          | اکشن‌های مرتبِ فوتر؛ آرایهٔ خالی فوتر را پنهان می‌کند                                                         |
@@ -79,6 +80,7 @@ setDefaultLocale(enUS); // نام‌ها، ارقام و دکمه‌های فو�
 | `defaultValue`   | `DateRange`                                                 | —                    | بازهٔ اولیه                                           |
 | `onChange`       | `(range: DateRange, gregorian: GregorianDateRange) => void` | —                    | آرگومان دوم، شامل `Date` نیتیو برای start/end         |
 | `locale`         | `Locale \| string`                                          | `getDefaultLocale()` | از پیش‌فرض جهانی fallback می‌کند                      |
+| `dir`            | `'rtl' \| 'ltr'`                                            | جهتِ locale          | جهت نوشتار، از جمله جهتِ فلش‌های ناوبری               |
 | `numberOfMonths` | `number`                                                    | `1`                  | تعداد ماه‌های نمایش داده‌شده                          |
 | `presets`        | `boolean \| RangePreset[]`                                  | —                    | `true` برای presetهای آماده                           |
 | `footerActions`  | `readonly 'clear'[]`                                        | `['clear']`          | کنترل پاک‌کردن فوتر؛ آرایهٔ خالی فوتر را پنهان می‌کند |
@@ -265,6 +267,12 @@ tokenهای متنی ساخته شده (`MMMM`، `dddd`) قابل ماسک‌ش�
 بخش‌ها: `root`، `trigger`، `input`، `icon`، `popover` و `calendar`؛ کلاس‌های شما با
 کلاس‌های Doran ادغام می‌شوند. `portalContainer` پاپ‌اور را از `document.body` جابه‌جا
 می‌کند — وقتی پیکر داخل دیالوگی با focus trap است، المنت همان دیالوگ را بدهید.
+
+این دربارهٔ فوکوس است، نه کلیک. داخل یک لایهٔ مودالِ Radix — ‏Dialog، ‏AlertDialog،
+‏Sheet در shadcn، ‏Drawer در vaul، هر چیزی که با `disableOutsidePointerEvents` باز
+می‌شود — تا وقتی لایه باز است `<body>` مقدار `pointer-events: none` می‌گیرد. استایل‌شیت
+پاپ‌اور را دوباره فعال می‌کند، پس تقویم همان‌جا در `document.body` کلیک‌پذیر می‌ماند و
+برای کارکردنِ انتخاب نیازی به `portalContainer` ندارید.
 
 ## ویجت روزها
 

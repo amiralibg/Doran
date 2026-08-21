@@ -3,8 +3,9 @@ import { DoranCalendar } from '@doranjs/react';
 import { useState } from 'react';
 
 // The `locale` prop switches the calendar's language. Passing the built-in
-// `enUS` renders English month/weekday names, Latin digits, and localized
-// footer actions — the same component, a different locale.
+// `enUS` renders English month/weekday names, Latin digits, localized footer
+// actions, and a left-to-right layout whose navigation chevrons point the other
+// way — the same component, a different locale.
 export default function LocaleDemo() {
   const [value, setValue] = useState(DoranDate.now());
   return (
