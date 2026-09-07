@@ -132,10 +132,13 @@ html[lang='fa-IR'] .vp-doc {
   }
 }
 
-/* Content reserves space for the sidebar on the right. */
-[dir='rtl'] .VPContent.has-sidebar {
-  padding-left: 0;
-  padding-right: var(--vp-sidebar-width);
+/* Content reserves space for the sidebar on the right (desktop only — on
+   mobile the sidebar is a hidden drawer, so no gutter). */
+@media (min-width: 960px) {
+  [dir='rtl'] .VPContent.has-sidebar {
+    padding-left: 0;
+    padding-right: var(--vp-sidebar-width);
+  }
 }
 @media (min-width: 1440px) {
   [dir='rtl'] .VPContent.has-sidebar {
